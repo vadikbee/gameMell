@@ -1,7 +1,5 @@
-# Основной класс для работы с API
-
 <?php
-
+# Основной класс для работы с API
 namespace App\Services;
 
 class AtmosferaService
@@ -13,24 +11,14 @@ class AtmosferaService
 
     public function __construct()
     {
-        $config = config('atmosfera');
+       # $config = config('atmosfera');
         $this->baseUrl = $config['base_url'];
         $this->contractor = $config['contractor'];
         $this->privateKey = $config['private_key'];
         $this->version = $config['version'];
     }
 
-    private function generateHash($data)
-    {
-        $time = now()->format('d-m-Y H:i:s');
-        $jsonData = json_encode($data);
-        $hashString = $time . $jsonData . $this->privateKey;
-        return [
-            'hash' => hash('sha256', $hashString),
-            'time' => $time,
-            'data' => $jsonData
-        ];
-    }
+   
 
     private function sendRequest($endpoint, $data)
     {

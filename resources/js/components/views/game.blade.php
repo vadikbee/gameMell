@@ -11,7 +11,7 @@
             userId: {{ $userId }},
             balance: {{ $balance }},
             currency: "{{ $currency }}",
-            apiUrl: "{{ route('game.callback') }}"
+            apiUrl: "{{route('game.callback') }}"
         };
     </script>
     @vite(['resources/js/game.js']) <!-- Подключение Vue/Nuxt приложения -->

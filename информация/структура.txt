@@ -1,0 +1,33 @@
+app/ - Ядро приложения
+
+config/ - Конфигурационные файлы
+
+database/ - Миграции, сиды, фабрики
+
+public/ - Публичные ресурсы (CSS, JS)
+
+resources/ - Шаблоны, локализация
+
+routes/ - Маршруты
+
+storage/ - Логи, кэш, загруженные файлы
+
+tests/ - Тесты
+
+vendor/ - Зависимости Composer
+
+app/
+├── Console/         # Artisan-команды
+├── Exceptions/      # Кастомные исключения
+├── Http/
+│   ├── Controllers/ # Контроллеры (основная точка входа)
+│   ├── Middleware/  # Промежуточное ПО
+│   └── ...
+├── Models/          # Eloquent-модели
+└── Providers/       # Сервис-провайдеры
+
+resources/
+├── css/             # Стили (обычно через Vite)
+├── js/              # JavaScript
+└── views/           # Blade-шаблоны
+    └── layouts/     # Базовые макеты

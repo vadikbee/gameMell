@@ -1,0 +1,15 @@
+запуск фронта и бека отдельно друг от друга
+
+фронт
+cd frontend
+npm install
+npm run dev
+
+бека
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan serve
+
+(если ошибка с php - composer install --ignore-platform-req=ext-fileinfo)

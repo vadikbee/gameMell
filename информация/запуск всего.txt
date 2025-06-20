@@ -1,0 +1,12 @@
+docker-compose up --build -d - это чтобы забилдить
+
+docker-compose up - запустить
+
+docker-compose down - отключить
+
+
+Доступ к фронтенду:
+http://localhost:3000
+
+Доступ к бэкенду:
+http://localhost:8000

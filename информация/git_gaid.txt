@@ -6,7 +6,8 @@
 5)git push -u origin ИМЯ_ветки (только в первый раз остальные п6)
 6)git push
 
-
+git clone https://github.com/vadikbee/gameMell.git - для клонирования!!!!!
+git push origin main - отправить изменения на гитхаб
 
 что делаю я
 захожу в main 
@@ -27,5 +28,9 @@ git add .
 # 3. Создать коммит с описанием изменений
 git commit -m "Ваше описание изменений"
 
+<<<<<<< HEAD
 # 4. Отправить изменения на GitHub
+=======
+
+>>>>>>> b9e63b74640de9758fd3e12d507c9ca10df150b1
 git push origin main

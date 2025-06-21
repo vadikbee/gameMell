@@ -34,25 +34,7 @@
 
 /* Стили для панели */
 .panel-layer {
-  background-attachment: relative; /* скролится */
-  position: fixed; /* Прижимаем к низу */
-  bottom: 0; /* Прижимаем к низу */
-  left: 0;  /* Прижимаем к низу */
-  right: 0; /* Прижимаем к низу */
-  background-size: auto; /* Важно: оригинальный размер */
-  background-origin: content-box; /* Защищает от смещения */
-  height: 120px; /* Высота панели */
-    background-image: url('/images/2sloy/Rectangle 191.png'); /* Путь к изображению панели */
-  overflow: hidden; /* Скрывает обрезанные части */
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  z-index: 2; /* Слой между фоном и контентом */
-  max-height: 120px;
-  min-height: 120px;
-  flex-shrink: 0; /* Запрещаем изменение размера */
-  /* Плавное появление */
-  animation: fadeIn 0.8s ease-out forwards;
-  
+ 
 }
 
 /* Гарантируем, что контент будет поверх панели */

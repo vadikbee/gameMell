@@ -1,8 +1,8 @@
 <template>
   <div class="main-color">
     <div class="main-bg">
-      
        <div 
+
         v-for="(btn, index) in winButtons" 
         :key="index"
         class="button-win"
@@ -10,6 +10,7 @@
         @click="handleWinClick(btn.id)"
       ></div>
       <div class="tarakan-1"></div>
+      <div class="finish-line"></div>
       <!-- Слой панели -->
       <div class="panel-layer">
         <div class="button-1"></div>
@@ -33,6 +34,9 @@
       <NuxtPage />
     </div>
   </div>
+
+  <RaceAnimation />
+  
 </template>
 <script setup>
 // Реактивные данные для кнопок
@@ -51,8 +55,36 @@ const handleWinClick = (btnId) => {
   console.log(`Clicked win button ${btnId}`);
   // Ваша логика обработки клика
 };
+
 </script>
+
+<script>
+/////////////////////////////////////////бег тараканов//////////////////////////////////////////////////
+
+/*import RaceAnimation from '~/components/RaceAnimation.vue';
+
+export default {
+  components: { RaceAnimation }
+}
+*/
+//////////////////////////////////////////////////////////////////////////////////////////
+</script>
+
 <style scoped>
+
+.finish-line{
+  /*border: 1px solid red !important;*/
+  background-image: url('/images/2sloy/Group 419.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  width: 383px; /* Предположительные размеры */
+  height: 15px; 
+  top: 634px; /* Пример позиции */
+  left: 3.5px; /* Пример позиции */
+  z-index: 15;
+  
+}
 /* Стили для черной менюшки */
 .panel-up {
   position: absolute;
@@ -85,9 +117,11 @@ const handleWinClick = (btnId) => {
   position: absolute;
   width: 32px; /* Предположительные размеры */
   height: 38px;
-  top: 250px; /* Пример позиции */
-  left: 50px; /* Пример позиции */
+  top: 60px; /* Пример позиции */
+  left: 180px; /* Пример позиции */
   z-index: 15;
+  transform: rotate(180deg);
+  transform-origin: center; /* Опционально: точка вращения */
 }
 .button-win {
   /* border: 1px solid red !important; /* Временная рамка */
@@ -104,7 +138,6 @@ const handleWinClick = (btnId) => {
     cursor: pointer;
   transition: all 0.3s ease;
 }
-
 .button-win-1 { top: 687px; right: 4px; }
 .button-win-2 { top: 687px; right: 59px; }
 .button-win-3 { top: 687px; right: 114px; }
@@ -112,9 +145,7 @@ const handleWinClick = (btnId) => {
 .button-win-5 { top: 687px; right: 224px; }
 .button-win-6 { top: 687px; right: 279px; }
 .button-win-7 { top: 687px; right: 334px; }
-/* Текст "Balance" */
-
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ БАЛАНСА */
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ БАЛАНСА *//* Текст "Balance" */
 .balance-text {
   position: absolute;
   /* Используем CSS-переменные для позиционирования */
@@ -131,7 +162,6 @@ const handleWinClick = (btnId) => {
   text-align: right;
   white-space: nowrap;
   z-index: 20;
-  
 }
 .icon-1 {
   background-image: url('/images/icons/Group.png');
@@ -152,20 +182,16 @@ const handleWinClick = (btnId) => {
   top: 7px; /* Позиция как у иконки */
   right: 10px;
   z-index: 20;
-  
   /* Размеры черного квадрата */
   width: 30px; 
   height: 30px;
-  
   /* Черный фон */
   background-color: #000000;
   border-radius: 8px; /* Небольшое скругление углов */
-  
   /* Центрирование содержимого */
   display: flex;
   justify-content: center;
   align-items: center;
-  
   /* Эффекты */
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   cursor: pointer;
@@ -176,13 +202,11 @@ const handleWinClick = (btnId) => {
   background-position: center top;
   background-repeat: no-repeat;
   background-size: 100% auto;
-  
   /* Фиксированные размеры контейнера */
   width: 390px;
   min-height: 844px;
   height: 100vh;
   max-height: 844px;
-  
   position: relative;
   overflow: hidden;
   margin: 0 auto;
@@ -194,11 +218,9 @@ const handleWinClick = (btnId) => {
   background-size: contain;
   background-repeat: no-repeat;
   width: 90px;
-  
   height: 50px;
   cursor: pointer;
   z-index: 11;
-  
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 8px; /* Фиксированный отступ от левого края */
@@ -212,7 +234,6 @@ const handleWinClick = (btnId) => {
   height: 100px;
   cursor: pointer;
   z-index: 11;
-  
   /* Точное позиционирование без трансформаций */
   top: 22px;
   right: 110px; /* Фиксированный отступ от правого края */
@@ -223,11 +244,9 @@ const handleWinClick = (btnId) => {
   background-size: contain;
   background-repeat: no-repeat;
   width: 90px;
-  
   height: 50px;
   cursor: pointer;
   z-index: 11;
-  
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 291px; /* Фиксированный отступ от левого края */
@@ -242,16 +261,13 @@ position: absolute;
   bottom: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
   z-index: 10;
-  
 }
-
 
 .button-balans {
   position: absolute;
   /* Используем CSS-переменные для позиционирования */
   top: var(--button-top, 10px); /* Значение по умолчанию 10px */
   right: var(--button-right, 45px); /* Значение по умолчанию 20px */
-  
   /* Стили кнопки */
   display: inline-flex;
   flex-direction: row;
@@ -272,7 +288,6 @@ position: absolute;
   letter-spacing: 0.5px;
   z-index: 20;
 }
-
 
 /* Эффекты при наведении */
 .button-1:hover, .button-2:hover, .button-3:hover {
@@ -297,6 +312,7 @@ position: absolute;
     right: 0;
   }
 }
+
 @media (max-width: 390px) {
   .main-bg {
     width: 100vw;

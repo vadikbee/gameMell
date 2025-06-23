@@ -1,5 +1,6 @@
 <template>
   <div class="main-color">
+    <div class="tarakan-test"id="generateButton"></div>
     <div class="main-bg">
        <div 
 
@@ -59,6 +60,47 @@ const handleWinClick = (btnId) => {
 </script>
 
 <script>
+/*
+/////////////////////////////////////////Тестирвоание1//////////////////////////////////////////////////
+// Функция запроса (как в вашем примере)
+const generatePaths = async () => {
+  const response = await fetch('localhost:8000/path_service.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      bug_count: 7,
+      duration: 60,
+      max_moves: 200
+    })
+  });
+  return await response.json();
+};
+
+// Обработчик кнопки
+document.getElementById('generateButton').addEventListener('click', async () => {
+  try {
+    // Добавьте индикатор загрузки
+    const button = document.getElementById('generateButton');
+    button.style.opacity = '0.7';
+    button.style.cursor = 'wait';
+
+    // Выполняем запрос
+    const data = await generatePaths();
+    console.log('Результат:', data);
+    
+    // Ваша логика обработки данных...
+    
+  } catch (error) {
+    console.error('Ошибка генерации:', error);
+  } finally {
+    // Восстанавливаем кнопку
+    const button = document.getElementById('generateButton');
+    button.style.opacity = '';
+    button.style.cursor = '';
+  }
+});
+*/
+/////////////////////////////////////////Тестирвоание1//////////////////////////////////////////////////
 /////////////////////////////////////////бег тараканов//////////////////////////////////////////////////
 
 /*import RaceAnimation from '~/components/RaceAnimation.vue';
@@ -290,20 +332,43 @@ position: absolute;
 }
 
 /* Эффекты при наведении */
-.button-1:hover, .button-2:hover, .button-3:hover {
+.button-1:hover, .button-2:hover, .button-3:hover,.tarakan-test {
   filter: 
     brightness(1.1) /* Увеличение яркости */
     drop-shadow(0 0 8px rgba(178, 56, 58, 0.8));
 }
 
 /* Эффект при нажатии */
-.button-1:active, .button-2:active {
+.button-1:active, .button-2:active,.tarakan-test {
   transform: scale(0.98);
   filter: brightness(0.95);
 }
 /* Гарантируем, что контент будет поверх панели */
 /* Адаптивность для маленьких экранов */
 /* Адаптация для мобильных */
+
+/* *****************************************ТЕСТИРОВАНИЕ**********************************/
+.tarakan-test {
+  background-image: url('/images/tarakani/Property 1=Default (1).png');
+  position: fixed; /* Фиксированная позиция относительно окна */
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 20vw; /* Относительная ширина */
+  height: 10vh; /* Относительная высота */
+  top: 15vh; /* Позиционирование по вертикали */
+  left: 70vw; /* Позиционирование по горизонтали */
+  z-index: 15;
+  cursor: pointer;
+  transform: 
+    scale(0.98) 
+    rotate(180deg)
+    translateZ(0); /* Аппаратное ускорение */
+  filter: brightness(0.95);
+  transform-origin: center;
+  will-change: transform; /* Оптимизация анимации */
+}
+/* *****************************************ТЕСТИРОВАНИЕ**********************************/
+
 @media (max-width: 390px) {
   .black-menu {
     gap: 20px; /* Уменьшаем расстояние между элементами */

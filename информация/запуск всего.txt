@@ -10,3 +10,10 @@ http://localhost:3000
 
 Доступ к бэкенду:
 http://localhost:8000
+
+++++++++++++++++++++++= Что где? =++++++++++++++++++++++++++++
+сетка - backend\scripts\generate_grid.php
+фронтенд (главная) - frontend\app.vue
+бекенд (главная) - backend\public\index.php (не уверен что нужен)
+API (бекенд) - backend\routes\api.php
+картинки (фронтенд) - frontend\public

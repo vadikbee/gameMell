@@ -31,3 +31,19 @@ resources/
 ├── js/              # JavaScript
 └── views/           # Blade-шаблоны
     └── layouts/     # Базовые макеты
+
+
+
+    /////////// генерация путей
+
+    backend/
+├── path_generator/
+│   ├── PathGenerator.php       # Основной класс генератора
+│   ├── a_star.php              # Реализация алгоритма A*
+│   └── path_service.php        # Точка входа для API
+├── config/
+│   └── race_grid.json          # Конфиг сетки лабиринта
+└── public/
+    └── images/
+        ├── bugs/               # Изображения тараканов
+        └── maze.png            # Изображение лабиринта

@@ -103,7 +103,7 @@ class PathGenerator {
 
     private function addRandomDeviations(array $path, float $intensity): array {
         $newPath = [];
-        $deviationRange = 3; // Максимальное отклонение в клетках
+        $deviationRange = 0.1; // Максимальное отклонение в клетках
         
         foreach ($path as $point) {
             if (count($newPath) > 0 && mt_rand(0, 100) < ($intensity * 100)) {

@@ -171,7 +171,7 @@ const handleGenerateClick = async () => {
     
      bugs.value = data.paths.map((path, index) => {
       bugProgress.value[index] = 0;
-      bugSpeeds.value[index] = 0.002 + Math.random() * 0.006;
+      bugSpeeds.value[index] = 0.004 + Math.random() * 0.004;
       lastSpeedChange.value[index] = Date.now();
       speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
       
@@ -214,7 +214,7 @@ const startAnimation = () => {
       
       if (bug.phase === 'racing') {
         if (timestamp - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
-          bugSpeeds.value[index] = 0.0003 + Math.random() * 0.0003;
+          bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
           lastSpeedChange.value[index] = timestamp;
           speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
         }

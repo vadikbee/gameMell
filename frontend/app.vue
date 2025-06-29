@@ -1,60 +1,65 @@
 <template>
-  
   <div class="main-color">
-     <div class="tarakan-test"
-        id="generateButton"
-        @click="handleGenerateClick" 
-        :style="{
-          opacity: isLoading ? 0.7 : 1,
-          cursor: isLoading ? 'wait' : 'pointer'
-        }">
-      </div>
+    <div class="tarakan-test"
+         id="generateButton"
+         @click="handleGenerateClick" 
+         :style="{
+           opacity: isLoading ? 0.7 : 1,
+           cursor: isLoading ? 'wait' : 'pointer'
+         }">
+    </div>
+    
     <div class="main-bg">
-       <div 
-           v-for="(btn, index) in winButtons" 
-    :key="index"
-    class="button-win"
-    :class="`button-win-${index + 1}`"
-    @click="handleWinClick(btn.id)"
-    :style="{
-      backgroundImage: `url('${btn.occupied 
-        ? '/images/buttons/Property 1=Variant2.png' 
-        : '/images/buttons/Property 1=Default.png'}')`
-    }"
-      ></div>
+      <!-- Контейнеры для кнопок с индикаторами -->
+      <div v-for="(btn, index) in winButtons" 
+           :key="btn.id"
+           class="button-win-container"
+           :class="`button-win-${index + 1}`">
+        
+        <!-- Основная кнопка -->
+        <div class="button-win"
+             @click="handleWinClick(btn.id)"
+             :style="{ backgroundImage: `url('/images/buttons/Property 1=Default.png')` }">
+        </div>
+        
+        <!-- Индикатор победы -->
+        <div v-if="btn.occupied" 
+             class="win-indicator"
+             :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
+        </div>
+      </div>
+      
       <div class="finish-line"></div>
 
-       <div 
-          v-for="bug in bugs" 
-          :key="bug.id"
-          class="tarakan"
-          :style="{
-            backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-            left: `${bug.position[0]}px`,
-            top: `${bug.position[1]}px`
-          }">
-        </div>
+      <!-- Тараканы -->
+      <div v-for="bug in bugs" 
+           :key="bug.id"
+           class="tarakan"
+           :style="{
+             backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+             left: `${bug.position[0]}px`,
+             top: `${bug.position[1]}px`
+           }">
+      </div>
       
+      <!-- Нижняя панель -->
       <div class="panel-layer">
-        <!-- В шаблоне исправляем вызовы @click -->
         <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
         <div class="button-2" id="Button-2" @click="handleButtonClick(2)"></div>
         <div class="button-3" id="Button-3" @click="handleButtonClick(3)"></div>
 
         <div class="panel-up">
-          <!-- Элементы размещены внутри контейнера -->
           <div class="balance-container">
             <div class="balance-text">Balance</div>
             <div class="button-balans">228</div>
           </div>
-            <div class="icon-button">
-              <div class="icon-1"></div>
-            </div>
+          <div class="icon-button">
+            <div class="icon-1"></div>
+          </div>
         </div>
       </div> 
     </div>
   </div>
-
 </template>
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue';
@@ -351,6 +356,15 @@ const startAnimation = () => {
     cursor: pointer;
   transition: all 0.3s ease;
 }
+/* Контейнер для кнопки и индикатора */
+.button-win-container {
+  position: absolute;
+  width: 52px;
+  height: 64px;
+  z-index: 3;
+}
+
+/* Позиции контейнеров */
 .button-win-1 { top: 687px; right: 4px; }
 .button-win-2 { top: 687px; right: 59px; }
 .button-win-3 { top: 687px; right: 114px; }
@@ -358,6 +372,33 @@ const startAnimation = () => {
 .button-win-5 { top: 687px; right: 224px; }
 .button-win-6 { top: 687px; right: 279px; }
 .button-win-7 { top: 687px; right: 334px; }
+
+/* Базовая кнопка */
+.button-win {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.3s ease;
+}
+
+/* Индикатор поверх кнопки */
+.win-indicator {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  top: -55px; /* Сдвиг вверх */
+  left: 0;
+  z-index: 2; /* Выше основной кнопки */
+  pointer-events: none; /* Игнорирует клики */
+}
 /* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ БАЛАНСА *//* Текст "Balance" */
 .balance-text {
   position: absolute;

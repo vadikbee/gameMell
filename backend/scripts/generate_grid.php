@@ -4,6 +4,12 @@
 if (!extension_loaded('gd')) {
     die("Ошибка: Требуется расширение GD для работы с изображениями. Установите его через php.ini");
 }
+ function colorDistance($color1, $color2) {
+        $dR = $color1['red'] - $color2['red'];
+        $dG = $color1['green'] - $color2['green'];
+        $dB = $color1['blue'] - $color2['blue'];
+        return sqrt($dR * $dR + $dG * $dG + $dB * $dB);
+    }
 
 function imageToGrid($imagePath, $cellSize) {
     // Проверяем существование файла
@@ -47,12 +53,7 @@ function imageToGrid($imagePath, $cellSize) {
     ];
 
     // Функция для сравнения цветов с использованием евклидова расстояния
-    function colorDistance($color1, $color2) {
-        $dR = $color1['red'] - $color2['red'];
-        $dG = $color1['green'] - $color2['green'];
-        $dB = $color1['blue'] - $color2['blue'];
-        return sqrt($dR * $dR + $dG * $dG + $dB * $dB);
-    }
+   
 
     // Отладочная информация
     $debugColors = [];
@@ -201,6 +202,10 @@ if (!is_dir($configDir)) {
 // Генерируем сетку
 $result = imageToGrid($imagePath, 13);
 $grid = $result['grid'];
+
+// ДОБАВИТЬ СЮДА:
+$grid['offset_x'] = 3.5;
+$grid['offset_y'] = 60;
 
 // Сохраняем результат
 file_put_contents($configPath, json_encode($grid, JSON_PRETTY_PRINT));
@@ -447,3 +452,8 @@ function generatePixelPreview($debug, $cols, $rows) {
     
     return $html;
 }
+//php generate_grid.php
+
+
+// В конце generate_grid.php
+file_put_contents($configPath, json_encode($grid, JSON_PRETTY_PRINT));

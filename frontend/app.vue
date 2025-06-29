@@ -10,40 +10,41 @@
     </div>
     
     <div class="main-bg">
-      <!-- Меню -->
-      <div v-for="btn in visibleMenus" 
-           :key="'menu-'+btn.id"
-           class="win-menu"
-           @mouseenter="cancelHideMenu(btn)"
-           @mouseleave="hideMenu(btn)">
-        <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menu-image">
-      </div>
       
+     
+     
       <!-- Контейнеры для кнопок с индикаторами -->
       <div v-for="(btn, index) in winButtons" 
-           :key="'btn-'+btn.id"
-           class="button-win-container"
-           :class="`button-win-${index + 1}`">
-        
+          :key="'btn-'+btn.id"
+          class="button-win-container"
+          :class="`button-win-${index + 1}`"
+          ref="(el) => setButtonRef(el, btn)">
+        <!-- Меню внутри контейнера кнопки -->
+    <div v-if="btn.menuVisible"
+         class="win-menu"
+         @mouseenter="cancelHideMenu(btn)"
+         @mouseleave="hideMenu(btn)">
+      <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menu-image">
+    </div>
         <!-- Основная кнопка -->
-        <div class="button-win"
-             @click="handleButtonClick(btn)"
-             @mouseenter="showMenu(btn)"
-             @mouseleave="scheduleHideMenu(btn)"
-             :style="{ 
-               backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
-                 ? `url('/images/buttons/knopka-win.png')` 
-                 : `url('/images/buttons/Property 1=Default.png')`,
-               cursor: isRaceStarted ? 'default' : 'pointer'
-             }">
-        </div>
+         <div class="button-win"
+         @click="handleButtonClick(btn)"
+         @mouseenter="showMenu(btn)"
+         @mouseleave="scheduleHideMenu(btn)"
+         :style="{ 
+           backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
+             ? `url('/images/buttons/knopka-win.png')` 
+             : `url('/images/buttons/Property 1=Default.png')`,
+           cursor: isRaceStarted ? 'default' : 'pointer'
+         }">
+    </div>
        
         <!-- Индикатор победы -->
         <div v-if="btn.occupied" 
-             class="win-indicator"
-             :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
+         class="win-indicator"
+         :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
+          </div>
         </div>
-      </div>
       
       <div class="finish-line"></div>
 
@@ -90,10 +91,22 @@ const lastSpeedChange = ref([]); // Время последнего измене
 const speedChangeIntervals = ref([]); // Интервалы между изменениями скорости
 // Карта соответствия координат финишных точек и ID кнопок
 const finishZones = ref([]);
-
+const buttonRefs = ref([]);
 const visibleMenus = computed(() => {
   return winButtons.value.filter(btn => btn.menuVisible && !isRaceStarted.value);
 });
+// Функция для получения позиции меню
+const getMenuPosition = (btn) => {
+  const buttonRef = buttonRefs.value[btn.id];
+  if (!buttonRef) return {};
+  const rect = buttonRef.getBoundingClientRect();
+  return {
+    left: `${rect.left + window.scrollX}px`,
+    bottom: `${window.innerHeight - rect.top + window.scrollY + 10}px`,
+    transform: 'translateX(-50%)'
+  };
+};
+
 
 const winButtons = ref([
   { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
@@ -393,7 +406,36 @@ const startAnimation = () => {
   
   animationFrame.value = requestAnimationFrame(animate);
 };
-
+onMounted(() => {
+  let lastDevicePixelRatio = window.devicePixelRatio;
+  
+  const updateZoomFactor = () => {
+    const currentDevicePixelRatio = window.devicePixelRatio;
+    if (currentDevicePixelRatio !== lastDevicePixelRatio) {
+      lastDevicePixelRatio = currentDevicePixelRatio;
+      document.documentElement.style.setProperty(
+        '--zoom-factor', 
+        currentDevicePixelRatio
+      );
+    }
+  };
+  
+  // Инициализация
+  updateZoomFactor();
+  
+  // Следим за изменениями масштаба
+  window.addEventListener('resize', updateZoomFactor);
+  
+  // Для браузеров, которые поддерживают событие zoom
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) updateZoomFactor();
+  });
+  
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateZoomFactor);
+    window.removeEventListener('wheel', updateZoomFactor);
+  });
+});
 </script>
 
 
@@ -466,7 +508,7 @@ const startAnimation = () => {
   position: absolute;
   width: 52px;
   height: 64px;
-  z-index: 3;
+  z-index: 4;
 }
 
 /* Позиции контейнеров */
@@ -747,47 +789,55 @@ position: absolute;
   filter: grayscale(70%);
 }
 .win-menu {
-  position: fixed;
-  top: 590px;
+  position: absolute;
+  bottom: calc(100% + 0px); /* 10px над кнопкой */
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 371px;
+   transform: translateX(-50%);
+  z-index: 4;
   height: 225px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  z-index: 4; 
   cursor: default;
   transition: opacity 0.2s ease;
+  pointer-events: auto;
   
- 
+
 }
-/* Увеличиваем z-index контейнера */
-.button-win-container {
-  overflow: visible;
-  z-index: 3; /* Увеличено */
-}
+
 .menu-image {
   max-width: 80vw;
   max-height: 80vh;
   object-fit: contain;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  pointer-events: auto;
-  transition: opacity 0.2s ease; /* Плавное исчезновение */
+  transition: opacity 0.2s ease;
+}
+
+/* Обновленные медиа-запросы */
+@media (max-width: 768px) {
+  .win-menu {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
 }
 
 /* Адаптация для маленьких экранов */
-@media (max-width: 390px) {
+@media (max-width: 768px) {
   .win-menu {
-    width: 60px;
-    height: 80px;
+    width: 300px;
+    height: 180px;
   }
 }
-/* Адаптация для маленьких экранов */
-@media (max-width: 768px) {
-  .menu-image {
-    max-width: 95vw;
-    max-height: 95vh;
+
+/* Для вертикальной ориентации */
+@media (max-height: 700px) {
+  .win-menu {
+    bottom: 28vh; /* Корректируем позицию для маленьких экранов */
+    transform: translateX(-50%) scale(0.9);
+  }
+}
+@media (max-width: 480px) {
+  .win-menu {
+    transform: translate(-50%, -50%) scale(0.8);
   }
 }
 </style>

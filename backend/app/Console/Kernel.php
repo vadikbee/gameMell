@@ -7,6 +7,12 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+    protected $middleware = [
+    \Illuminate\Http\Middleware\HandleCors::class,
+    \Fruitcake\Cors\HandleCors::class, // Добавить эту строку
+    \App\Http\Middleware\TrustProxies::class,
+    // ... остальные middleware ...
+    ];
     /**
      * Define the application's command schedule.
      */
@@ -14,7 +20,6 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
     }
-
     /**
      * Register the commands for the application.
      */

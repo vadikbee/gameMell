@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@nuxt/devtools": "^2.5.0",
+    "esbuild": "^0.25.5"
+  }
+}

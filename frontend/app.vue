@@ -1,22 +1,45 @@
 <template>
+  
   <div class="main-color">
-    <div class="tarakan-test"id="generateButton"></div>
+     <div class="tarakan-test"
+        id="generateButton"
+        @click="handleGenerateClick" 
+        :style="{
+          opacity: isLoading ? 0.7 : 1,
+          cursor: isLoading ? 'wait' : 'pointer'
+        }">
+      </div>
     <div class="main-bg">
        <div 
-
-        v-for="(btn, index) in winButtons" 
-        :key="index"
-        class="button-win"
-        :class="`button-win-${index + 1}`"
-        @click="handleWinClick(btn.id)"
+           v-for="(btn, index) in winButtons" 
+    :key="index"
+    class="button-win"
+    :class="`button-win-${index + 1}`"
+    @click="handleWinClick(btn.id)"
+    :style="{
+      backgroundImage: `url('${btn.occupied 
+        ? '/images/buttons/Property 1=Variant2.png' 
+        : '/images/buttons/Property 1=Default.png'}')`
+    }"
       ></div>
-      <div class="tarakan-1"></div>
       <div class="finish-line"></div>
-      <!-- Слой панели -->
+
+       <div 
+          v-for="bug in bugs" 
+          :key="bug.id"
+          class="tarakan"
+          :style="{
+            backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+            left: `${bug.position[0]}px`,
+            top: `${bug.position[1]}px`
+          }">
+        </div>
+      
       <div class="panel-layer">
-        <div class="button-1"></div>
-        <div class="button-2"></div>
-        <div class="button-3"></div>
+        <!-- В шаблоне исправляем вызовы @click -->
+        <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
+        <div class="button-2" id="Button-2" @click="handleButtonClick(2)"></div>
+        <div class="button-3" id="Button-3" @click="handleButtonClick(3)"></div>
 
         <div class="panel-up">
           <!-- Элементы размещены внутри контейнера -->
@@ -28,89 +51,241 @@
               <div class="icon-1"></div>
             </div>
         </div>
-      </div>
-      
-      
-      <!-- Контент страницы -->
-      <NuxtPage />
+      </div> 
     </div>
   </div>
 
-  <RaceAnimation />
-  
 </template>
 <script setup>
-// Реактивные данные для кнопок
+import { ref, onMounted, onUnmounted, reactive } from 'vue';
+// Добавляем переменные для управления скоростью
+const bugProgress = ref([]); // Прогресс каждого таракана (0-1)
+const bugSpeeds = ref([]); // Текущая скорость каждого таракана
+const lastSpeedChange = ref([]); // Время последнего изменения скорости
+const speedChangeIntervals = ref([]); // Интервалы между изменениями скорости
+// Карта соответствия координат финишных точек и ID кнопок
+const finishZones = ref([]);
+
+const isLoading = ref(false);
 const winButtons = ref([
-  { id: 1, top: 690, right: 333 },
-  { id: 2, top: 650, right: 300 },
-  { id: 3, top: 720, right: 300 },
-  { id: 4, top: 650, right: 366 },
-  { id: 5, top: 720, right: 366 },
-  { id: 6, top: 600, right: 333 },
-  { id: 7, top: 770, right: 333 },
+  { id: 7, occupied: false, top: 687, right: 4, bluePoint: [360, 687] },
+  { id: 6, occupied: false, top: 687, right: 59, bluePoint: [305, 687] },
+  { id: 5, occupied: false, top: 687, right: 114, bluePoint: [250, 687] },
+  { id: 4, occupied: false, top: 687, right: 169, bluePoint: [195, 687] },
+  { id: 3, occupied: false, top: 687, right: 224, bluePoint: [140, 687] },
+  { id: 2, occupied: false, top: 687, right: 279, bluePoint: [85, 687] },
+  { id: 1, occupied: false, top: 687, right: 334, bluePoint: [30, 687] },
 ]);
+
+// Состояние для отслеживания занятых финишей
+const occupiedFinishes = ref([]);
 
 // Обработчик клика
 const handleWinClick = (btnId) => {
   console.log(`Clicked win button ${btnId}`);
   // Ваша логика обработки клика
 };
-
-</script>
-
-<script>
-/*
-/////////////////////////////////////////Тестирвоание1//////////////////////////////////////////////////
-// Функция запроса (как в вашем примере)
-const generatePaths = async () => {
-  const response = await fetch('localhost:8000/path_service.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      bug_count: 7,
-      duration: 60,
-      max_moves: 200
-    })
-  });
-  return await response.json();
+const handleButtonClick = (btnId) => {
+  console.log(`Clicked button ${btnId}`);
+  // Добавьте вашу логику здесь
 };
+const paths = ref([]); // Инициализируем ПЕРЕД bugs
+const bugs = ref([]);
+const animationFrame = ref(null);
 
-// Обработчик кнопки
-document.getElementById('generateButton').addEventListener('click', async () => {
-  try {
-    // Добавьте индикатор загрузки
-    const button = document.getElementById('generateButton');
-    button.style.opacity = '0.7';
-    button.style.cursor = 'wait';
-
-    // Выполняем запрос
-    const data = await generatePaths();
-    console.log('Результат:', data);
-    
-    // Ваша логика обработки данных...
-    
-  } catch (error) {
-    console.error('Ошибка генерации:', error);
-  } finally {
-    // Восстанавливаем кнопку
-    const button = document.getElementById('generateButton');
-    button.style.opacity = '';
-    button.style.cursor = '';
+// Очистка анимации при уничтожении компонента
+onUnmounted(() => {
+  if (animationFrame.value) {
+    cancelAnimationFrame(animationFrame.value);
   }
 });
-*/
-/////////////////////////////////////////Тестирвоание1//////////////////////////////////////////////////
-/////////////////////////////////////////бег тараканов//////////////////////////////////////////////////
 
-/*import RaceAnimation from '~/components/RaceAnimation.vue';
+// Функция генерации путей
+const generatePaths = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/generate-paths', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bug_count: 7,
+        duration: 10000,
+        max_moves: 200,
+        include_grid: true // Запрашиваем информацию о сетке
+      }),
+    });
 
-export default {
-  components: { RaceAnimation }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}...`);
+    }
+
+      console.log("Status:", response.status);
+    const text = await response.text();
+    console.log("Response:", text);
+
+    const data = JSON.parse(text);
+
+    
+    return {
+      paths: data.paths,
+      results: data.results,
+      grid: data.grid, // Добавляем информацию о сетке
+      finishPoints: data.grid.finish // Добавляем финишные точки
+    };
+
+    
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+};
+
+// Обработчик клика по кнопке генерации
+const handleGenerateClick = async () => {
+  try {
+    isLoading.value = true;
+    winButtons.value.forEach(btn => btn.occupied = false);
+    occupiedFinishes.value = [];
+    bugProgress.value = [];
+    bugSpeeds.value = [];
+    lastSpeedChange.value = [];
+    speedChangeIntervals.value = [];
+    
+    const data = await generatePaths();
+    
+    // Убедимся, что grid существует в ответе
+    if (!data.grid) {
+      throw new Error('Grid configuration is missing in response');
+    }
+    
+    const cellSize = data.grid.cell_size;
+    const offsetX = data.grid.offset_x;
+    const totalWidth = data.grid.cols * cellSize;
+    const zoneWidth = totalWidth / 7;
+
+    finishZones.value = Array.from({ length: 7 }, (_, i) => ({
+      minX: i * zoneWidth + offsetX,
+      maxX: (i + 1) * zoneWidth + offsetX,
+      buttonId: i + 1
+    }));
+    
+     bugs.value = data.paths.map((path, index) => {
+      bugProgress.value[index] = 0;
+      bugSpeeds.value[index] = 0.002 + Math.random() * 0.006;
+      lastSpeedChange.value[index] = Date.now();
+      speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
+      
+      return {
+        id: index,
+        position: [...path[0]],
+        path: path,
+        finished: false,
+        // Добавляем фазы движения
+        phase: 'racing', // 'racing', 'to_blue_point', 'finished'
+        targetButtonId: null,
+        bluePointProgress: 0
+      };
+    });
+    
+    startAnimation();
+  } catch (error) {
+    console.error('Ошибка генерации путей:', error);
+  } finally {
+    isLoading.value = false;
+  }
 }
-*/
-//////////////////////////////////////////////////////////////////////////////////////////
+
+// Функция анимации
+const startAnimation = () => {
+  let lastTimestamp = performance.now();
+  
+  const animate = (timestamp) => {
+    const deltaTime = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+    
+    const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
+    
+    let activeBugs = 0;
+    
+    bugs.value.forEach((bug, index) => {
+      if (bug.finished) return;
+      
+      activeBugs++;
+      
+      if (bug.phase === 'racing') {
+        if (timestamp - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
+          bugSpeeds.value[index] = 0.0003 + Math.random() * 0.0003;
+          lastSpeedChange.value[index] = timestamp;
+          speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
+        }
+        
+        bugProgress.value[index] += bugSpeeds.value[index] * (safeDeltaTime / 16);
+        bugProgress.value[index] = Math.max(0, Math.min(bugProgress.value[index], 1));
+        
+        // Обновление позиции
+        const totalSteps = bug.path.length;
+        const currentIndex = Math.floor(bugProgress.value[index] * (totalSteps - 1));
+        const safeIndex = Math.max(0, Math.min(currentIndex, totalSteps - 1));
+        const point = bug.path[safeIndex];
+        
+        if (Array.isArray(point) && point.length >= 2) {
+          bug.position = [point[0], point[1]];
+        } else {
+          console.error(`Invalid path point for bug ${index}`, point);
+          bug.finished = true;
+        }
+        
+        // Проверка достижения финиша
+        if (bugProgress.value[index] >= 1 && !bug.finished) {
+          const bugX = bug.position[0];
+          const zone = finishZones.value.find(zone => 
+            bugX >= zone.minX && bugX < zone.maxX
+          );
+          
+          if (zone) {
+            bug.targetButtonId = zone.buttonId;
+            bug.phase = 'to_blue_point'; // Переходим ко второй фазе
+            bug.bluePointProgress = 0;
+          } else {
+            bug.finished = true;
+          }
+        }
+      }
+      // Фаза движения к синей точке
+      else if (bug.phase === 'to_blue_point') {
+        // Увеличиваем прогресс движения к синей точке
+        bug.bluePointProgress += 0.2 * (safeDeltaTime / 16);
+        
+        // Находим целевую синюю точку
+        const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+        if (button) {
+          const [targetX, targetY] = button.bluePoint;
+          
+          // Интерполируем позицию
+          bug.position[0] = bug.position[0] + (targetX - bug.position[0]) * bug.bluePointProgress;
+          bug.position[1] = bug.position[1] + (targetY - bug.position[1]) * bug.bluePointProgress;
+          
+          // Проверка достижения синей точки
+          if (bug.bluePointProgress >= 1) {
+            bug.finished = true;
+            button.occupied = true;
+          }
+        } else {
+          bug.finished = true;
+        }
+      }
+    });
+    
+    if (activeBugs > 0) {
+      animationFrame.value = requestAnimationFrame(animate);
+    }
+  };
+  
+  animationFrame.value = requestAnimationFrame(animate);
+};
+
 </script>
+
 
 <style scoped>
 
@@ -124,7 +299,7 @@ export default {
   height: 15px; 
   top: 634px; /* Пример позиции */
   left: 3.5px; /* Пример позиции */
-  z-index: 15;
+  z-index: 3;
   
 }
 /* Стили для черной менюшки */
@@ -134,7 +309,7 @@ export default {
   height: 43px;
   left: calc(50% - 390px/2);
   top: -695px; /* Фиксированная позиция вверху экрана */
-  z-index: 30;
+  z-index: 4;
   background: #000000;
   /*border: 1px solid red !important; /* Для отладки */
 }
@@ -152,18 +327,14 @@ export default {
   min-height: 100vh;
   position: relative; /* Для позиционирования */
 }
-.tarakan-1{
-   background-image: url('/images/tarakani/Property 1=Default (1).png');
-  background-size: contain;
-  background-repeat: no-repeat;
+
+.tarakan {
   position: absolute;
-  width: 32px; /* Предположительные размеры */
+  width: 32px;
   height: 38px;
-  top: 60px; /* Пример позиции */
-  left: 180px; /* Пример позиции */
-  z-index: 15;
-  transform: rotate(180deg);
-  transform-origin: center; /* Опционально: точка вращения */
+  transform: translate(-50%, -50%); /* Центрирование */
+  z-index: 2;
+  transition: left 0.1s linear, top 0.1s linear; /* Плавное движение */ /* Полупрозрачный фон */
 }
 .button-win {
   /* border: 1px solid red !important; /* Временная рамка */
@@ -176,7 +347,7 @@ export default {
   width: 52px;
   height: 64px;
      /* Новые координаты - более логичные значения */
-  z-index: 25; /* Больше чем у других элементов */
+  z-index: 3; 
     cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -203,7 +374,7 @@ export default {
   color: #FFFFFF;
   text-align: right;
   white-space: nowrap;
-  z-index: 20;
+  z-index: 3;
 }
 .icon-1 {
   background-image: url('/images/icons/Group.png');
@@ -223,7 +394,7 @@ export default {
   position: absolute;
   top: 7px; /* Позиция как у иконки */
   right: 10px;
-  z-index: 20;
+  z-index: 3;
   /* Размеры черного квадрата */
   width: 30px; 
   height: 30px;
@@ -262,10 +433,11 @@ export default {
   width: 90px;
   height: 50px;
   cursor: pointer;
-  z-index: 11;
+  z-index: 3;
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 8px; /* Фиксированный отступ от левого края */
+  
 }
 .button-2 {
    position: absolute;
@@ -275,7 +447,7 @@ export default {
   width: 170px;
   height: 100px;
   cursor: pointer;
-  z-index: 11;
+  z-index: 3;
   /* Точное позиционирование без трансформаций */
   top: 22px;
   right: 110px; /* Фиксированный отступ от правого края */
@@ -288,7 +460,7 @@ export default {
   width: 90px;
   height: 50px;
   cursor: pointer;
-  z-index: 11;
+  z-index: 3;
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 291px; /* Фиксированный отступ от левого края */
@@ -302,7 +474,7 @@ position: absolute;
   left: 0; /* Прижимаем к левому краю */
   bottom: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
-  z-index: 10;
+  z-index: 4;
 }
 
 .button-balans {
@@ -328,7 +500,7 @@ position: absolute;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  z-index: 20;
+  z-index: 3;
 }
 
 /* Эффекты при наведении */
@@ -357,7 +529,7 @@ position: absolute;
   height: 10vh; /* Относительная высота */
   top: 15vh; /* Позиционирование по вертикали */
   left: 70vw; /* Позиционирование по горизонтали */
-  z-index: 15;
+  z-index: 3;
   cursor: pointer;
   transform: 
     scale(0.98) 
@@ -366,6 +538,10 @@ position: absolute;
   filter: brightness(0.95);
   transform-origin: center;
   will-change: transform; /* Оптимизация анимации */
+}
+/* Добавьте этот стиль для индикации загрузки */
+.tarakan-test {
+  transition: opacity 0.3s ease;
 }
 /* *****************************************ТЕСТИРОВАНИЕ**********************************/
 
@@ -409,6 +585,7 @@ position: absolute;
     height: 40px;
     top: 20px;
     right: 15px;
+    
   }
 }
 

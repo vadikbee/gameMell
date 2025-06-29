@@ -18,9 +18,17 @@
         
         <!-- Основная кнопка -->
         <div class="button-win"
-             @click="handleWinClick(btn.id)"
-             :style="{ backgroundImage: `url('/images/buttons/Property 1=Default.png')` }">
-        </div>
+            
+             @click="!isRaceStarted && handleWinClick(btn.id)"
+             @mouseenter="btn.hovered = true"
+             @mouseleave="btn.hovered = false"
+             :style="{ 
+           backgroundImage: btn.hovered && !isRaceStarted 
+             ? `url('/images/buttons/knopka-win.png')` 
+             : `url('/images/buttons/Property 1=Default.png')`,
+           cursor: isRaceStarted ? 'default' : 'pointer'
+            }">
+          </div>
         
         <!-- Индикатор победы -->
         <div v-if="btn.occupied" 
@@ -73,13 +81,13 @@ const finishZones = ref([]);
 
 const isLoading = ref(false);
 const winButtons = ref([
-  { id: 7, occupied: false, top: 687, right: 4, bluePoint: [360, 687] },
-  { id: 6, occupied: false, top: 687, right: 59, bluePoint: [305, 687] },
-  { id: 5, occupied: false, top: 687, right: 114, bluePoint: [250, 687] },
-  { id: 4, occupied: false, top: 687, right: 169, bluePoint: [195, 687] },
-  { id: 3, occupied: false, top: 687, right: 224, bluePoint: [140, 687] },
-  { id: 2, occupied: false, top: 687, right: 279, bluePoint: [85, 687] },
-  { id: 1, occupied: false, top: 687, right: 334, bluePoint: [30, 687] },
+  { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687] },
+  { id: 6, occupied: false, hovered: false, top: 687, right: 59, bluePoint: [305, 687] },
+  { id: 5, occupied: false, hovered: false, top: 687, right: 114, bluePoint: [250, 687] },
+  { id: 4, occupied: false, hovered: false, top: 687, right: 169, bluePoint: [195, 687] },
+  { id: 3, occupied: false, hovered: false, top: 687, right: 224, bluePoint: [140, 687] },
+  { id: 2, occupied: false, hovered: false, top: 687, right: 279, bluePoint: [85, 687] },
+  { id: 1, occupied: false, hovered: false, top: 687, right: 334, bluePoint: [30, 687] },
 ]);
 
 // Состояние для отслеживания занятых финишей
@@ -87,6 +95,7 @@ const occupiedFinishes = ref([]);
 
 // Обработчик клика
 const handleWinClick = (btnId) => {
+  if (isRaceStarted.value) return; // Блокировка во время гонки
   console.log(`Clicked win button ${btnId}`);
   // Ваша логика обработки клика
 };
@@ -148,6 +157,7 @@ const generatePaths = async () => {
 // Обработчик клика по кнопке генерации
 const handleGenerateClick = async () => {
   try {
+    isRaceStarted.value = false; // Добавьте эту строку
     isLoading.value = true;
     winButtons.value.forEach(btn => btn.occupied = false);
     occupiedFinishes.value = [];
@@ -200,8 +210,11 @@ const handleGenerateClick = async () => {
   }
 }
 
+const isRaceStarted = ref(false);
+
 // Функция анимации
 const startAnimation = () => {
+  isRaceStarted.value = true; // Добавьте эту строку
   let lastTimestamp = performance.now();
   
   const animate = (timestamp) => {
@@ -637,5 +650,8 @@ position: absolute;
     max-height: none;
   }
 }
-
+.button-win-disabled {
+  opacity: 0.6;
+  filter: grayscale(70%);
+}
 </style>

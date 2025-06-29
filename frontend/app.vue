@@ -820,6 +820,7 @@ position: absolute;
   }
 }
 
+
 /* Адаптация для маленьких экранов */
 @media (max-width: 768px) {
   .win-menu {

@@ -10,26 +10,34 @@
     </div>
     
     <div class="main-bg">
+      <!-- Меню -->
+      <div v-for="btn in visibleMenus" 
+           :key="'menu-'+btn.id"
+           class="win-menu"
+           @mouseenter="cancelHideMenu(btn)"
+           @mouseleave="hideMenu(btn)">
+        <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menu-image">
+      </div>
+      
       <!-- Контейнеры для кнопок с индикаторами -->
       <div v-for="(btn, index) in winButtons" 
-           :key="btn.id"
+           :key="'btn-'+btn.id"
            class="button-win-container"
            :class="`button-win-${index + 1}`">
         
         <!-- Основная кнопка -->
         <div class="button-win"
-            
-             @click="!isRaceStarted && handleWinClick(btn.id)"
-             @mouseenter="btn.hovered = true"
-             @mouseleave="btn.hovered = false"
+             @click="handleButtonClick(btn)"
+             @mouseenter="showMenu(btn)"
+             @mouseleave="scheduleHideMenu(btn)"
              :style="{ 
-           backgroundImage: btn.hovered && !isRaceStarted 
-             ? `url('/images/buttons/knopka-win.png')` 
-             : `url('/images/buttons/Property 1=Default.png')`,
-           cursor: isRaceStarted ? 'default' : 'pointer'
-            }">
-          </div>
-        
+               backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
+                 ? `url('/images/buttons/knopka-win.png')` 
+                 : `url('/images/buttons/Property 1=Default.png')`,
+               cursor: isRaceStarted ? 'default' : 'pointer'
+             }">
+        </div>
+       
         <!-- Индикатор победы -->
         <div v-if="btn.occupied" 
              class="win-indicator"
@@ -41,7 +49,7 @@
 
       <!-- Тараканы -->
       <div v-for="bug in bugs" 
-           :key="bug.id"
+           :key="'bug-'+bug.id"
            class="tarakan"
            :style="{
              backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
@@ -69,8 +77,12 @@
     </div>
   </div>
 </template>
+
 <script setup>
-import { ref, onMounted, onUnmounted, reactive } from 'vue';
+
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
+// Добавляем объявление isLoading
+const isLoading = ref(false);
 // Добавляем переменные для управления скоростью
 const bugProgress = ref([]); // Прогресс каждого таракана (0-1)
 const bugSpeeds = ref([]); // Текущая скорость каждого таракана
@@ -79,30 +91,48 @@ const speedChangeIntervals = ref([]); // Интервалы между изме�
 // Карта соответствия координат финишных точек и ID кнопок
 const finishZones = ref([]);
 
-const isLoading = ref(false);
+const visibleMenus = computed(() => {
+  return winButtons.value.filter(btn => btn.menuVisible && !isRaceStarted.value);
+});
+
 const winButtons = ref([
-  { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687] },
-  { id: 6, occupied: false, hovered: false, top: 687, right: 59, bluePoint: [305, 687] },
-  { id: 5, occupied: false, hovered: false, top: 687, right: 114, bluePoint: [250, 687] },
-  { id: 4, occupied: false, hovered: false, top: 687, right: 169, bluePoint: [195, 687] },
-  { id: 3, occupied: false, hovered: false, top: 687, right: 224, bluePoint: [140, 687] },
-  { id: 2, occupied: false, hovered: false, top: 687, right: 279, bluePoint: [85, 687] },
-  { id: 1, occupied: false, hovered: false, top: 687, right: 334, bluePoint: [30, 687] },
+  { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 6, occupied: false, hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 5, occupied: false, hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 4, occupied: false, hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 3, occupied: false, hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 2, occupied: false, hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 1, occupied: false, hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
+
 
 // Состояние для отслеживания занятых финишей
 const occupiedFinishes = ref([]);
 
 // Обработчик клика
-const handleWinClick = (btnId) => {
-  if (isRaceStarted.value) return; // Блокировка во время гонки
-  console.log(`Clicked win button ${btnId}`);
-  // Ваша логика обработки клика
+// Обработчик клика по кнопке
+const handleButtonClick = (btn) => {
+  if (isRaceStarted.value) return;
+  
+  // Если кнопка уже выбрана - снимаем выделение
+  if (btn.selected) {
+    btn.selected = false;
+    btn.menuVisible = false;
+    return;
+  }
+  
+  // Снимаем выделение со всех кнопок
+  winButtons.value.forEach(b => {
+    b.selected = false;
+    b.menuVisible = false;
+  });
+  
+  // Выделяем текущую кнопку
+  btn.selected = true;
+  btn.menuVisible = true;
 };
-const handleButtonClick = (btnId) => {
-  console.log(`Clicked button ${btnId}`);
-  // Добавьте вашу логику здесь
-};
+
+
 const paths = ref([]); // Инициализируем ПЕРЕД bugs
 const bugs = ref([]);
 const animationFrame = ref(null);
@@ -153,12 +183,63 @@ const generatePaths = async () => {
     throw error;
   }
 };
+// Функции для управления меню
+const showMenu = (btn) => {
+  if (isRaceStarted.value || btn.selected) return;
+  
+  btn.hovered = true;
+  btn.menuVisible = true;
+  if (btn.menuTimer) {
+    clearTimeout(btn.menuTimer);
+    btn.menuTimer = null;
+  }
+};
+
+const scheduleHideMenu = (btn) => {
+  // Не скрываем если кнопка выбрана
+  if (btn.selected) return;
+  
+  btn.menuTimer = setTimeout(() => {
+    hideMenu(btn);
+  }, 150); // Уменьшена задержка скрытия
+};
+
+const hideMenu = (btn) => {
+  // Не скрываем если кнопка выбрана
+  if (btn.selected) return;
+  
+  btn.menuVisible = false;
+  btn.hovered = false;
+  if (btn.menuTimer) {
+    clearTimeout(btn.menuTimer);
+    btn.menuTimer = null;
+  }
+};
+
+const cancelHideMenu = (btn) => {
+  if (btn.menuTimer) {
+    clearTimeout(btn.menuTimer);
+    btn.menuTimer = null;
+  }
+};
 
 // Обработчик клика по кнопке генерации
 const handleGenerateClick = async () => {
   try {
     isRaceStarted.value = false; // Добавьте эту строку
     isLoading.value = true;
+     // Сбрасываем все кнопки
+    winButtons.value.forEach(btn => {
+      btn.occupied = false;
+      btn.menuVisible = false;
+      btn.hovered = false;
+      btn.selected = false;
+      if (btn.menuTimer) {
+        clearTimeout(btn.menuTimer);
+        btn.menuTimer = null;
+      }
+    });
+
     winButtons.value.forEach(btn => btn.occupied = false);
     occupiedFinishes.value = [];
     bugProgress.value = [];
@@ -167,7 +248,15 @@ const handleGenerateClick = async () => {
     speedChangeIntervals.value = [];
     
     const data = await generatePaths();
-    
+
+    winButtons.value.forEach(btn => {
+      btn.occupied = false;
+      btn.menuVisible = false;
+      if (btn.menuTimer) {
+        clearTimeout(btn.menuTimer);
+        btn.menuTimer = null;
+      }
+    });
     // Убедимся, что grid существует в ответе
     if (!data.grid) {
       throw new Error('Grid configuration is missing in response');
@@ -216,7 +305,10 @@ const isRaceStarted = ref(false);
 const startAnimation = () => {
   isRaceStarted.value = true; // Добавьте эту строку
   let lastTimestamp = performance.now();
-  
+  winButtons.value.forEach(btn => {
+    btn.menuVisible = false;
+    btn.selected = false;
+    });
   const animate = (timestamp) => {
     const deltaTime = timestamp - lastTimestamp;
     lastTimestamp = timestamp;
@@ -653,5 +745,49 @@ position: absolute;
 .button-win-disabled {
   opacity: 0.6;
   filter: grayscale(70%);
+}
+.win-menu {
+  position: fixed;
+  top: 590px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 371px;
+  height: 225px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 4; 
+  cursor: default;
+  transition: opacity 0.2s ease;
+  
+ 
+}
+/* Увеличиваем z-index контейнера */
+.button-win-container {
+  overflow: visible;
+  z-index: 3; /* Увеличено */
+}
+.menu-image {
+  max-width: 80vw;
+  max-height: 80vh;
+  object-fit: contain;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  transition: opacity 0.2s ease; /* Плавное исчезновение */
+}
+
+/* Адаптация для маленьких экранов */
+@media (max-width: 390px) {
+  .win-menu {
+    width: 60px;
+    height: 80px;
+  }
+}
+/* Адаптация для маленьких экранов */
+@media (max-width: 768px) {
+  .menu-image {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
 }
 </style>

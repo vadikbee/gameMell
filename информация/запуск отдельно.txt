@@ -2,12 +2,12 @@
 
 фронт
 cd frontend
-npm install
+
 npm run dev
 
 бека
 cd backend
-composer install
+
 cp .env.example .env
 php artisan key:generate
 php artisan serve

@@ -1,5 +1,6 @@
 <template>
   <div class="main-color">
+     <div class="main-bg-container" :style="{ transform: `scale(${scaleFactor})` }"></div>
     <div class="tarakan-test"
          id="generateButton"
          @click="handleGenerateClick" 
@@ -10,15 +11,15 @@
     </div>
     
     <div class="main-bg">
-      
-     
-     
+      <div class="labirint-bg"></div>
       <!-- Контейнеры для кнопок с индикаторами -->
       <div v-for="(btn, index) in winButtons" 
           :key="'btn-'+btn.id"
           class="button-win-container"
-          :class="`button-win-${index + 1}`"
-          ref="(el) => setButtonRef(el, btn)">
+          :class="{
+         'disabled': areWinButtonsDisabled,
+         [`button-win-${index + 1}`]: true
+       }">
         <!-- Меню внутри контейнера кнопки -->
     <div v-if="btn.menuVisible"
          class="win-menu"
@@ -46,7 +47,7 @@
           </div>
         </div>
       
-      <div class="finish-line"></div>
+      
 
       <!-- Тараканы -->
       <div v-for="bug in bugs" 
@@ -62,9 +63,21 @@
       <!-- Нижняя панель -->
       <div class="panel-layer">
         <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
-        <div class="button-2" id="Button-2" @click="handleButtonClick(2)"></div>
+         <!-- Обновленная кнопка 2 с обработчиками меню -->
+       <div class="button-2" 
+       id="Button-2" 
+       @click="toggleCenterMenu">
+        </div>
         <div class="button-3" id="Button-3" @click="handleButtonClick(3)"></div>
-
+       
+        <!-- Меню для центральной кнопки -->
+         <div v-if="centerMenuVisible"
+        class="center-menu">
+         
+         <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
+           <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+        </div>
+      
         <div class="panel-up">
           <div class="balance-container">
             <div class="balance-text">Balance</div>
@@ -76,25 +89,53 @@
         </div>
       </div> 
     </div>
-  </div>
+    </div>
 </template>
 
 <script setup>
 
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
-// Добавляем объявление isLoading
-const isLoading = ref(false);
-// Добавляем переменные для управления скоростью
+const isLoading = ref(false); // Добавляем объявление isLoading
 const bugProgress = ref([]); // Прогресс каждого таракана (0-1)
 const bugSpeeds = ref([]); // Текущая скорость каждого таракана
 const lastSpeedChange = ref([]); // Время последнего изменения скорости
 const speedChangeIntervals = ref([]); // Интервалы между изменениями скорости
-// Карта соответствия координат финишных точек и ID кнопок
-const finishZones = ref([]);
+const finishZones = ref([]);// Карта соответствия координат финишных точек и ID кнопок
 const buttonRefs = ref([]);
+const centerMenuVisible = ref(false); // Добавляем состояние для центрального меню
+const centerMenuTimer = ref(null); // Добавляем состояние для центрального меню
+const areWinButtonsDisabled = ref(false);// Добавляем новое состояние для блокировки кнопок
+
 const visibleMenus = computed(() => {
   return winButtons.value.filter(btn => btn.menuVisible && !isRaceStarted.value);
 });
+
+// Переключение центрального меню
+const toggleCenterMenu = () => {
+  centerMenuVisible.value = !centerMenuVisible.value;
+  areWinButtonsDisabled.value = centerMenuVisible.value; // Блокируем кнопки при открытии меню
+};
+const scaleFactor = ref(1);
+
+const updateScale = () => {
+  const baseWidth = 390;
+  const baseHeight = 844;
+  
+  const widthRatio = window.innerWidth / baseWidth;
+  const heightRatio = window.innerHeight / baseHeight;
+  
+  scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
+};
+
+onMounted(() => {
+  updateScale();
+  window.addEventListener('resize', updateScale);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateScale);
+});
+
 // Функция для получения позиции меню
 const getMenuPosition = (btn) => {
   const buttonRef = buttonRefs.value[btn.id];
@@ -125,7 +166,7 @@ const occupiedFinishes = ref([]);
 // Обработчик клика
 // Обработчик клика по кнопке
 const handleButtonClick = (btn) => {
-  if (isRaceStarted.value) return;
+  if (isRaceStarted.value || areWinButtonsDisabled.value) return;
   
   // Если кнопка уже выбрана - снимаем выделение
   if (btn.selected) {
@@ -214,7 +255,7 @@ const scheduleHideMenu = (btn) => {
   
   btn.menuTimer = setTimeout(() => {
     hideMenu(btn);
-  }, 150); // Уменьшена задержка скрытия
+  }, 0.1); // Уменьшена задержка скрытия
 };
 
 const hideMenu = (btn) => {
@@ -239,6 +280,7 @@ const cancelHideMenu = (btn) => {
 // Обработчик клика по кнопке генерации
 const handleGenerateClick = async () => {
   try {
+    areWinButtonsDisabled.value = false; // Снимаем блокировку при новой генерации
     isRaceStarted.value = false; // Добавьте эту строку
     isLoading.value = true;
      // Сбрасываем все кнопки
@@ -440,27 +482,64 @@ onMounted(() => {
 
 
 <style scoped>
-
-.finish-line{
-  /*border: 1px solid red !important;*/
-  background-image: url('/images/2sloy/Group 419.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  position: absolute;
-  width: 383px; /* Предположительные размеры */
-  height: 15px; 
-  top: 634px; /* Пример позиции */
-  left: 3.5px; /* Пример позиции */
-  z-index: 3;
-  
+/* Добавляем стили для заблокированных кнопок */
+.button-win-container.disabled {
+  opacity: 0.6;
+  cursor: default !important;
+  pointer-events: none;
+  filter: grayscale(70%);
 }
+/* Отключаем эффекты при блокировке */
+.button-win-container.disabled .button-win {
+  cursor: default !important;
+  pointer-events: none;
+}
+
+.button-win-container.disabled .win-menu {
+  display: none !important;
+}
+.main-bg-container {
+  transform-origin: top center;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+.labirint-bg {
+  position: absolute;
+  top: 8%;
+  left: 0;
+  width: 100%; /* Занимает всю ширину родителя */
+  max-width: 100%; /* Максимальная ширина как в эталоне */
+  height: auto; /* Автоматическая высота */
+  aspect-ratio: 390 / 689; /* Сохраняем соотношение сторон 390x689 */
+  background-image: url('/images/background/labirint.png');
+  background-size: contain; /* Изображение полностью помещается в элемент */
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 3;
+  opacity: 1;
+  /* Адаптивные корректировки */
+  @media (max-width: 390px) {
+    max-width: 100%; /* На маленьких экранах занимает всю ширину */
+  }
+  
+  /* Для очень широких экранов */
+  @media (min-width: 768px) {
+    left: 50%;
+    transform: translateX(-50%); /* Центрируем по горизонтали */
+  }
+}
+
+
+
 /* Стили для черной менюшки */
 .panel-up {
   position: absolute;
   width: 390px;
   height: 43px;
   left: calc(50% - 390px/2);
-  top: -695px; /* Фиксированная позиция вверху экрана */
+  margin-top: -795px; /* Фиксированная позиция вверху экрана */
   z-index: 4;
   background: #000000;
   /*border: 1px solid red !important; /* Для отладки */
@@ -486,23 +565,21 @@ onMounted(() => {
   height: 38px;
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 2;
-  transition: left 0.1s linear, top 0.1s linear; /* Плавное движение */ /* Полупрозрачный фон */
+  transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */
+    
+filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+ 
+/* Анимация пульсации свечения */
+  animation: glow-pulse 2s infinite alternate;          
 }
-.button-win {
-  /* border: 1px solid red !important; /* Временная рамка */
-  /* Остальные стили */
-  background-image: url('/images/buttons/Property 1=Default.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  position: absolute;
-  width: 52px;
-  height: 64px;
-     /* Новые координаты - более логичные значения */
-  z-index: 3; 
-    cursor: pointer;
-  transition: all 0.3s ease;
+
+/* Усиление свечения при наведении */
+.tarakan:hover {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1))
+          drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
 }
+
 /* Контейнер для кнопки и индикатора */
 .button-win-container {
   position: absolute;
@@ -512,13 +589,13 @@ onMounted(() => {
 }
 
 /* Позиции контейнеров */
-.button-win-1 { top: 687px; right: 4px; }
-.button-win-2 { top: 687px; right: 59px; }
-.button-win-3 { top: 687px; right: 114px; }
-.button-win-4 { top: 687px; right: 169px; }
-.button-win-5 { top: 687px; right: 224px; }
-.button-win-6 { top: 687px; right: 279px; }
-.button-win-7 { top: 687px; right: 334px; }
+.button-win-1 { top: 81.4%; right: 4px; }
+.button-win-2 { top: 81.4%; right: 59px; }
+.button-win-3 { top: 81.4%; right: 114px; }
+.button-win-4 { top: 81.4%; right: 169px; }
+.button-win-5 { top: 81.4%; right: 224px; }
+.button-win-6 { top: 81.4%; right: 279px; }
+.button-win-7 { top: 81.4%; right: 334px; }
 
 /* Базовая кнопка */
 .button-win {
@@ -598,12 +675,13 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .main-bg {
   background-image: url('/images/background/Frame 560.png');
   background-position: center top;
   background-repeat: no-repeat;
   background-size: 100% auto;
-  /* Фиксированные размеры контейнера */
+  /* Фиксированные размеры контейнера ///*/
   width: 390px;
   min-height: 844px;
   height: 100vh;
@@ -613,6 +691,7 @@ onMounted(() => {
   margin: 0 auto;
   z-index: 1;
 }
+/* Обновленные стили для кнопок */
 .button-1 {
   position: absolute;
   background-image: url('/images/buttons/Group 256.png');
@@ -622,13 +701,12 @@ onMounted(() => {
   height: 50px;
   cursor: pointer;
   z-index: 3;
-  /* Точное позиционирование без трансформаций */
   top: 22px;
-  left: 8px; /* Фиксированный отступ от левого края */
-  
+  left: 8px;
 }
+/* Корректируем позиционирование кнопки */
 .button-2 {
-   position: absolute;
+  position: absolute;
   background-image: url('/images/buttons/Group 168.png');
   background-size: contain;
   background-repeat: no-repeat;
@@ -636,10 +714,10 @@ onMounted(() => {
   height: 100px;
   cursor: pointer;
   z-index: 3;
-  /* Точное позиционирование без трансформаций */
   top: 22px;
-  right: 110px; /* Фиксированный отступ от правого края */
+  right: -110px; /* Исправленное позиционирование */
 }
+
 .button-3 {
    position: absolute;
   background-image: url('/images/buttons/Group 255.png');
@@ -657,14 +735,87 @@ onMounted(() => {
 /* Стили для панели */
 .panel-layer {
 position: absolute;
-  width: 390px; /* Фиксированная ширина */
-  height: 93px;
-  left: 0; /* Прижимаем к левому краю */
+  width: 100%; /* Фиксированная ширина */
+  height: 11%;
   bottom: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
   z-index: 4;
+ /* box-shadow: 0 0 0 2px red; /* Обводка без размытия */
+}
+/* Стили для центрального меню */
+.center-menu {
+  position: absolute;
+  bottom: calc(464%); /*  над кнопкой */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5; /* Выше других элементов */
+  width: 100%; /* Размеры меню */
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  /*gap: 10px; /* Расстояние между изображениями */
+  cursor: default;
+   /* Расстояние между изображениями */
+  pointer-events: auto;
+}
+/* Специфичные стили для изображения stavki */
+.stavki-image {
+  margin-left: 2%;
+  margin-top: -1%; /* Поднимаем изображение ближе к основному */
+  width: 95%; /* Уменьшаем ширину */
+  max-width: 100%; /* Максимальная ширина */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: default;
+}
+.menu-image {
+  width: 100%;
+  max-width: 390px; /* Максимальная ширина основного изображения */
+  height: auto;
+  object-fit: contain;
 }
 
+.stavki-image {
+  width: 95%; /* Ширина относительно основного изображения */
+  max-width: 370px; /* Чуть меньше основного */
+  margin-top: -1%; /* Поднимаем ближе к основному */
+  object-fit: contain;
+}
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+  .center-menu {
+    bottom: calc(400%); /* Корректируем позицию */
+    left: 50%;
+    top: -407px;
+    transform: translateX(-50%) scale(0.9); /* Уменьшаем размер */
+  }
+  
+  .menu-image {
+    max-width: 300px;
+  }
+  
+  .stavki-image {
+    max-width: 285px;
+  }
+}
+
+@media (max-width: 480px) {
+  .center-menu {
+    bottom: calc(350%); /* Дополнительная корректировка */
+    margin-top: 0%;
+    transform: translateX(-50%) scale(0.8); /* Еще меньше */
+  }
+  
+  .menu-image {
+    max-width: 250px;
+  }
+  
+  .stavki-image {
+    max-width: 240px;
+  }
+}
 .button-balans {
   position: absolute;
   /* Используем CSS-переменные для позиционирования */
@@ -694,8 +845,8 @@ position: absolute;
 /* Эффекты при наведении */
 .button-1:hover, .button-2:hover, .button-3:hover,.tarakan-test {
   filter: 
-    brightness(1.1) /* Увеличение яркости */
-    drop-shadow(0 0 8px rgba(178, 56, 58, 0.8));
+    brightness(1.1) /* Увеличение яркости (первое число - размытие, второе - прозрачность).*/
+    drop-shadow(6 6 8px rgba(178, 56, 58, 0.8)); 
 }
 
 /* Эффект при нажатии */
@@ -706,7 +857,32 @@ position: absolute;
 /* Гарантируем, что контент будет поверх панели */
 /* Адаптивность для маленьких экранов */
 /* Адаптация для мобильных */
+.win-menu {
+  position: absolute;
+  bottom: calc(100% + 0px); /* 10px над кнопкой */
+  left: 50%;
+   transform: translateX(-50%);
+  z-index: 4;
+  height: 225px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: default;
+  transition: opacity 0.2s ease;
+  pointer-events: auto;
+}
 
+.menu-image {
+  max-width: 80vw;
+  max-height: 80vh;
+  object-fit: contain;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.2s ease;
+}
+.button-win-disabled {
+  opacity: 0.6;
+  filter: grayscale(70%);
+}
 /* *****************************************ТЕСТИРОВАНИЕ**********************************/
 .tarakan-test {
   background-image: url('/images/tarakani/Property 1=Default (1).png');
@@ -731,8 +907,10 @@ position: absolute;
 .tarakan-test {
   transition: opacity 0.3s ease;
 }
+
 /* *****************************************ТЕСТИРОВАНИЕ**********************************/
 
+/* *****************************************  БЛОК ДЛЯ @  **********************************/
 @media (max-width: 390px) {
   .black-menu {
     gap: 20px; /* Уменьшаем расстояние между элементами */
@@ -776,6 +954,13 @@ position: absolute;
     
   }
 }
+/* Для кнопок добавляем transform для улучшения производительности */
+.button-1,
+.button-2,
+.button-3 {
+  transform: translateZ(0);
+  will-change: transform;
+}
 
 /* Адаптивность по высоте */
 @media (max-height: 844px) {
@@ -784,34 +969,8 @@ position: absolute;
     max-height: none;
   }
 }
-.button-win-disabled {
-  opacity: 0.6;
-  filter: grayscale(70%);
-}
-.win-menu {
-  position: absolute;
-  bottom: calc(100% + 0px); /* 10px над кнопкой */
-  left: 50%;
-   transform: translateX(-50%);
-  z-index: 4;
-  height: 225px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  cursor: default;
-  transition: opacity 0.2s ease;
-  pointer-events: auto;
-  
 
-}
 
-.menu-image {
-  max-width: 80vw;
-  max-height: 80vh;
-  object-fit: contain;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.2s ease;
-}
 
 /* Обновленные медиа-запросы */
 @media (max-width: 768px) {
@@ -840,5 +999,27 @@ position: absolute;
   .win-menu {
     transform: translate(-50%, -50%) scale(0.8);
   }
+}
+/* Анимация пульсации */
+@keyframes glow-pulse {
+  0% {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1))
+            drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+  }
+}
+@media (max-width: 768px) {
+  .labirint-bg {
+    background-size: contain;
+    background-position: top center;
+  }
+}
+/* Дополнительный стиль для предотвращения мерцания */
+.button-2 {
+  position: relative;
+  z-index: 4;
 }
 </style>

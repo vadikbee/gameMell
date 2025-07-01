@@ -75,9 +75,26 @@
         class="center-menu">
          
          <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
+           <img src="/images/menus/group.png"  class="menu-image group-image">
+           <img src="/images/menus/stavki-history.png"  class="menu-image stavki-history-image">
            <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+            <!-- Контейнер для кнопок меню -->
+          <div class="menu-buttons-container">
+          <div 
+            v-for="btn in menuButtons" 
+            :key="btn.id"
+            class="menu-button"
+            :class="{ 
+             selected: btn.selected,
+             diagonal: diagonalButtons.includes(btn.id) 
+            }"
+            @click="toggleMenuButton(btn)"
+          ></div>
+          </div>
+        
+         
+
         </div>
-      
         <div class="panel-up">
           <div class="balance-container">
             <div class="balance-text">Balance</div>
@@ -109,11 +126,35 @@ const areWinButtonsDisabled = ref(false);// Добавляем новое сос
 const visibleMenus = computed(() => {
   return winButtons.value.filter(btn => btn.menuVisible && !isRaceStarted.value);
 });
-
+// Добавляем вычисляемое свойство для определения диагональных кнопок
+const diagonalButtons = computed(() => {
+  const diagonals = [];
+  for (let i = 0; i < 7; i++) {
+    diagonals.push(i * 7 + i); // Индексы диагональных кнопок: 0, 8, 16, 24, 32, 40, 48
+  }
+  return diagonals;
+});
+// Добавляем состояние для кнопок меню
+const menuButtons = ref(
+  Array.from({ length: 49 }, (_, index) => ({
+    id: index,
+    selected: false
+  }))
+);
+// Переключение состояния кнопки
+const toggleMenuButton = (btn) => {
+  btn.selected = !btn.selected;
+};
 // Переключение центрального меню
+// Переключение центрального меню (обновленная функция)
 const toggleCenterMenu = () => {
   centerMenuVisible.value = !centerMenuVisible.value;
-  areWinButtonsDisabled.value = centerMenuVisible.value; // Блокируем кнопки при открытии меню
+  areWinButtonsDisabled.value = centerMenuVisible.value;
+  
+  // Сбрасываем состояние кнопок при закрытии меню
+  if (!centerMenuVisible.value) {
+    menuButtons.value.forEach(btn => btn.selected = false);
+  }
 };
 const scaleFactor = ref(1);
 
@@ -482,6 +523,92 @@ onMounted(() => {
 
 
 <style scoped>
+/* Стиль для скрытия диагональных кнопок */
+.menu-button.diagonal {
+  visibility: hidden; /* Скрываем кнопку, но сохраняем место */
+  /* Или можно полностью убрать: */
+  /* display: none; */
+}
+
+/* Альтернатива: сделать диагональные кнопки прозрачными и не кликабельными */
+.menu-button.diagonal {
+  opacity: 0;
+  pointer-events: none;
+}
+.menu-buttons-container {
+  
+  position: absolute;
+  margin-top: -62.5%; /* Регулируйте по необходимости */
+  left: 55.1%;
+  transform: translate(-50%, -50%);
+  
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 колонок */
+  grid-template-rows: repeat(7, 1fr); /* 7 строк */
+  z-index: 4; /* Поверх изображений меню */
+  --button-width: 42px; /* Ширина кнопок по умолчанию */
+  --button-height: 30px; /* Высота кнопок по умолчанию */
+   /* Разделяем горизонтальное и вертикальное расстояние */
+  --column-gap: 4px; /* Горизонтальное расстояние */
+  --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+   
+  /* Рассчитываем размер контейнера */
+  /* Рассчитываем размер контейнера */
+  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+  
+  display: grid;
+  grid-template-columns: repeat(7, var(--button-width));
+  grid-template-rows: repeat(7, var(--button-height));
+  
+  /* Разделяем горизонтальное и вертикальное расстояние */
+  column-gap: var(--column-gap);
+  row-gap: var(--row-gap);
+  
+}
+.menu-button {
+  background-image: url('/images/buttons/knopka-menu.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+   border-radius: 2px; /* Регулируйте это значение по вкусу */
+  overflow: hidden; /* Важно для корректного отображения закругления */
+  /*border: 1px solid red !important;*/
+  border: 2px solid rgb(255, 255, 255) !important;
+}
+
+.menu-button.selected {
+  /* Изменяем цвет на желтый с помощью фильтра */
+  filter: 
+    brightness(1.2) 
+    sepia(1) 
+    saturate(5) 
+    hue-rotate(5deg);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .menu-buttons-container {
+    width: 200px;
+    height: 175px;
+    grid-gap: 2px;
+    top: 43%; /* Корректировка позиции */
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-buttons-container {
+    width: 170px;
+    height: 150px;
+    top: 41%; /* Дополнительная корректировка */
+  }
+  
+  .menu-button {
+    background-size: contain;
+  }
+}
 /* Добавляем стили для заблокированных кнопок */
 .button-win-container.disabled {
   opacity: 0.6;
@@ -597,7 +724,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 .button-win-6 { top: 81.4%; right: 279px; }
 .button-win-7 { top: 81.4%; right: 334px; }
 
-/* Базовая кнопка */
+/* Стили для кнопок победы */
 .button-win {
   position: absolute;
   width: 100%;
@@ -608,6 +735,19 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   cursor: pointer;
   z-index: 3;
   transition: all 0.3s ease;
+}
+/* Адаптация для маленьких экранов */
+@media (max-width: 768px) {
+  .button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5.button-win-6.button-win-7 {
+    transform: scale(0.9); /* Уменьшаем размер контейнера */
+    
+  }
+}
+@media (max-width: 390px) {
+  .button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5.button-win-6.button-win-7 {
+    transform: scale(0.9); /* Уменьшаем размер контейнера */
+    margin-top: 10%;
+  }
 }
 
 /* Индикатор поверх кнопки */
@@ -623,7 +763,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   z-index: 2; /* Выше основной кнопки */
   pointer-events: none; /* Игнорирует клики */
 }
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ БАЛАНСА *//* Текст "Balance" */
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ БАЛАНСА *//* Текст "Balance" ...*/
 .balance-text {
   position: absolute;
   /* Используем CSS-переменные для позиционирования */
@@ -758,6 +898,7 @@ position: absolute;
   cursor: default;
    /* Расстояние между изображениями */
   pointer-events: auto;
+  border: 1px solid red !important;
 }
 /* Специфичные стили для изображения stavki */
 .stavki-image {
@@ -769,19 +910,43 @@ position: absolute;
   background-repeat: no-repeat;
   background-position: center;
   cursor: default;
+  border: 1px solid red !important;
+  
 }
 .menu-image {
   width: 100%;
   max-width: 390px; /* Максимальная ширина основного изображения */
   height: auto;
   object-fit: contain;
+  border: 1px solid red !important;
 }
-
+/* Группа слева - точное позиционирование */
+.group-image {
+  position: absolute;
+  background-image: url('/images/menus/group.png');
+  width: 119px;
+  height: 151px;
+  top: -165%; /* Точное позиционирование сверху */
+  left: 0px; /* Точное позиционирование слева */
+  z-index: 3;
+}
+/* История ставок справа */
+.stavki-history-image {
+  background-image: url('/images/menus/stavki-history.png');
+  position: absolute;
+  width: 240px; /* Размеры по вашему макету */
+  height: 150px;  /* Размеры по вашему макету */
+  top: -163%;       /* Позиционирование сверху */
+  right: 0px;  /* Позиционирование справа */
+  z-index: 1;
+  
+}
 .stavki-image {
   width: 95%; /* Ширина относительно основного изображения */
   max-width: 370px; /* Чуть меньше основного */
   margin-top: -1%; /* Поднимаем ближе к основному */
   object-fit: contain;
+  
 }
 /* Адаптация для мобильных устройств */
 @media (max-width: 768px) {
@@ -789,7 +954,8 @@ position: absolute;
     bottom: calc(400%); /* Корректируем позицию */
     left: 50%;
     top: -407px;
-    transform: translateX(-50%) scale(0.9); /* Уменьшаем размер */
+     /* Уменьшаем размер */
+     transform: translateX(-50%) scale(0.9);
   }
   
   .menu-image {
@@ -799,21 +965,43 @@ position: absolute;
   .stavki-image {
     max-width: 285px;
   }
+  .stavki-history-image{
+    max-width: 285px;
+  }
+  .group-image{
+    max-width: 285px;
+  }
 }
 
 @media (max-width: 480px) {
   .center-menu {
     bottom: calc(350%); /* Дополнительная корректировка */
     margin-top: 0%;
-    transform: translateX(-50%) scale(0.8); /* Еще меньше */
+    left: 95%;
+    transform: translateX(-50%) scale(0.9); /* Еще меньше */
   }
   
   .menu-image {
     max-width: 250px;
+    transform: translateX(-50%) scale(0.9);
   }
   
   .stavki-image {
+    
     max-width: 240px;
+    transform: translateX(-50%) scale(0.9);
+  }
+  .stavki-history-image{
+    left: 26%;
+    margin-top: 8.5%;
+    max-width: 240px;
+    transform: translateX(-60%) scale(0.8);
+  }
+  .group-image {
+    margin-top: 9%;
+    left: -32%;
+    max-width: 240px;
+    transform: translateX(-50%) scale(0.8);
   }
 }
 .button-balans {
@@ -969,8 +1157,6 @@ position: absolute;
     max-height: none;
   }
 }
-
-
 
 /* Обновленные медиа-запросы */
 @media (max-width: 768px) {

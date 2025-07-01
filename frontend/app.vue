@@ -78,7 +78,13 @@
            <img src="/images/menus/group.png"  class="menu-image group-image">
            <img src="/images/menus/stavki-history.png"  class="menu-image stavki-history-image">
            <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
-            <!-- Контейнер для кнопок меню -->
+              <img 
+                src="/images/menus/Group 164.png" 
+                alt="Group 164" 
+                class="group-164-button"
+                @click="handleGroup164Click"
+              >
+           <!-- Контейнер для кнопок меню -->
           <div class="menu-buttons-container">
           <div 
             v-for="btn in menuButtons" 
@@ -553,7 +559,6 @@ onMounted(() => {
   --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
    
   /* Рассчитываем размер контейнера */
-  /* Рассчитываем размер контейнера */
   width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
   height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
   
@@ -566,6 +571,50 @@ onMounted(() => {
   row-gap: var(--row-gap);
   
 }
+/* Стили для новой кнопки Group 164 */
+.group-164-button {
+  position: absolute;
+  margin-top: 85%;
+  margin-left: 32%;
+  z-index: 8; /* Выше других элементов меню */
+  cursor: pointer;
+  width: 112px; /* Размер по вашему изображению */
+  height: 68px;
+  
+  /* Позиционируем кнопку поверх изображения stavki.png */
+  top: 45%; /* Регулируйте по необходимости */
+  left: 48.5%;
+  transform: translateX(-50%);
+  
+  /* Анимация при наведении */
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.group-164-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.group-164-button:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .group-164-button {
+    width: 113px;
+    top: 45%;
+    left: 48.5%;
+  }
+}
+
+@media (max-width: 480px) {
+  .group-164-button {
+    width: 80px;
+    top: 41%;
+    
+  }
+}
 .menu-button {
   background-image: url('/images/buttons/knopka-menu.png');
   background-size: cover;
@@ -576,7 +625,7 @@ onMounted(() => {
    border-radius: 2px; /* Регулируйте это значение по вкусу */
   overflow: hidden; /* Важно для корректного отображения закругления */
   /*border: 1px solid red !important;*/
-  border: 2px solid rgb(255, 255, 255) !important;
+  
 }
 
 .menu-button.selected {
@@ -594,15 +643,49 @@ onMounted(() => {
     width: 200px;
     height: 175px;
     grid-gap: 2px;
-    top: 43%; /* Корректировка позиции */
+    top: 490%; /* Корректировка позиции */
+    left: 55%;
+     /* Разделяем горизонтальное и вертикальное расстояние */
+  --column-gap: 4px; /* Горизонтальное расстояние */
+  --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+   
+  /* Рассчитываем размер контейнера */
+  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+  
+  display: grid;
+  grid-template-columns: repeat(7, var(--button-width));
+  grid-template-rows: repeat(7, var(--button-height));
+  
+  /* Разделяем горизонтальное и вертикальное расстояние */
+  column-gap: var(--column-gap);
+  row-gap: var(--row-gap);
   }
+  
 }
 
 @media (max-width: 480px) {
   .menu-buttons-container {
     width: 170px;
     height: 150px;
-    top: 41%; /* Дополнительная корректировка */
+    top: 473%; /* Дополнительная корректировка */
+    left: 4%;
+  --column-gap: 3px; /* Горизонтальное расстояние */
+  --row-gap: 5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+   
+  /* Рассчитываем размер контейнера */
+   --button-width: 36px; /* Ширина кнопок по умолчанию */
+  --button-height: 30px; /* Высота кнопок по умолчанию */
+  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+  
+  display: grid;
+  grid-template-columns: repeat(7, var(--button-width));
+  grid-template-rows: repeat(7, var(--button-height));
+  
+  /* Разделяем горизонтальное и вертикальное расстояние */
+  column-gap: var(--column-gap);
+  row-gap: var(--row-gap);
   }
   
   .menu-button {

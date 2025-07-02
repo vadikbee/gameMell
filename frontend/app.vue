@@ -1,6 +1,9 @@
 <template>
   <div class="main-color">
-     <div class="main-bg-container" :style="{ transform: `scale(${scaleFactor})` }"></div>
+    <!-- Контейнер для масштабирования фона -->
+    <div class="main-bg-container" :style="{ transform: `scale(${scaleFactor})` }"></div>
+    
+    <!-- Кнопка генерации тараканов -->
     <div class="tarakan-test"
          id="generateButton"
          @click="handleGenerateClick" 
@@ -10,45 +13,48 @@
          }">
     </div>
     
+    <!-- Основной игровой контейнер -->
     <div class="main-bg">
+      <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
-      <!-- Контейнеры для кнопок с индикаторами -->
+      
+      <!-- Контейнеры для кнопок победы -->
       <div v-for="(btn, index) in winButtons" 
           :key="'btn-'+btn.id"
           class="button-win-container"
           :class="{
-         'disabled': areWinButtonsDisabled,
-         [`button-win-${index + 1}`]: true
-       }">
-        <!-- Меню внутри контейнера кнопки -->
-    <div v-if="btn.menuVisible"
-         class="win-menu"
-         @mouseenter="cancelHideMenu(btn)"
-         @mouseleave="hideMenu(btn)">
-      <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menu-image">
-    </div>
-        <!-- Основная кнопка -->
-         <div class="button-win"
-         @click="handleButtonClick(btn)"
-         @mouseenter="showMenu(btn)"
-         @mouseleave="scheduleHideMenu(btn)"
-         :style="{ 
-           backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
-             ? `url('/images/buttons/knopka-win.png')` 
-             : `url('/images/buttons/Property 1=Default.png')`,
-           cursor: isRaceStarted ? 'default' : 'pointer'
-         }">
-    </div>
+            'disabled': areWinButtonsDisabled,
+            [`button-win-${index + 1}`]: true
+          }">
+          
+        <!-- Всплывающее меню кнопки -->
+        <div v-if="btn.menuVisible"
+             class="win-menu"
+             @mouseenter="cancelHideMenu(btn)"
+             @mouseleave="hideMenu(btn)">
+          <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menuWin-image">
+        </div>
+        
+        <!-- Основная кнопка победы -->
+        <div class="button-win"
+             @click="handleButtonClick(btn)"
+             @mouseenter="showMenu(btn)"
+             @mouseleave="scheduleHideMenu(btn)"
+             :style="{ 
+               backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
+                 ? `url('/images/buttons/knopka-win.png')` 
+                 : `url('/images/buttons/Property 1=Default.png')`,
+               cursor: isRaceStarted ? 'default' : 'pointer'
+             }">
+        </div>
        
         <!-- Индикатор победы -->
         <div v-if="btn.occupied" 
-         class="win-indicator"
-         :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
-          </div>
+             class="win-indicator"
+             :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
         </div>
+      </div>
       
-      
-
       <!-- Тараканы -->
       <div v-for="bug in bugs" 
            :key="'bug-'+bug.id"
@@ -60,47 +66,76 @@
            }">
       </div>
       
-      <!-- Нижняя панель -->
+      <!-- Нижняя панель управления -->
       <div class="panel-layer">
+        <!-- Кнопки управления -->
         <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
-         <!-- Обновленная кнопка 2 с обработчиками меню -->
-       <div class="button-2" 
-       id="Button-2" 
-       @click="toggleCenterMenu">
-        </div>
+        <div class="button-2" id="Button-2" @click="toggleCenterMenu"></div>
         <div class="button-3" id="Button-3" @click="handleButtonClick(3)"></div>
        
-        <!-- Меню для центральной кнопки -->
-         <div v-if="centerMenuVisible"
-        class="center-menu">
-         
-         <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
-           <img src="/images/menus/group.png"  class="menu-image group-image">
-           <img src="/images/menus/stavki-history.png"  class="menu-image stavki-history-image">
-           <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+        <!-- Центральное меню -->
+        <div v-if="centerMenuVisible" class="center-menu">
+          <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
+          <img src="/images/menus/group.png" class="menu-image group-image">
+          <img src="/images/menus/stavki-history.png" class="menu-image stavki-history-image">
+          
+          <!-- Меню ставок -->
+          <div class="menu-stavki"> 
+            <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+            <img 
+              src="/images/menus/Group 164.png" 
+              alt="Group 164" 
+              class="group-164-button"
+              @click="handleGroup164Click"
+            >
+            <img 
+              src="/images/buttons/reset.png" 
+              alt="Reset" 
+              class="reset-button"
+              @click="handleResetClick"
+            >
+            <img 
+              src="/images/buttons/otmena.png" 
+              alt="Otmena"
+              class="otmena-button"
+              @click="handleOtmenaButtonClick"
+            >
+            
+            <!-- Кнопки ставок -->
+            <div class="stavki-buttons-container">
               <img 
-                src="/images/menus/Group 164.png" 
-                alt="Group 164" 
-                class="group-164-button"
-                @click="handleGroup164Click"
+                v-for="button in stavkiButtons"
+                :key="button.id"
+                :src="button.src"
+                :alt="button.alt"
+                class="stavki-button"
+                @click="handleStavkiButtonClick(button.id)"
               >
-           <!-- Контейнер для кнопок меню -->
+              <img 
+                src="/images/buttons/x2.png" 
+                alt="x2"
+                class="x2-button"
+                @click="handleX2ButtonClick"
+              >
+            </div>
+          </div> 
+          
+          <!-- Кнопки меню -->
           <div class="menu-buttons-container">
-          <div 
-            v-for="btn in menuButtons" 
-            :key="btn.id"
-            class="menu-button"
-            :class="{ 
-             selected: btn.selected,
-             diagonal: diagonalButtons.includes(btn.id) 
-            }"
-            @click="toggleMenuButton(btn)"
-          ></div>
+            <div 
+              v-for="btn in menuButtons" 
+              :key="btn.id"
+              class="menu-button"
+              :class="{ 
+                selected: btn.selected,
+                diagonal: diagonalButtons.includes(btn.id) 
+              }"
+              @click="toggleMenuButton(btn)"
+            ></div>
           </div>
-        
-         
-
         </div>
+        
+        <!-- Верхняя панель баланса -->
         <div class="panel-up">
           <div class="balance-container">
             <div class="balance-text">Balance</div>
@@ -112,90 +147,46 @@
         </div>
       </div> 
     </div>
-    </div>
+  </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
-const isLoading = ref(false); // Добавляем объявление isLoading
-const bugProgress = ref([]); // Прогресс каждого таракана (0-1)
-const bugSpeeds = ref([]); // Текущая скорость каждого таракана
-const lastSpeedChange = ref([]); // Время последнего изменения скорости
-const speedChangeIntervals = ref([]); // Интервалы между изменениями скорости
-const finishZones = ref([]);// Карта соответствия координат финишных точек и ID кнопок
-const buttonRefs = ref([]);
-const centerMenuVisible = ref(false); // Добавляем состояние для центрального меню
-const centerMenuTimer = ref(null); // Добавляем состояние для центрального меню
-const areWinButtonsDisabled = ref(false);// Добавляем новое состояние для блокировки кнопок
+// ==============================
+// СОСТОЯНИЯ ПРИЛОЖЕНИЯ
+// ==============================
+const isLoading = ref(false);
+const scaleFactor = ref(1);
+const isRaceStarted = ref(false);
+const areWinButtonsDisabled = ref(false);
+const centerMenuVisible = ref(false);
 
-const visibleMenus = computed(() => {
-  return winButtons.value.filter(btn => btn.menuVisible && !isRaceStarted.value);
-});
-// Добавляем вычисляемое свойство для определения диагональных кнопок
-const diagonalButtons = computed(() => {
-  const diagonals = [];
-  for (let i = 0; i < 7; i++) {
-    diagonals.push(i * 7 + i); // Индексы диагональных кнопок: 0, 8, 16, 24, 32, 40, 48
-  }
-  return diagonals;
-});
-// Добавляем состояние для кнопок меню
+// Прогресс и состояние тараканов
+const bugProgress = ref([]);
+const bugSpeeds = ref([]);
+const lastSpeedChange = ref([]);
+const speedChangeIntervals = ref([]);
+const finishZones = ref([]);
+const bugs = ref([]);
+const animationFrame = ref(null);
+
+// Кнопки интерфейса
+const stavkiButtons = ref([
+  { id: '25', src: '/images/buttons/25.png', alt: '25' },
+  { id: '50', src: '/images/buttons/50.png', alt: '50' },
+  { id: '100', src: '/images/buttons/100.png', alt: '100' },
+  { id: '500', src: '/images/buttons/500.png', alt: '500' },
+]);
+
 const menuButtons = ref(
   Array.from({ length: 49 }, (_, index) => ({
     id: index,
     selected: false
   }))
 );
-// Переключение состояния кнопки
-const toggleMenuButton = (btn) => {
-  btn.selected = !btn.selected;
-};
-// Переключение центрального меню
-// Переключение центрального меню (обновленная функция)
-const toggleCenterMenu = () => {
-  centerMenuVisible.value = !centerMenuVisible.value;
-  areWinButtonsDisabled.value = centerMenuVisible.value;
-  
-  // Сбрасываем состояние кнопок при закрытии меню
-  if (!centerMenuVisible.value) {
-    menuButtons.value.forEach(btn => btn.selected = false);
-  }
-};
-const scaleFactor = ref(1);
 
-const updateScale = () => {
-  const baseWidth = 390;
-  const baseHeight = 844;
-  
-  const widthRatio = window.innerWidth / baseWidth;
-  const heightRatio = window.innerHeight / baseHeight;
-  
-  scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
-};
-
-onMounted(() => {
-  updateScale();
-  window.addEventListener('resize', updateScale);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateScale);
-});
-
-// Функция для получения позиции меню
-const getMenuPosition = (btn) => {
-  const buttonRef = buttonRefs.value[btn.id];
-  if (!buttonRef) return {};
-  const rect = buttonRef.getBoundingClientRect();
-  return {
-    left: `${rect.left + window.scrollX}px`,
-    bottom: `${window.innerHeight - rect.top + window.scrollY + 10}px`,
-    transform: 'translateX(-50%)'
-  };
-};
-
-
+// Кнопки победы
 const winButtons = ref([
   { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
   { id: 6, occupied: false, hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
@@ -206,46 +197,115 @@ const winButtons = ref([
   { id: 1, occupied: false, hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
 
+// ==============================
+// ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
+// ==============================
+const diagonalButtons = computed(() => {
+  const diagonals = [];
+  for (let i = 0; i < 7; i++) {
+    diagonals.push(i * 7 + i);
+  }
+  return diagonals;
+});
 
-// Состояние для отслеживания занятых финишей
-const occupiedFinishes = ref([]);
+// ==============================
+// МЕТОДЫ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ
+// ==============================
+// Переключение кнопки меню
+const toggleMenuButton = (btn) => {
+  btn.selected = !btn.selected;
+};
 
-// Обработчик клика
-// Обработчик клика по кнопке
+// Сброс выбранных кнопок
+const handleResetClick = () => {
+  // Добавляем класс анимации
+  const resetBtn = document.querySelector('.reset-button');
+  if (resetBtn) {
+    resetBtn.classList.add('reset-clicked');
+    setTimeout(() => {
+      resetBtn.classList.remove('reset-clicked');
+    }, 300);
+  }
+  // Сброс состояния кнопок
+  menuButtons.value.forEach(btn => {
+    btn.selected = false;
+  });
+};
+
+// Переключение центрального меню
+const toggleCenterMenu = () => {
+  centerMenuVisible.value = !centerMenuVisible.value;
+  areWinButtonsDisabled.value = centerMenuVisible.value;
+  
+  if (!centerMenuVisible.value) {
+    menuButtons.value.forEach(btn => btn.selected = false);
+  }
+};
+
+// Управление меню кнопок победы
+const showMenu = (btn) => {
+  if (isRaceStarted.value || btn.selected) return;
+  btn.hovered = true;
+  btn.menuVisible = true;
+  if (btn.menuTimer) clearTimeout(btn.menuTimer);
+};
+
+const scheduleHideMenu = (btn) => {
+  if (btn.selected) return;
+  btn.menuTimer = setTimeout(() => hideMenu(btn), 0.1);
+};
+
+const hideMenu = (btn) => {
+  if (btn.selected) return;
+  btn.menuVisible = false;
+  btn.hovered = false;
+  if (btn.menuTimer) clearTimeout(btn.menuTimer);
+};
+
+const cancelHideMenu = (btn) => {
+  if (btn.menuTimer) clearTimeout(btn.menuTimer);
+};
+
+// Обработчики кликов по кнопкам
 const handleButtonClick = (btn) => {
   if (isRaceStarted.value || areWinButtonsDisabled.value) return;
   
-  // Если кнопка уже выбрана - снимаем выделение
   if (btn.selected) {
     btn.selected = false;
     btn.menuVisible = false;
     return;
   }
   
-  // Снимаем выделение со всех кнопок
   winButtons.value.forEach(b => {
     b.selected = false;
     b.menuVisible = false;
   });
   
-  // Выделяем текущую кнопку
   btn.selected = true;
   btn.menuVisible = true;
 };
 
+const handleStavkiButtonClick = (buttonId) => {
+  console.log(`Button ${buttonId} clicked`);
+};
 
-const paths = ref([]); // Инициализируем ПЕРЕД bugs
-const bugs = ref([]);
-const animationFrame = ref(null);
-
-// Очистка анимации при уничтожении компонента
-onUnmounted(() => {
-  if (animationFrame.value) {
-    cancelAnimationFrame(animationFrame.value);
+const handleOtmenaButtonClick = () => {
+  // Добавляем класс анимации
+  const otmenaBtn = document.querySelector('.otmena-button');
+  if (otmenaBtn) {
+    otmenaBtn.classList.add('otmena-clicked');
+    setTimeout(() => {
+      otmenaBtn.classList.remove('otmena-clicked');
+    }, 300);
   }
-});
+  
+  console.log('New button clicked');
+};
 
-// Функция генерации путей
+// ==============================
+// ЛОГИКА ИГРЫ
+// ==============================
+// Генерация путей для тараканов
 const generatePaths = async () => {
   try {
     const response = await fetch('http://localhost:8000/api/generate-paths', {
@@ -255,115 +315,44 @@ const generatePaths = async () => {
         bug_count: 7,
         duration: 10000,
         max_moves: 200,
-        include_grid: true // Запрашиваем информацию о сетке
+        include_grid: true
       }),
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}...`);
-    }
-
-      console.log("Status:", response.status);
-    const text = await response.text();
-    console.log("Response:", text);
-
-    const data = JSON.parse(text);
-
-    
-    return {
-      paths: data.paths,
-      results: data.results,
-      grid: data.grid, // Добавляем информацию о сетке
-      finishPoints: data.grid.finish // Добавляем финишные точки
-    };
-
-    
+    if (!response.ok) throw new Error('Network error');
+    return await response.json();
   } catch (error) {
     console.error('Fetch error:', error);
     throw error;
   }
 };
-// Функции для управления меню
-const showMenu = (btn) => {
-  if (isRaceStarted.value || btn.selected) return;
-  
-  btn.hovered = true;
-  btn.menuVisible = true;
-  if (btn.menuTimer) {
-    clearTimeout(btn.menuTimer);
-    btn.menuTimer = null;
-  }
-};
 
-const scheduleHideMenu = (btn) => {
-  // Не скрываем если кнопка выбрана
-  if (btn.selected) return;
-  
-  btn.menuTimer = setTimeout(() => {
-    hideMenu(btn);
-  }, 0.1); // Уменьшена задержка скрытия
-};
-
-const hideMenu = (btn) => {
-  // Не скрываем если кнопка выбрана
-  if (btn.selected) return;
-  
-  btn.menuVisible = false;
-  btn.hovered = false;
-  if (btn.menuTimer) {
-    clearTimeout(btn.menuTimer);
-    btn.menuTimer = null;
-  }
-};
-
-const cancelHideMenu = (btn) => {
-  if (btn.menuTimer) {
-    clearTimeout(btn.menuTimer);
-    btn.menuTimer = null;
-  }
-};
-
-// Обработчик клика по кнопке генерации
+// Запуск генерации тараканов
 const handleGenerateClick = async () => {
   try {
-    areWinButtonsDisabled.value = false; // Снимаем блокировку при новой генерации
-    isRaceStarted.value = false; // Добавьте эту строку
+    areWinButtonsDisabled.value = false;
+    isRaceStarted.value = false;
     isLoading.value = true;
-     // Сбрасываем все кнопки
+    
+    // Сброс состояния кнопок
     winButtons.value.forEach(btn => {
       btn.occupied = false;
       btn.menuVisible = false;
       btn.hovered = false;
       btn.selected = false;
-      if (btn.menuTimer) {
-        clearTimeout(btn.menuTimer);
-        btn.menuTimer = null;
-      }
+      if (btn.menuTimer) clearTimeout(btn.menuTimer);
     });
 
-    winButtons.value.forEach(btn => btn.occupied = false);
-    occupiedFinishes.value = [];
+    // Сброс состояния тараканов
     bugProgress.value = [];
     bugSpeeds.value = [];
     lastSpeedChange.value = [];
     speedChangeIntervals.value = [];
     
+    // Генерация новых путей
     const data = await generatePaths();
-
-    winButtons.value.forEach(btn => {
-      btn.occupied = false;
-      btn.menuVisible = false;
-      if (btn.menuTimer) {
-        clearTimeout(btn.menuTimer);
-        btn.menuTimer = null;
-      }
-    });
-    // Убедимся, что grid существует в ответе
-    if (!data.grid) {
-      throw new Error('Grid configuration is missing in response');
-    }
     
+    // Настройка зон финиша
     const cellSize = data.grid.cell_size;
     const offsetX = data.grid.offset_x;
     const totalWidth = data.grid.cols * cellSize;
@@ -375,7 +364,8 @@ const handleGenerateClick = async () => {
       buttonId: i + 1
     }));
     
-     bugs.value = data.paths.map((path, index) => {
+    // Инициализация тараканов
+    bugs.value = data.paths.map((path, index) => {
       bugProgress.value[index] = 0;
       bugSpeeds.value[index] = 0.004 + Math.random() * 0.004;
       lastSpeedChange.value[index] = Date.now();
@@ -386,8 +376,7 @@ const handleGenerateClick = async () => {
         position: [...path[0]],
         path: path,
         finished: false,
-        // Добавляем фазы движения
-        phase: 'racing', // 'racing', 'to_blue_point', 'finished'
+        phase: 'racing',
         targetButtonId: null,
         bluePointProgress: 0
       };
@@ -401,40 +390,40 @@ const handleGenerateClick = async () => {
   }
 }
 
-const isRaceStarted = ref(false);
-
-// Функция анимации
+// Запуск анимации движения
 const startAnimation = () => {
-  isRaceStarted.value = true; // Добавьте эту строку
+  isRaceStarted.value = true;
   let lastTimestamp = performance.now();
+  
   winButtons.value.forEach(btn => {
     btn.menuVisible = false;
     btn.selected = false;
-    });
+  });
+  
   const animate = (timestamp) => {
     const deltaTime = timestamp - lastTimestamp;
     lastTimestamp = timestamp;
-    
     const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
     
     let activeBugs = 0;
     
     bugs.value.forEach((bug, index) => {
       if (bug.finished) return;
-      
       activeBugs++;
       
+      // Фаза гонки
       if (bug.phase === 'racing') {
+        // Обновление скорости
         if (timestamp - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
           bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
           lastSpeedChange.value[index] = timestamp;
           speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
         }
         
+        // Обновление позиции
         bugProgress.value[index] += bugSpeeds.value[index] * (safeDeltaTime / 16);
         bugProgress.value[index] = Math.max(0, Math.min(bugProgress.value[index], 1));
         
-        // Обновление позиции
         const totalSteps = bug.path.length;
         const currentIndex = Math.floor(bugProgress.value[index] * (totalSteps - 1));
         const safeIndex = Math.max(0, Math.min(currentIndex, totalSteps - 1));
@@ -443,11 +432,11 @@ const startAnimation = () => {
         if (Array.isArray(point) && point.length >= 2) {
           bug.position = [point[0], point[1]];
         } else {
-          console.error(`Invalid path point for bug ${index}`, point);
+          console.error(`Invalid path point`, point);
           bug.finished = true;
         }
         
-        // Проверка достижения финиша
+        // Проверка финиша
         if (bugProgress.value[index] >= 1 && !bug.finished) {
           const bugX = bug.position[0];
           const zone = finishZones.value.find(zone => 
@@ -456,28 +445,24 @@ const startAnimation = () => {
           
           if (zone) {
             bug.targetButtonId = zone.buttonId;
-            bug.phase = 'to_blue_point'; // Переходим ко второй фазе
+            bug.phase = 'to_blue_point';
             bug.bluePointProgress = 0;
           } else {
             bug.finished = true;
           }
         }
       }
-      // Фаза движения к синей точке
+      
+      // Фаза движения к точке финиша
       else if (bug.phase === 'to_blue_point') {
-        // Увеличиваем прогресс движения к синей точке
         bug.bluePointProgress += 0.2 * (safeDeltaTime / 16);
         
-        // Находим целевую синюю точку
         const button = winButtons.value.find(b => b.id === bug.targetButtonId);
         if (button) {
           const [targetX, targetY] = button.bluePoint;
-          
-          // Интерполируем позицию
           bug.position[0] = bug.position[0] + (targetX - bug.position[0]) * bug.bluePointProgress;
           bug.position[1] = bug.position[1] + (targetY - bug.position[1]) * bug.bluePointProgress;
           
-          // Проверка достижения синей точки
           if (bug.bluePointProgress >= 1) {
             bug.finished = true;
             button.occupied = true;
@@ -495,40 +480,174 @@ const startAnimation = () => {
   
   animationFrame.value = requestAnimationFrame(animate);
 };
+
+// ==============================
+// ЖИЗНЕННЫЕ ЦИКЛЫ
+// ==============================
+// Масштабирование интерфейса
+const updateScale = () => {
+  const baseWidth = 390;
+  const baseHeight = 844;
+  const widthRatio = window.innerWidth / baseWidth;
+  const heightRatio = window.innerHeight / baseHeight;
+  scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
+};
+
 onMounted(() => {
-  let lastDevicePixelRatio = window.devicePixelRatio;
+  updateScale();
+  window.addEventListener('resize', updateScale);
   
+  // Отслеживание изменения масштаба
+  let lastDevicePixelRatio = window.devicePixelRatio;
   const updateZoomFactor = () => {
-    const currentDevicePixelRatio = window.devicePixelRatio;
-    if (currentDevicePixelRatio !== lastDevicePixelRatio) {
-      lastDevicePixelRatio = currentDevicePixelRatio;
-      document.documentElement.style.setProperty(
-        '--zoom-factor', 
-        currentDevicePixelRatio
-      );
+    const currentRatio = window.devicePixelRatio;
+    if (currentRatio !== lastDevicePixelRatio) {
+      lastDevicePixelRatio = currentRatio;
+      document.documentElement.style.setProperty('--zoom-factor', currentRatio);
     }
   };
   
-  // Инициализация
   updateZoomFactor();
-  
-  // Следим за изменениями масштаба
   window.addEventListener('resize', updateZoomFactor);
-  
-  // Для браузеров, которые поддерживают событие zoom
   window.addEventListener('wheel', (e) => {
     if (e.ctrlKey) updateZoomFactor();
   });
-  
-  onUnmounted(() => {
-    window.removeEventListener('resize', updateZoomFactor);
-    window.removeEventListener('wheel', updateZoomFactor);
-  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateScale);
+  if (animationFrame.value) cancelAnimationFrame(animationFrame.value);
 });
 </script>
 
 
 <style scoped>
+.x2-button {
+  position: relative;
+  width: 54px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  flex: none;
+ margin-top: 9%;
+  left: 23%;
+  z-index: 9;
+  flex-grow: 0;
+   /* Для правильного отображения изображения */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}.x2-button:hover {
+  transform: scale(1.05);
+  filter: 
+    brightness(1.1)
+    drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+.stavki-buttons-container {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+   gap: var(--stavki-gap, 5px); /* Используем CSS-переменную для управления расстоянием */
+  width: 100%;
+  top: 401%;
+  left: -23.3%;
+  z-index: 9;
+  padding: 0;
+}
+
+.stavki-button {
+  width: 54px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+}
+
+.stavki-button:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.stavki-button:active {
+  transform: scale(0.95);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .stavki-buttons-container {
+    top: 404%;
+    
+  }
+}
+
+@media (max-width: 480px) {
+  .stavki-buttons-container {
+    top: 395%;
+    left: -68%;
+    gap: var(--stavki-gap, 5px); 
+    
+
+  }
+  
+  .stavki-button {
+    width: 48px;
+    height: 31px;
+  }
+  .x2-button {
+    width: 45px;
+    height: 32px;
+    
+    left: 20%;
+  }
+}
+
+.otmena-button {
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
+  width: 25px; /* Настройте по размеру изображения */
+  height: 25px;
+  margin-top: 12%;
+  left: 8%; /* Позиция слева от кнопки сброса */
+  transform: translateX(-50%);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Для правильного отображения изображения */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.otmena-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.otmena-button:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .otmena-button {
+    width: 25px;
+    height: 25px;
+    left: 8.1%;
+  }
+}
+
+@media (max-width: 480px) {
+ .otmena-button {
+    width: 24px;
+    height: 24px;
+    left: -35.4%;
+    top: 382%;
+  }
+}
 /* Стиль для скрытия диагональных кнопок */
 .menu-button.diagonal {
   visibility: hidden; /* Скрываем кнопку, но сохраняем место */
@@ -541,10 +660,68 @@ onMounted(() => {
   opacity: 0;
   pointer-events: none;
 }
+/* Стили для новой кнопки сброса */
+.reset-button {
+  position: absolute;
+  z-index: 10; /* Выше других элементов меню */
+  cursor: pointer;
+  width: 47px; /* Увеличено с 47px */
+  height: 24px; /* Увеличено с 24px */
+  border-radius: 4px;
+  padding: 4px 15px;
+  
+  /* Позиционирование слева от Group 164 */
+  margin-top: 11%; 
+  left: 56.4%; 
+  transform: translateX(-50%);
+  
+  /* Анимации */
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.reset-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.reset-button:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .reset-button {
+    width: 50px;
+    height: 24px;
+    top: 392%;
+    left: 56%;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+}
+/* Анимации для кнопок */
+@keyframes resetPulse {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(0.92); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+@keyframes otmenaPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .reset-button {
+    width: 41px;
+    height: 21px;
+    top: 382%;
+    left: 8%;
+  }
+}
 .menu-buttons-container {
   
   position: absolute;
-  margin-top: -62.5%; /* Регулируйте по необходимости */
+  top: 227%; /* Регулируйте по необходимости */
   left: 55.1%;
   transform: translate(-50%, -50%);
   
@@ -607,7 +784,12 @@ onMounted(() => {
     left: 48.5%;
   }
 }
-
+/*@media (max-width: 768px) {
+  .main-color {
+    
+    
+  }
+}*/
 @media (max-width: 480px) {
   .group-164-button {
     width: 80px;
@@ -643,7 +825,7 @@ onMounted(() => {
     width: 200px;
     height: 175px;
     grid-gap: 2px;
-    top: 490%; /* Корректировка позиции */
+    top: 230%; /* Корректировка позиции */
     left: 55%;
      /* Разделяем горизонтальное и вертикальное расстояние */
   --column-gap: 4px; /* Горизонтальное расстояние */
@@ -662,31 +844,26 @@ onMounted(() => {
   row-gap: var(--row-gap);
   }
   
+  
 }
 
 @media (max-width: 480px) {
   .menu-buttons-container {
-    width: 170px;
-    height: 150px;
-    top: 473%; /* Дополнительная корректировка */
+    top: 219%;
     left: 4%;
-  --column-gap: 3px; /* Горизонтальное расстояние */
-  --row-gap: 5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
-   
-  /* Рассчитываем размер контейнера */
-   --button-width: 36px; /* Ширина кнопок по умолчанию */
-  --button-height: 30px; /* Высота кнопок по умолчанию */
-  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
-  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
-  
-  display: grid;
-  grid-template-columns: repeat(7, var(--button-width));
-  grid-template-rows: repeat(7, var(--button-height));
-  
-  /* Разделяем горизонтальное и вертикальное расстояние */
-  column-gap: var(--column-gap);
-  row-gap: var(--row-gap);
-  }
+    --column-gap: 4px;
+    --row-gap: 6px;
+    --button-width: 36px;
+    --button-height: 30px;
+    width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+    height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+    display: grid;
+    grid-template-columns: repeat(7, var(--button-width));
+    grid-template-rows: repeat(7, var(--button-height));
+    -moz-column-gap: var(--column-gap);
+    column-gap: var(--column-gap);
+    row-gap: var(--row-gap);
+    }
   
   .menu-button {
     background-size: contain;
@@ -716,7 +893,7 @@ onMounted(() => {
   position: relative;
 }
 .labirint-bg {
-  position: absolute;
+  position: relative;
   top: 8%;
   left: 0;
   width: 100%; /* Занимает всю ширину родителя */
@@ -745,7 +922,7 @@ onMounted(() => {
 
 /* Стили для черной менюшки */
 .panel-up {
-  position: absolute;
+  position: relative;
   width: 390px;
   height: 43px;
   left: calc(50% - 390px/2);
@@ -770,7 +947,7 @@ onMounted(() => {
 }
 
 .tarakan {
-  position: absolute;
+  position: relative;
   width: 32px;
   height: 38px;
   transform: translate(-50%, -50%); /* Центрирование */
@@ -820,12 +997,8 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   transition: all 0.3s ease;
 }
 /* Адаптация для маленьких экранов */
-@media (max-width: 768px) {
-  .button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5.button-win-6.button-win-7 {
-    transform: scale(0.9); /* Уменьшаем размер контейнера */
-    
-  }
-}
+
+
 @media (max-width: 390px) {
   .button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5.button-win-6.button-win-7 {
     transform: scale(0.9); /* Уменьшаем размер контейнера */
@@ -996,6 +1169,21 @@ position: absolute;
   border: 1px solid red !important;
   
 }
+.menuWin-image {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 390px;
+  height: 225px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: default;
+  transition: opacity 0.2s ease;
+  pointer-events: auto;
+}
+
 .menu-image {
   width: 100%;
   max-width: 390px; /* Максимальная ширина основного изображения */
@@ -1130,10 +1318,10 @@ position: absolute;
 /* Адаптация для мобильных */
 .win-menu {
   position: absolute;
-  bottom: calc(100% + 0px); /* 10px над кнопкой */
+  bottom: calc(100% + 0px); /* 10px над кнопкой ...*/
   left: 50%;
-   transform: translateX(-50%);
   z-index: 4;
+  width: 371px;
   height: 225px;
   background-size: contain;
   background-repeat: no-repeat;
@@ -1241,13 +1429,13 @@ position: absolute;
   }
 }
 
-/* Обновленные медиа-запросы */
+/* Обновленные медиа-запросы 
 @media (max-width: 768px) {
   .win-menu {
-    transform: translate(-50%, -50%) scale(0.9);
+     
   }
 }
-
+*/
 
 /* Адаптация для маленьких экранов */
 @media (max-width: 768px) {
@@ -1255,6 +1443,7 @@ position: absolute;
     width: 300px;
     height: 180px;
   }
+
 }
 
 /* Для вертикальной ориентации */

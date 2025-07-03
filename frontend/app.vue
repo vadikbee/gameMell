@@ -81,12 +81,13 @@
           
           <!-- Меню ставок -->
           <div class="menu-stavki"> 
-            <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+          <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
+          <div class="bet-controls-container">
             <img 
-              src="/images/menus/Group 164.png" 
-              alt="Group 164" 
-              class="group-164-button"
-              @click="handleGroup164Click"
+              src="/images/buttons/otmena.png" 
+              alt="Otmena"
+              class="otmena-button"
+              @click="handleOtmenaButtonClick"
             >
             <img 
               src="/images/buttons/reset.png" 
@@ -95,28 +96,51 @@
               @click="handleResetClick"
             >
             <img 
-              src="/images/buttons/otmena.png" 
-              alt="Otmena"
-              class="otmena-button"
-              @click="handleOtmenaButtonClick"
+              src="/images/menus/Group 164.png" 
+              alt="Group 164" 
+              class="group-164-button"
+              @click="handleGroup164Click"
             >
-            
+          </div>
+             <!-- Новый блок счетчика ставок.... -->
+            <div class="bet-counter-container">
+            <div 
+            class="bet-button minus" 
+            @mousedown="startDecrement" 
+            @mouseup="stopAction"
+            @mouseleave="stopAction"
+            @touchstart="startDecrement"
+            @touchend="stopAction"
+            @touchcancel="stopAction"
+          ></div>
+            <div class="bet-display">{{ currentBet }}</div>
+            <div 
+            class="bet-button plus" 
+            @mousedown="startIncrement" 
+            @mouseup="stopAction"
+            @mouseleave="stopAction"
+            @touchstart="startIncrement"
+            @touchend="stopAction"
+            @touchcancel="stopAction"
+          ></div>
+            </div>
+            <!-- ... остальной код ... -->
             <!-- Кнопки ставок -->
             <div class="stavki-buttons-container">
               <img 
-                v-for="button in stavkiButtons"
-                :key="button.id"
-                :src="button.src"
-                :alt="button.alt"
-                class="stavki-button"
-                @click="handleStavkiButtonClick(button.id)"
-              >
-              <img 
-                src="/images/buttons/x2.png" 
-                alt="x2"
-                class="x2-button"
-                @click="handleX2ButtonClick"
-              >
+            v-for="button in stavkiButtons"
+            :key="button.id"
+            :src="button.src"
+            :alt="button.alt"
+            class="stavki-button"
+            @click="addToBet(button.amount)"
+          >
+          <img 
+            src="/images/buttons/x2.png" 
+            alt="x2"
+            class="x2-button"
+            @click="handleX2ButtonClick"
+          >
             </div>
           </div> 
           
@@ -161,6 +185,17 @@ const scaleFactor = ref(1);
 const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
+// Добавьте эти переменные
+const betHistory = ref([]); // ИСТОРИЯ СТАВОК
+const currentBet = ref(0);
+const minBet = 0;
+const maxBet = 10000;
+const betStep = 1;
+// Добавлено: переменные для управления зажатием кнопок
+const actionInterval = ref(null);
+const actionTimeout = ref(null);
+const speedUpInterval = ref(null); // Добавлено для интервала ускорения
+const actionSpeed = ref(300); // начальная скорость в ms
 
 // Прогресс и состояние тараканов
 const bugProgress = ref([]);
@@ -171,13 +206,147 @@ const finishZones = ref([]);
 const bugs = ref([]);
 const animationFrame = ref(null);
 
-// Кнопки интерфейса
+// ==============================
+// МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
+// ==============================
+// Функция для удвоения ставки
+
+const saveCurrentBet = () => {
+  betHistory.value.push(currentBet.value);
+};
+// Восстанавливаем предыдущую ставку из истории
+const restorePreviousBet = () => {
+  if (betHistory.value.length > 0) {
+    currentBet.value = betHistory.value.pop();
+  }
+};
+// Исправляем логику сброса ставки (теперь это отмена последнего действия)
+const handleResetClick = () => {
+  stopAction(); // Останавливаем любые активные интервалы
+  restorePreviousBet();
+  
+  // Анимация
+  const resetBtn = document.querySelector('.reset-button');
+  if (resetBtn) {
+    resetBtn.classList.add('reset-clicked');
+    setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
+  }
+};
+// Функция для удвоения ставки
+const handleX2ButtonClick = () => {
+  saveCurrentBet();
+  const newBet = currentBet.value * 2;
+  currentBet.value = newBet > maxBet ? maxBet : newBet;
+  
+  // Анимация кнопки
+  const x2Btn = document.querySelector('.x2-button');
+  if (x2Btn) {
+    x2Btn.classList.add('x2-clicked');
+    setTimeout(() => x2Btn.classList.remove('x2-clicked'), 300);
+  }
+};
+
+// Функция для сброса ставки
+const handleResetBetClick = () => {
+  // Восстанавливаем предыдущее значение
+  if (previousBet.value !== null) {
+    currentBet.value = previousBet.value;
+  }
+  
+  // Анимация кнопки
+  const resetBtn = document.querySelector('.reset-button');
+  if (resetBtn) {
+    resetBtn.classList.add('reset-clicked');
+    setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
+  }
+};
+// Добавлено: функция для добавления фиксированных сумм
+const addToBet = (amount) => {
+  saveCurrentBet();
+  currentBet.value = Math.min(currentBet.value + amount, maxBet);
+};
+
+// Обновленные функции изменения ставки с сохранением состояния
+const incrementBet = () => {
+  // Сохраняем только при первом вызове
+  if (!actionInterval.value && !actionTimeout.value) {
+    saveCurrentBet();
+  }
+  currentBet.value = Math.min(currentBet.value + betStep, maxBet);
+};
+
+
+const decrementBet = () => {
+  // Сохраняем только при первом вызове
+  if (!actionInterval.value && !actionTimeout.value) {
+    saveCurrentBet();
+  }
+  currentBet.value = Math.max(currentBet.value - betStep, minBet);
+};
+
+
+// Функция для сброса ставки к нулю
+const handleOtmenaButtonClick = () => {
+  stopAction(); // Останавливаем любые активные интервалы
+  saveCurrentBet(); // Сохраняем текущее значение
+  currentBet.value = 0;
+  
+  // Анимация
+  const otmenaBtn = document.querySelector('.otmena-button');
+  if (otmenaBtn) {
+    otmenaBtn.classList.add('otmena-clicked');
+    setTimeout(() => otmenaBtn.classList.remove('otmena-clicked'), 300);
+  }
+};
+
+// Функции для управления зажатием кнопок
+const startAction = (action) => {
+  // Первое срабатывание сразу
+  action();
+  
+  // Задержка перед началом быстрого повторения
+  actionTimeout.value = setTimeout(() => {
+    // Быстрое повторение
+    actionInterval.value = setInterval(action, actionSpeed.value);
+    
+    // Ускорение с течением времени
+    speedUpInterval.value = setInterval(() => {
+      actionSpeed.value = Math.max(50, actionSpeed.value - 50);
+      clearInterval(actionInterval.value);
+      actionInterval.value = setInterval(action, actionSpeed.value);
+    }, 500);
+  }, 500);
+};
+
+const startIncrement = () => startAction(incrementBet);
+const startDecrement = () => startAction(decrementBet);
+
+const stopAction = () => {
+  if (actionTimeout.value) {
+    clearTimeout(actionTimeout.value);
+    actionTimeout.value = null;
+  }
+  if (actionInterval.value) {
+    clearInterval(actionInterval.value);
+    actionInterval.value = null;
+  }
+  if (speedUpInterval.value) {
+    clearInterval(speedUpInterval.value);
+    speedUpInterval.value = null;
+  }
+  actionSpeed.value = 300;
+};
+// ==============================
+// ОБНОВЛЕНИЕ КНОПОК СТАВОК
+// ==============================
+// Изменено: добавлены суммы для кнопок
 const stavkiButtons = ref([
-  { id: '25', src: '/images/buttons/25.png', alt: '25' },
-  { id: '50', src: '/images/buttons/50.png', alt: '50' },
-  { id: '100', src: '/images/buttons/100.png', alt: '100' },
-  { id: '500', src: '/images/buttons/500.png', alt: '500' },
+  { id: '25', amount: 25, src: '/images/buttons/25.png', alt: '25' },
+  { id: '50', amount: 50, src: '/images/buttons/50.png', alt: '50' },
+  { id: '100', amount: 100, src: '/images/buttons/100.png', alt: '100' },
+  { id: '500', amount: 500, src: '/images/buttons/500.png', alt: '500' },
 ]);
+
 
 const menuButtons = ref(
   Array.from({ length: 49 }, (_, index) => ({
@@ -216,21 +385,7 @@ const toggleMenuButton = (btn) => {
   btn.selected = !btn.selected;
 };
 
-// Сброс выбранных кнопок
-const handleResetClick = () => {
-  // Добавляем класс анимации
-  const resetBtn = document.querySelector('.reset-button');
-  if (resetBtn) {
-    resetBtn.classList.add('reset-clicked');
-    setTimeout(() => {
-      resetBtn.classList.remove('reset-clicked');
-    }, 300);
-  }
-  // Сброс состояния кнопок
-  menuButtons.value.forEach(btn => {
-    btn.selected = false;
-  });
-};
+
 
 // Переключение центрального меню
 const toggleCenterMenu = () => {
@@ -287,19 +442,6 @@ const handleButtonClick = (btn) => {
 
 const handleStavkiButtonClick = (buttonId) => {
   console.log(`Button ${buttonId} clicked`);
-};
-
-const handleOtmenaButtonClick = () => {
-  // Добавляем класс анимации
-  const otmenaBtn = document.querySelector('.otmena-button');
-  if (otmenaBtn) {
-    otmenaBtn.classList.add('otmena-clicked');
-    setTimeout(() => {
-      otmenaBtn.classList.remove('otmena-clicked');
-    }, 300);
-  }
-  
-  console.log('New button clicked');
 };
 
 // ==============================
@@ -523,6 +665,108 @@ onUnmounted(() => {
 
 
 <style scoped>
+
+/* Обновляем переходы для плавности */
+.x2-button, .reset-button {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.bet-counter-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  margin-top: -11.1%; /* Позиционирование по вертикали */
+  left: 37.5%;
+  transform: translateX(-50%);
+  z-index: 12; /* Поверх других элементов */
+  width: 23%;
+   border: 1px solid red !important; 
+}
+
+.bet-button {
+  width: 23px;
+  height: 23px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.bet-button.minus {
+  z-index: 9;
+  background-image: url('/images/buttons/kryg-pravo.png');
+}
+
+.bet-button.plus {
+  z-index: 9;
+  background-image: url('/images/buttons/kryg-leva.png');
+}
+
+.bet-button:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.8));
+}
+
+.bet-button:active {
+  transform: scale(0.95);
+}
+
+.bet-display {
+  width: 70px;
+  height: 23px;
+  background-image: url('/images/buttons/seredina.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  padding-top: 0px;
+  justify-content: center;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: #000000;
+  margin: 0 -13px;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .bet-counter-container {
+    top: 30%;
+     margin-top: 98%; /* Позиционирование по вертикали */
+    left: 37%;
+  }
+  
+  .bet-display {
+    width: 80px;
+    font-size: 17px;
+    margin: 0 -18px;
+    
+  }
+}
+
+@media (max-width: 480px) {
+  .bet-counter-container {
+    top: 25%;
+    transform: translateX(-50%) scale(0.9);
+  }
+  
+  .bet-display {
+    width: 70px;
+   height: 23px;
+    font-size: 12px;
+  }
+  
+  .bet-button {
+    width: 20px;
+    height: 20px;
+  }
+}
 .x2-button {
   position: relative;
   width: 54px;
@@ -530,8 +774,8 @@ onUnmounted(() => {
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
- margin-top: 9%;
-  left: 23%;
+ margin-top: -13.5%;
+  left: 27.7%;
   z-index: 9;
   flex-grow: 0;
    /* Для правильного отображения изображения */
@@ -550,22 +794,25 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   justify-content: center;
-   gap: var(--stavki-gap, 5px); /* Используем CSS-переменную для управления расстоянием */
-  width: 100%;
-  top: 401%;
-  left: -23.3%;
+   gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
+  width: 89%;
+  left: -19.2%;
   z-index: 9;
   padding: 0;
+  border: 1px solid rgb(36, 223, 15) !important; 
 }
 
 .stavki-button {
-  width: 54px;
-  height: 40px;
+  width: 50px;
+  height: 26px;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
   order: 1;
   flex-grow: 0;
+  margin-top: -23%;
+  
+ 
 }
 
 .stavki-button:hover {
@@ -612,10 +859,10 @@ onUnmounted(() => {
   cursor: pointer;
   width: 25px; /* Настройте по размеру изображения */
   height: 25px;
-  margin-top: 12%;
-  left: 8%; /* Позиция слева от кнопки сброса */
+  margin-top: -11%;
   transform: translateX(-50%);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-left: 8%;
   
   /* Для правильного отображения изображения */
   background-size: contain;
@@ -664,29 +911,17 @@ onUnmounted(() => {
 /* Стили для новой кнопки сброса */
 .reset-button {
   position: absolute;
-  z-index: 10; /* Выше других элементов меню */
+  z-index: 10;
   cursor: pointer;
-  width: 47px; /* Увеличено с 47px */
-  height: 24px; /* Увеличено с 24px */
-  border-radius: 4px;
-  padding: 4px 15px;
+  width: 48px;
+  height: 24px;
+  margin-top: -11%; /* Центрируем по вертикали */
+  margin-left: 50%;
   
-  /* Позиционирование слева от Group 164 */
-  margin-top: 11%; 
-  left: 56.4%; 
-  transform: translateX(-50%);
-  
-  /* Анимации */
-  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .reset-button:hover {
-  transform: translateX(-50%) scale(1.05);
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
-
-.reset-button:active {
-  transform: translateX(-50%) scale(0.95);
 }
 
 /* Адаптация для мобильных */

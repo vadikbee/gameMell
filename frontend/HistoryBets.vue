@@ -20,17 +20,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed,defineProps  } from 'vue';
 
 const props = defineProps({
-  isCenterMenuOpen: Boolean
+  isCenterMenuOpen: Boolean,
+  insideCenter: Boolean // Добавляем новый пропс
 });
 
-// Вычисляемое свойство для позиционирования
 const positionClass = computed(() => {
-  return props.isCenterMenuOpen ? 'top-right' : 'bottom-right';
+  if (props.insideCenter) return 'inside-center'; // Для истории внутри меню
+  return props.isCenterMenuOpen ? 'top-right' : 'bottom-right'; // Для истории снаружи
 });
-
 // Заглушка данных (в реальном приложении будет запрос к API)
 const bets = [
   { 
@@ -59,6 +59,9 @@ const bets = [
   z-index: 10;
   padding: 5px;
   box-sizing: border-box;
+  top: 57.3%;
+  left: 43.5%;
+  border: 1px solid red !important; 
 }
 
 /* Позиционирование */
@@ -90,6 +93,7 @@ const bets = [
 .bets-list {
   height: calc(100% - 30px);
   overflow-y: auto;
+  
 }
 
 .bet-item {

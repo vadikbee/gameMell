@@ -1,9 +1,15 @@
 <template>
   <div class="main-color">
+ <!-- История ставок в основном интерфейсе -->
+  <HistoryBets 
+    v-if="historyBetsVisible && !historyBetsInsideCenter" 
+    :isCenterMenuOpen="centerMenuVisible" 
+    class="outside-center"
+  />
     <!-- Контейнер для масштабирования фона -->
     <div class="main-bg-container" :style="{ transform: `scale(${scaleFactor})` }"></div>
     
-    <!-- Кнопка генерации тараканов -->
+    <!-- Кнопка генерации тараканов...б.б. -->
     <div class="tarakan-test"
          id="generateButton"
          @click="handleGenerateClick" 
@@ -71,14 +77,18 @@
         <!-- Кнопки управления -->
         <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
         <div class="button-2" id="Button-2" @click="toggleCenterMenu"></div>
-        <div class="button-3" id="Button-3" @click="handleButtonClick(3)"></div>
+        <div class="button-3" id="Button-3" @click="toggleHistoryBets"></div>
        
         <!-- Центральное меню -->
         <div v-if="centerMenuVisible" class="center-menu">
           <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
           <img src="/images/menus/group.png" class="menu-image group-image">
-          <img src="/images/menus/stavki-history.png" class="menu-image stavki-history-image">
-          
+                      <HistoryBets 
+              v-if="historyBetsVisible && historyBetsInsideCenter" 
+              :isCenterMenuOpen="centerMenuVisible" 
+              :insideCenter="true"
+              class="inside-center"
+            />
           <!-- Меню ставок -->
           <div class="menu-stavki"> 
           <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
@@ -171,12 +181,19 @@
         </div>
       </div> 
     </div>
+     
   </div>
+  
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import HistoryBets from './HistoryBets.vue';
+import io from 'socket.io-client';
 
+const socket = io('https://your-websocket-server.com');
+// Добавьте состояние для истории ставок
+const historyBetsVisible = ref(false);
 // ==============================
 // СОСТОЯНИЯ ПРИЛОЖЕНИЯ
 // ==============================
@@ -186,6 +203,7 @@ const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
 // Добавьте эти переменные
+const historyBetsInsideCenter = ref(false);
 const betHistory = ref([]); // ИСТОРИЯ СТАВОК
 const currentBet = ref(0);
 const minBet = 0;
@@ -210,6 +228,62 @@ const animationFrame = ref(null);
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
 // Функция для удвоения ставки
+
+onMounted(() => {
+  socket.on('bet-update', (newBet) => {
+    if (historyBetsVisible.value) {
+      bets.value.unshift(newBet);
+      if (bets.value.length > 10) bets.value.pop();
+    }
+  });
+});
+
+onUnmounted(() => {
+  socket.disconnect();
+});
+const loadBetHistory = async () => {
+  try {
+    const response = await fetch('/api/v1/gameplay/games/bets/latest', {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load bet history');
+    
+    bets.value = await response.json();
+  } catch (error) {
+    console.error('Error loading bet history:', error);
+  }
+};
+
+// Вызывать при открытии окна
+watch(historyBetsVisible, (visible) => {
+  if (visible) {
+    loadBetHistory();
+  }
+});
+// Обработчик для кнопки истории ставок
+const toggleHistoryBets = () => {
+  if (centerMenuVisible.value) {
+    historyBetsVisible.value = !historyBetsVisible.value;
+    historyBetsInsideCenter.value = true;
+  } else {
+    // Закрываем историю внутри центра при открытии внешней
+    if (historyBetsInsideCenter.value) {
+      historyBetsVisible.value = false;
+      historyBetsInsideCenter.value = false;
+    }
+    historyBetsVisible.value = !historyBetsVisible.value;
+  }
+};
+
+// Закрытие истории при открытии центрального меню
+watch(centerMenuVisible, (newVal) => {
+  if (!newVal && historyBetsInsideCenter.value) {
+    // Закрываем историю при закрытии центрального меню
+    historyBetsVisible.value = false;
+    historyBetsInsideCenter.value = false;
+  }
+});
 
 const saveCurrentBet = () => {
   betHistory.value.push(currentBet.value);
@@ -389,11 +463,12 @@ const toggleMenuButton = (btn) => {
 
 // Переключение центрального меню
 const toggleCenterMenu = () => {
-  centerMenuVisible.value = !centerMenuVisible.value;
-  areWinButtonsDisabled.value = centerMenuVisible.value;
+  const wasOpen = centerMenuVisible.value;
+  centerMenuVisible.value = !wasOpen;
   
-  if (!centerMenuVisible.value) {
-    menuButtons.value.forEach(btn => btn.selected = false);
+  if (!wasOpen) {
+    // При открытии центра закрываем внешнюю историю
+    historyBetsVisible.value = false;
   }
 };
 
@@ -665,6 +740,39 @@ onUnmounted(() => {
 
 
 <style scoped>
+/* Добавляем новые стили для позиционирования */
+/* Позиция внутри центрального меню */
+.history-bets.inside-center {
+  position: absolute;
+  top: -163%;
+  margin-left: -5%;
+  width: 240px;
+  height: 150px;
+  z-index: 1;
+  transform: none !important;
+}
+
+/* Позиция снаружи (стандартная) */
+.history-bets.outside-center {
+  position: absolute;
+  top: 57.3%;
+  left: 43.5%;
+  z-index: 10;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .history-bets.inside-center {
+    top: -162%;
+    right: -5%;
+    transform: scale(0.9);
+  }
+  
+  .history-bets.outside-center {
+    top: 50%;
+    left: 40%;
+  }
+}
 
 /* Обновляем переходы для плавности */
 .x2-button, .reset-button {
@@ -811,8 +919,6 @@ onUnmounted(() => {
   order: 1;
   flex-grow: 0;
   margin-top: -23%;
-  
- 
 }
 
 .stavki-button:hover {
@@ -828,8 +934,23 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .stavki-buttons-container {
     top: 404%;
+    width: 85%;
+    transform: translateX(0); /* Сбрасываем transform если был */
+    padding-left: 15px; /* Регулируйте значение по необходимости */
+    box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */
+  }
+  .stavki-button {
+    margin-top: 0%;
+    transform: none;
     
   }
+   .x2-button {
+    width: 55px;
+    height: 32px;
+    left: 31%;
+    margin-top: 11.1%;
+  }
+  
 }
 
 @media (max-width: 480px) {
@@ -844,11 +965,11 @@ onUnmounted(() => {
   .stavki-button {
     width: 48px;
     height: 31px;
+    
   }
   .x2-button {
     width: 45px;
     height: 32px;
-    
     left: 20%;
   }
 }
@@ -884,7 +1005,7 @@ onUnmounted(() => {
   .otmena-button {
     width: 25px;
     height: 25px;
-    left: 8.1%;
+    left: 0%;
   }
 }
 
@@ -915,8 +1036,8 @@ onUnmounted(() => {
   cursor: pointer;
   width: 48px;
   height: 24px;
-  margin-top: -11%; /* Центрируем по вертикали */
-  margin-left: 50%;
+  margin-top: 12.2%; /* Центрируем по вертикали */
+  margin-left: -6%;
   
 }
 
@@ -1395,7 +1516,7 @@ position: absolute;
 /* Специфичные стили для изображения stavki */
 .stavki-image {
   margin-left: 2%;
-  margin-top: -1%; /* Поднимаем изображение ближе к основному */
+  top: -1%; /* Поднимаем изображение ближе к основному */
   width: 95%; /* Уменьшаем ширину */
   max-width: 100%; /* Максимальная ширина */
   background-size: contain;
@@ -1436,18 +1557,7 @@ position: absolute;
   top: -165%; /* Точное позиционирование сверху */
   left: 0px; /* Точное позиционирование слева */
   z-index: 3;
-}
-/* История ставок справа */
-.stavki-history-image {
-  background-image: url('/images/menus/stavki-history.png');
-  position: absolute;
-  width: 240px; /* Размеры по вашему макету */
-  height: 150px;  /* Размеры по вашему макету */
-  top: -163%;       /* Позиционирование сверху */
-  right: 0px;  /* Позиционирование справа */
-  z-index: 1;
-  
-}
+} 
 .stavki-image {
   width: 95%; /* Ширина относительно основного изображения */
   max-width: 370px; /* Чуть меньше основного */
@@ -1470,9 +1580,6 @@ position: absolute;
   }
   
   .stavki-image {
-    max-width: 285px;
-  }
-  .stavki-history-image{
     max-width: 285px;
   }
   .group-image{
@@ -1498,12 +1605,7 @@ position: absolute;
     max-width: 240px;
     transform: translateX(-50%) scale(0.9);
   }
-  .stavki-history-image{
-    left: 26%;
-    margin-top: 8.5%;
-    max-width: 240px;
-    transform: translateX(-60%) scale(0.8);
-  }
+  
   .group-image {
     margin-top: 9%;
     left: -32%;

@@ -392,6 +392,7 @@ const handleGenerateClick = async () => {
 
 // Запуск анимации движения
 const startAnimation = () => {
+  console.log('Starting animation...')
   isRaceStarted.value = true;
   let lastTimestamp = performance.now();
   
@@ -947,11 +948,11 @@ onUnmounted(() => {
 }
 
 .tarakan {
-  position: relative;
+  position: absolute; /* Вместо relative */
   width: 32px;
   height: 38px;
   transform: translate(-50%, -50%); /* Центрирование */
-  z-index: 2;
+  z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */
     
 filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))

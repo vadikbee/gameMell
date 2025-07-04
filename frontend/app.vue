@@ -1,5 +1,6 @@
 <template>
   <div class="main-color">
+   
  <!-- История ставок в основном интерфейсе -->
   <HistoryBets 
     v-if="historyBetsVisible && !historyBetsInsideCenter" 
@@ -21,6 +22,41 @@
     
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
+       <!-- Центральное фиксированное меню -->
+  <div v-if="centerWinMenuVisible" class="win-menu-center">
+    <div class="menu-container">
+      <img 
+        :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
+        alt="Menu" 
+        class="menuWin-image-center"
+      />
+      
+      <!-- Контейнер для интерактивных тараканов -->
+      <div class="bug-buttons-container">
+    <div 
+      v-for="(bug, index) in menuBugs"
+      :key="index"
+      class="bug-button"
+      :class="{
+        'bug-button-hovered': hoveredBugIndex === index,
+        'bug-button-clicked': clickedBugIndex === index
+      }"
+      @mouseenter="hoverBug(index)"
+      @mouseleave="unhoverBug"
+      @mousedown="clickBug(index)"
+      @touchstart="clickBug(index)"
+      :style="getBugStyle(index)"
+    >
+      <!-- Добавляем изображение таракана -->
+      <img 
+        :src="`/images/tarakani/t-${bug.id}.png`" 
+        :alt="`Таракан ${bug.id}`"
+        class="bug-image"
+      />
+    </div>
+  </div>
+    </div>
+  </div>
       <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
       
@@ -33,21 +69,13 @@
             [`button-win-${index + 1}`]: true
           }">
           
-        <!-- Всплывающее меню кнопки -->
-        <div v-if="btn.menuVisible"
-             class="win-menu"
-             @mouseenter="cancelHideMenu(btn)"
-             @mouseleave="hideMenu(btn)">
-          <img :src="`/images/menus/Frame 575-${btn.id}.png`" alt="Menu" class="menuWin-image">
-        </div>
+        
         
         <!-- Основная кнопка победы -->
         <div class="button-win"
              @click="handleButtonClick(btn)"
-             @mouseenter="showMenu(btn)"
-             @mouseleave="scheduleHideMenu(btn)"
              :style="{ 
-               backgroundImage: (btn.selected || (btn.hovered && !isRaceStarted)) 
+               backgroundImage: btn.selected 
                  ? `url('/images/buttons/knopka-win.png')` 
                  : `url('/images/buttons/Property 1=Default.png')`,
                cursor: isRaceStarted ? 'default' : 'pointer'
@@ -203,6 +231,13 @@ const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
 // Добавьте эти переменные
+// Новые состояния для взаимодействия с тараканами в меню
+const hoveredBugIndex = ref(null);
+const clickedBugIndex = ref(null)
+// Новое состояние для центрального меню
+const centerWinMenuVisible = ref(false);
+const activeWinMenuId = ref(null);
+
 const historyBetsInsideCenter = ref(false);
 const betHistory = ref([]); // ИСТОРИЯ СТАВОК
 const currentBet = ref(0);
@@ -227,6 +262,49 @@ const animationFrame = ref(null);
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
+// Конфигурация расстояния
+const gap = 0.5; // 1% расстояния между кнопками
+
+const menuBugs = ref([
+  { id: 1, left: 5, top: 25, width: 12, height: 50 },
+  { id: 2, left: 18 + gap, top: 25, width: 12, height: 50 },
+  { id: 3, left: 31 + gap*2, top: 25, width: 12, height: 50 },
+  { id: 4, left: 44 + gap*3, top: 25, width: 12, height: 50 },
+  { id: 5, left: 57 + gap*4, top: 25, width: 12, height: 50 },
+  { id: 6, left: 70 + gap*5, top: 25, width: 12, height: 50 },
+  { id: 7, left: 83 + gap*6, top: 25, width: 12, height: 50 }
+]);
+// Получение стилей для позиционирования кнопки таракана
+const getBugStyle = (index) => {
+  const bug = menuBugs.value[index];
+  return {
+    left: `${bug.left}%`,
+    top: `${bug.top}%`,
+    width: `${bug.width}%`,
+    height: `${bug.height}%`,
+  };
+};
+
+// Обработчики событий
+const hoverBug = (index) => {
+  hoveredBugIndex.value = index;
+};
+
+const unhoverBug = () => {
+  hoveredBugIndex.value = null;
+};
+
+const clickBug = (index) => {
+  clickedBugIndex.value = index;
+  
+  // Сбрасываем состояние клика через 300 мс
+  setTimeout(() => {
+    clickedBugIndex.value = null;
+  }, 300);
+  
+  // Здесь можно добавить логику при клике на таракана
+  console.log(`Clicked on bug ${menuBugs.value[index].id}`);
+};
 // Функция для удвоения ставки
 
 onMounted(() => {
@@ -461,63 +539,60 @@ const toggleMenuButton = (btn) => {
 
 
 
-// Переключение центрального меню
+// Измененный метод для переключения центрального меню
 const toggleCenterMenu = () => {
   const wasOpen = centerMenuVisible.value;
   centerMenuVisible.value = !wasOpen;
-  
+
+  // Добавьте вотчер для сброса состояния кнопок
+watch(centerWinMenuVisible, (isVisible) => {
+  if (!isVisible) {
+    // Сбрасываем выделение у всех кнопок победы
+    winButtons.value.forEach(btn => {
+      btn.selected = false;
+    });
+  }
+});
+  // Закрываем меню победы при открытии нижнего меню
   if (!wasOpen) {
-    // При открытии центра закрываем внешнюю историю
-    historyBetsVisible.value = false;
+    centerWinMenuVisible.value = false;
   }
 };
-
-// Управление меню кнопок победы
-const showMenu = (btn) => {
-  if (isRaceStarted.value || btn.selected) return;
-  btn.hovered = true;
-  btn.menuVisible = true;
-  if (btn.menuTimer) clearTimeout(btn.menuTimer);
+// Обновите метод закрытия меню
+const closeWinMenu = () => {
+  centerWinMenuVisible.value = false;
 };
-
-const scheduleHideMenu = (btn) => {
-  if (btn.selected) return;
-  btn.menuTimer = setTimeout(() => hideMenu(btn), 0.1);
-};
-
-const hideMenu = (btn) => {
-  if (btn.selected) return;
-  btn.menuVisible = false;
-  btn.hovered = false;
-  if (btn.menuTimer) clearTimeout(btn.menuTimer);
-};
-
-const cancelHideMenu = (btn) => {
-  if (btn.menuTimer) clearTimeout(btn.menuTimer);
-};
-
+// Добавьте вотчер для автоматического закрытия меню победы
+watch(centerMenuVisible, (newVal) => {
+  if (newVal) {
+    centerWinMenuVisible.value = false;
+  }
+});
 // Обработчики кликов по кнопкам
+// Обработчик кликов по кнопкам победы (УПРОЩЕН)
 const handleButtonClick = (btn) => {
   if (isRaceStarted.value || areWinButtonsDisabled.value) return;
   
   if (btn.selected) {
     btn.selected = false;
-    btn.menuVisible = false;
+    centerWinMenuVisible.value = false;
     return;
   }
   
-  winButtons.value.forEach(b => {
-    b.selected = false;
-    b.menuVisible = false;
-  });
-  
+  winButtons.value.forEach(b => b.selected = false);
   btn.selected = true;
-  btn.menuVisible = true;
+  
+  // Активируем новое центральное меню
+  centerWinMenuVisible.value = true;
+  activeWinMenuId.value = btn.id;
 };
 
-const handleStavkiButtonClick = (buttonId) => {
-  console.log(`Button ${buttonId} clicked`);
-};
+// Закрываем центральное меню при начале гонки
+watch(isRaceStarted, (newVal) => {
+  if (newVal) {
+    centerWinMenuVisible.value = false;
+  }
+});
 
 // ==============================
 // ЛОГИКА ИГРЫ
@@ -740,6 +815,205 @@ onUnmounted(() => {
 
 
 <style scoped>
+/* Добавляем стили для изображений */
+.bug-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Размер изображения относительно кнопки */
+  height: auto;
+  z-index: 13; /* Выше кнопки */
+  pointer-events: none; /* Чтобы не блокировало клики по кнопке */
+  transition: transform 0.3s ease;
+}
+
+/* Увеличиваем изображение при наведении */
+.bug-button-hovered .bug-image {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+@keyframes bug-click {
+  0% { transform: translate(-50%, -50%) scale(1.1); }
+  50% { transform: translate(-50%, -50%) scale(0.9); }
+  100% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+  .bug-image {
+    width: 70%;
+  }
+}
+/* Контейнер для меню с относительным позиционированием */
+.menu-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+   border: 1px solid red !important;
+}
+
+/* Контейнер для кнопок тараканов */
+.bug-buttons-container {
+  position: absolute;
+  top: 33%;
+  left: -17%;
+  width: 130%;
+  height: 60%;
+  z-index: 10; /* Поверх изображения меню */
+   border: 1px solid red !important;
+   
+}
+
+/* Стиль кнопки таракана */
+.bug-button {
+  position: absolute;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 5px;
+  
+  transition: all 0.3s ease;
+  transform-origin: center;
+  z-index: 11;
+   border: 1px solid rgb(2, 247, 255) !important;
+}
+
+/* Эффекты при наведении */
+.bug-button-hovered {
+  transform: scale(1.15);
+  position: relative;
+
+  filter: 
+    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
+    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+  z-index: 12; /* Поднимаем над остальными при наведении */
+}
+
+/* Анимация при клике */
+.bug-button-clicked {
+  animation: bug-click 0.3s ease;
+}
+
+@keyframes bug-click {
+  0% { transform: scale(1.15); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1.15); }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .bug-button-hovered {
+    transform: scale(1.1);
+    filter: 
+      drop-shadow(0 0 5px rgba(255, 255, 0, 0.7))
+      drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  
+  @keyframes bug-click {
+    0% { transform: scale(1.1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1.1); }
+  }
+}
+/* Центральное фиксированное меню */
+/* Обновленные стили для меню */
+.win-menu-center {
+  position: absolute;
+  top: 72%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  width: 80%;
+  max-width: 360px;
+  max-height: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.menu-container {
+  position: relative;
+  width: 100%;
+  height: 80%;
+}
+
+.menuWin-image-center {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Адаптация для маленьких экранов */
+@media (max-width: 480px) {
+  .win-menu-center {
+    width: 95%;
+    max-width: 320px;
+  }
+}
+/* Желтая центральная подсветка */
+.bug-button-hovered::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle, 
+    rgba(255, 255, 0, 0.8) 0%, 
+    rgba(255, 255, 0, 0.4) 50%, 
+    rgba(255, 255, 0, 0) 70%
+  );
+  z-index: 11;
+  animation: pulse-glow 1s infinite alternate;
+  pointer-events: none;
+}
+
+/* Анимация пульсации подсветки */
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.menuWin-image-center {
+  width: 125%; /* 100% от родительского контейнера */
+  height: auto; /* Сохраняем пропорции */
+  object-fit: contain; /* Сохраняем пропорции изображения */
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.7));
+  animation: menu-appear 0.3s ease-out;
+  margin-left: -12.5%;
+  margin-top: 10%;
+}
+
+@keyframes menu-appear {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .win-menu-center {
+    width: 300px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .win-menu-center {
+    width: 260px;
+    height: 160px;
+  }
+}
+
 /* Добавляем новые стили для позиционирования */
 /* Позиция внутри центрального меню */
 .history-bets.inside-center {
@@ -1036,8 +1310,8 @@ onUnmounted(() => {
   cursor: pointer;
   width: 48px;
   height: 24px;
-  margin-top: 12.2%; /* Центрируем по вертикали */
-  margin-left: -6%;
+  margin-top: -11%; /* Центрируем по вертикали */
+  margin-left: 50%;
   
 }
 
@@ -1239,9 +1513,7 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.button-win-container.disabled .win-menu {
-  display: none !important;
-}
+
 .main-bg-container {
   transform-origin: top center;
   width: 100%;
@@ -1526,20 +1798,7 @@ position: absolute;
   border: 1px solid red !important;
   
 }
-.menuWin-image {
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  width: 390px;
-  height: 225px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  cursor: default;
-  transition: opacity 0.2s ease;
-  pointer-events: auto;
-}
+
 
 .menu-image {
   width: 100%;
@@ -1654,20 +1913,7 @@ position: absolute;
 /* Гарантируем, что контент будет поверх панели */
 /* Адаптивность для маленьких экранов */
 /* Адаптация для мобильных */
-.win-menu {
-  position: absolute;
-  bottom: calc(100% + 0px); /* 10px над кнопкой ...*/
-  left: 50%;
-  z-index: 4;
-  width: 371px;
-  height: 225px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  cursor: default;
-  transition: opacity 0.2s ease;
-  pointer-events: auto;
-}
+
 
 .menu-image {
   max-width: 80vw;
@@ -1767,35 +2013,7 @@ position: absolute;
   }
 }
 
-/* Обновленные медиа-запросы 
-@media (max-width: 768px) {
-  .win-menu {
-     
-  }
-}
-*/
 
-/* Адаптация для маленьких экранов */
-@media (max-width: 768px) {
-  .win-menu {
-    width: 300px;
-    height: 180px;
-  }
-
-}
-
-/* Для вертикальной ориентации */
-@media (max-height: 700px) {
-  .win-menu {
-    bottom: 28vh; /* Корректируем позицию для маленьких экранов */
-    transform: translateX(-50%) scale(0.9);
-  }
-}
-@media (max-width: 480px) {
-  .win-menu {
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-}
 /* Анимация пульсации */
 @keyframes glow-pulse {
   0% {

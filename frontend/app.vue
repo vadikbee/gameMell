@@ -557,6 +557,9 @@ watch(centerWinMenuVisible, (isVisible) => {
   if (!wasOpen) {
     centerWinMenuVisible.value = false;
   }
+  if (centerMenuVisible.value && historyBetsVisible.value) {
+    historyBetsVisible.value = false;
+  }
 };
 // Обновите метод закрытия меню
 const closeWinMenu = () => {

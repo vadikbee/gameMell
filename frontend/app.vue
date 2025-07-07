@@ -1,184 +1,231 @@
 <template>
   <div class="main-color">
-   
- <!-- История ставок в основном интерфейсе -->
-  <HistoryBets 
-    v-if="historyBetsVisible && !historyBetsInsideCenter" 
-    :isCenterMenuOpen="centerMenuVisible" 
-    class="outside-center"
-  />
+    <!-- История ставок в основном интерфейсе -->
+    <HistoryBets 
+      v-if="historyBetsVisible && !historyBetsInsideCenter" 
+      :isCenterMenuOpen="centerMenuVisible" 
+      class="outside-center"
+    />
+
     <!-- Контейнер для масштабирования фона -->
-    <div class="main-bg-container" :style="{ transform: `scale(${scaleFactor})` }"></div>
+    <div 
+      class="main-bg-container" 
+      :style="{ transform: `scale(${scaleFactor})` }"
+    ></div>
     
-    <!-- Кнопка генерации тараканов...б.б. -->
-    <div class="tarakan-test"
-         id="generateButton"
-         @click="handleGenerateClick" 
-         :style="{
-           opacity: isLoading ? 0.7 : 1,
-           cursor: isLoading ? 'wait' : 'pointer'
-         }">
-    </div>
+    <!-- Кнопка генерации тараканов -->
+    <div 
+      class="tarakan-test"
+      id="generateButton"
+      @click="handleGenerateClick" 
+      :style="{
+        opacity: isLoading ? 0.7 : 1,
+        cursor: isLoading ? 'wait' : 'pointer'
+      }"
+    ></div>
     
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
-       <!-- Центральное фиксированное меню -->
-  <div v-if="centerWinMenuVisible" class="win-menu-center">
-    <div class="menu-container">
-      <img 
-        :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
-        alt="Menu" 
-        class="menuWin-image-center"
-      />
+      <!-- Центральное фиксированное меню -->
+      <div 
+        v-if="centerWinMenuVisible" 
+        class="win-menu-center"
+      >
+        <StavkiMenu
+          :currentBet="currentBet"
+          :stavkiButtons="stavkiButtons"
+          @otmena-click="handleOtmenaButtonClick"
+          @reset-click="handleResetClick"
+          @group164-click="handleGroup164Click"
+          @decrement-start="startDecrement"
+          @increment-start="startIncrement"
+          @stop-action="stopAction"
+          @add-bet="addToBet"
+          @x2-click="handleX2ButtonClick"
+        />
+        <div class="menu-container">
+          <img 
+            :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
+            alt="Menu" 
+            class="menuWin-image-center"
+          />
+          
+          <!-- Контейнер для интерактивных тараканов -->
+          <div class="bug-buttons-container">
+            <div 
+              v-for="(bug, index) in menuBugs"
+              :key="index"
+              class="bug-button"
+              :class="{
+                'bug-button-hovered': hoveredBugIndex === index,
+                'bug-button-clicked': clickedBugIndex === index
+              }"
+              @mouseenter="hoverBug(index)"
+              @mouseleave="unhoverBug"
+              @mousedown="clickBug(index)"
+              @touchstart="clickBug(index)"
+              :style="getBugStyle(index)"
+            >
+              <img 
+                :src="`/images/tarakani/t-${bug.id}.png`" 
+                :alt="`Таракан ${bug.id}`"
+                class="bug-image"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
       
-      <!-- Контейнер для интерактивных тараканов -->
-      <div class="bug-buttons-container">
-    <div 
-      v-for="(bug, index) in menuBugs"
-      :key="index"
-      class="bug-button"
-      :class="{
-        'bug-button-hovered': hoveredBugIndex === index,
-        'bug-button-clicked': clickedBugIndex === index
-      }"
-      @mouseenter="hoverBug(index)"
-      @mouseleave="unhoverBug"
-      @mousedown="clickBug(index)"
-      @touchstart="clickBug(index)"
-      :style="getBugStyle(index)"
-    >
-      <!-- Добавляем изображение таракана -->
-      <img 
-        :src="`/images/tarakani/t-${bug.id}.png`" 
-        :alt="`Таракан ${bug.id}`"
-        class="bug-image"
-      />
-    </div>
-  </div>
-    </div>
-  </div>
       <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
       
       <!-- Контейнеры для кнопок победы -->
-      <div v-for="(btn, index) in winButtons" 
-          :key="'btn-'+btn.id"
-          class="button-win-container"
-          :class="{
-            'disabled': areWinButtonsDisabled,
-            [`button-win-${index + 1}`]: true
-          }">
-          
-        
-        
+      <div 
+        v-for="(btn, index) in winButtons" 
+        :key="'btn-'+btn.id"
+        class="button-win-container"
+        :class="{
+          'disabled': areWinButtonsDisabled,
+          [`button-win-${index + 1}`]: true
+        }"
+      >
         <!-- Основная кнопка победы -->
-        <div class="button-win"
-             @click="handleButtonClick(btn)"
-             :style="{ 
-               backgroundImage: btn.selected 
-                 ? `url('/images/buttons/knopka-win.png')` 
-                 : `url('/images/buttons/Property 1=Default.png')`,
-               cursor: isRaceStarted ? 'default' : 'pointer'
-             }">
-        </div>
+        <div 
+          class="button-win"
+          @click="handleButtonClick(btn)"
+          :style="{ 
+            backgroundImage: btn.selected 
+              ? `url('/images/buttons/knopka-win.png')` 
+              : `url('/images/buttons/Property 1=Default.png')`,
+            cursor: isRaceStarted ? 'default' : 'pointer'
+          }"
+        ></div>
        
         <!-- Индикатор победы -->
-        <div v-if="btn.occupied" 
-             class="win-indicator"
-             :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }">
-        </div>
+        <div 
+          v-if="btn.occupied" 
+          class="win-indicator"
+          :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }"
+        ></div>
       </div>
       
       <!-- Тараканы -->
-      <div v-for="bug in bugs" 
-           :key="'bug-'+bug.id"
-           class="tarakan"
-           :style="{
-             backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-             left: `${bug.position[0]}px`,
-             top: `${bug.position[1]}px`
-           }">
-      </div>
+      <div 
+        v-for="bug in bugs" 
+        :key="'bug-'+bug.id"
+        class="tarakan"
+        :style="{
+          backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+          left: `${bug.position[0]}px`,
+          top: `${bug.position[1]}px`
+        }"
+      ></div>
       
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
         <!-- Кнопки управления -->
-        <div class="button-1" id="Button-1" @click="handleButtonClick(1)"></div>
-        <div class="button-2" id="Button-2" @click="toggleCenterMenu"></div>
-        <div class="button-3" id="Button-3" @click="toggleHistoryBets"></div>
+        <div 
+          class="button-1" 
+          id="Button-1" 
+          @click="handleButtonClick(1)"
+        ></div>
+        <div 
+          class="button-2" 
+          id="Button-2" 
+          @click="toggleCenterMenu"
+        ></div>
+        <div 
+          class="button-3" 
+          id="Button-3" 
+          @click="toggleHistoryBets"
+        ></div>
        
         <!-- Центральное меню -->
-        <div v-if="centerMenuVisible" class="center-menu">
-          <img src="/images/menus/center-buttom.png" alt="Center Menu" class="menu-image">
-          <img src="/images/menus/group.png" class="menu-image group-image">
-                      <HistoryBets 
-              v-if="historyBetsVisible && historyBetsInsideCenter" 
-              :isCenterMenuOpen="centerMenuVisible" 
-              :insideCenter="true"
-              class="inside-center"
-            />
+        <div 
+          v-if="centerMenuVisible" 
+          class="center-menu"
+        >
+          <img 
+            src="/images/menus/center-buttom.png" 
+            alt="Center Menu" 
+            class="menu-image"
+          >
+          <img 
+            src="/images/menus/group.png" 
+            class="menu-image group-image"
+          >
+          <HistoryBets 
+            v-if="historyBetsVisible && historyBetsInsideCenter" 
+            :isCenterMenuOpen="centerMenuVisible" 
+            :insideCenter="true"
+            class="inside-center"
+          />
           <!-- Меню ставок -->
           <div class="menu-stavki"> 
-          <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
-          <div class="bet-controls-container">
             <img 
-              src="/images/buttons/otmena.png" 
-              alt="Otmena"
-              class="otmena-button"
-              @click="handleOtmenaButtonClick"
+              src="/images/menus/stavki.png" 
+              alt="Stavki" 
+              class="menu-image stavki-image"
             >
-            <img 
-              src="/images/buttons/reset.png" 
-              alt="Reset" 
-              class="reset-button"
-              @click="handleResetClick"
-            >
-            <img 
-              src="/images/menus/Group 164.png" 
-              alt="Group 164" 
-              class="group-164-button"
-              @click="handleGroup164Click"
-            >
-          </div>
-             <!-- Новый блок счетчика ставок.... -->
+            <div class="bet-controls-container">
+              <img 
+                src="/images/buttons/otmena.png" 
+                alt="Otmena"
+                class="otmena-button"
+                @click="handleOtmenaButtonClick"
+              >
+              <img 
+                src="/images/buttons/reset.png" 
+                alt="Reset" 
+                class="reset-button"
+                @click="handleResetClick"
+              >
+              <img 
+                src="/images/menus/Group 164.png" 
+                alt="Group 164" 
+                class="group-164-button"
+                @click="handleGroup164Click"
+              >
+            </div>
+            <!-- Новый блок счетчика ставок.... -->
             <div class="bet-counter-container">
-            <div 
-            class="bet-button minus" 
-            @mousedown="startDecrement" 
-            @mouseup="stopAction"
-            @mouseleave="stopAction"
-            @touchstart="startDecrement"
-            @touchend="stopAction"
-            @touchcancel="stopAction"
-          ></div>
-            <div class="bet-display">{{ currentBet }}</div>
-            <div 
-            class="bet-button plus" 
-            @mousedown="startIncrement" 
-            @mouseup="stopAction"
-            @mouseleave="stopAction"
-            @touchstart="startIncrement"
-            @touchend="stopAction"
-            @touchcancel="stopAction"
-          ></div>
+              <div 
+                class="bet-button minus" 
+                @mousedown="startDecrement" 
+                @mouseup="stopAction"
+                @mouseleave="stopAction"
+                @touchstart="startDecrement"
+                @touchend="stopAction"
+                @touchcancel="stopAction"
+              ></div>
+              <div class="bet-display">{{ currentBet }}</div>
+              <div 
+                class="bet-button plus" 
+                @mousedown="startIncrement" 
+                @mouseup="stopAction"
+                @mouseleave="stopAction"
+                @touchstart="startIncrement"
+                @touchend="stopAction"
+                @touchcancel="stopAction"
+              ></div>
             </div>
             <!-- ... остальной код ... -->
             <!-- Кнопки ставок -->
             <div class="stavki-buttons-container">
               <img 
-            v-for="button in stavkiButtons"
-            :key="button.id"
-            :src="button.src"
-            :alt="button.alt"
-            class="stavki-button"
-            @click="addToBet(button.amount)"
-          >
-          <img 
-            src="/images/buttons/x2.png" 
-            alt="x2"
-            class="x2-button"
-            @click="handleX2ButtonClick"
-          >
+                v-for="button in stavkiButtons"
+                :key="button.id"
+                :src="button.src"
+                :alt="button.alt"
+                class="stavki-button"
+                @click="addToBet(button.amount)"
+              >
+              <img 
+                src="/images/buttons/x2.png" 
+                alt="x2"
+                class="x2-button"
+                @click="handleX2ButtonClick"
+              >
             </div>
           </div> 
           
@@ -209,19 +256,20 @@
         </div>
       </div> 
     </div>
-     
   </div>
-  
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
+import StavkiMenu from './StavkiMenu.vue';
 
 const socket = io('https://your-websocket-server.com');
+
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
+
 // ==============================
 // СОСТОЯНИЯ ПРИЛОЖЕНИЯ
 // ==============================
@@ -230,20 +278,23 @@ const scaleFactor = ref(1);
 const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
+
 // Добавьте эти переменные
 // Новые состояния для взаимодействия с тараканами в меню
 const hoveredBugIndex = ref(null);
-const clickedBugIndex = ref(null)
+const clickedBugIndex = ref(null);
+
 // Новое состояние для центрального меню
 const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
-
 const historyBetsInsideCenter = ref(false);
+
 const betHistory = ref([]); // ИСТОРИЯ СТАВОК
 const currentBet = ref(0);
 const minBet = 0;
 const maxBet = 10000;
 const betStep = 1;
+
 // Добавлено: переменные для управления зажатием кнопок
 const actionInterval = ref(null);
 const actionTimeout = ref(null);
@@ -263,17 +314,18 @@ const animationFrame = ref(null);
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
 // Конфигурация расстояния
-const gap = 0.5; // 1% расстояния между кнопками
+const gap = 0.5; // % расстояния между кнопками
 
 const menuBugs = ref([
   { id: 1, left: 5, top: 25, width: 12, height: 50 },
   { id: 2, left: 18 + gap, top: 25, width: 12, height: 50 },
-  { id: 3, left: 31 + gap*2, top: 25, width: 12, height: 50 },
-  { id: 4, left: 44 + gap*3, top: 25, width: 12, height: 50 },
-  { id: 5, left: 57 + gap*4, top: 25, width: 12, height: 50 },
-  { id: 6, left: 70 + gap*5, top: 25, width: 12, height: 50 },
-  { id: 7, left: 83 + gap*6, top: 25, width: 12, height: 50 }
+  { id: 3, left: 31 + gap * 2, top: 25, width: 12, height: 50 },
+  { id: 4, left: 44 + gap * 3, top: 25, width: 12, height: 50 },
+  { id: 5, left: 57 + gap * 4, top: 25, width: 12, height: 50 },
+  { id: 6, left: 70 + gap * 5, top: 25, width: 12, height: 50 },
+  { id: 7, left: 83 + gap * 6, top: 25, width: 12, height: 50 }
 ]);
+
 // Получение стилей для позиционирования кнопки таракана
 const getBugStyle = (index) => {
   const bug = menuBugs.value[index];
@@ -305,7 +357,6 @@ const clickBug = (index) => {
   // Здесь можно добавить логику при клике на таракана
   console.log(`Clicked on bug ${menuBugs.value[index].id}`);
 };
-// Функция для удвоения ставки
 
 onMounted(() => {
   socket.on('bet-update', (newBet) => {
@@ -319,6 +370,7 @@ onMounted(() => {
 onUnmounted(() => {
   socket.disconnect();
 });
+
 const loadBetHistory = async () => {
   try {
     const response = await fetch('/api/v1/gameplay/games/bets/latest', {
@@ -339,6 +391,7 @@ watch(historyBetsVisible, (visible) => {
     loadBetHistory();
   }
 });
+
 // Обработчик для кнопки истории ставок
 const toggleHistoryBets = () => {
   if (centerMenuVisible.value) {
@@ -366,12 +419,14 @@ watch(centerMenuVisible, (newVal) => {
 const saveCurrentBet = () => {
   betHistory.value.push(currentBet.value);
 };
+
 // Восстанавливаем предыдущую ставку из истории
 const restorePreviousBet = () => {
   if (betHistory.value.length > 0) {
     currentBet.value = betHistory.value.pop();
   }
 };
+
 // Исправляем логику сброса ставки (теперь это отмена последнего действия)
 const handleResetClick = () => {
   stopAction(); // Останавливаем любые активные интервалы
@@ -384,6 +439,7 @@ const handleResetClick = () => {
     setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
   }
 };
+
 // Функция для удвоения ставки
 const handleX2ButtonClick = () => {
   saveCurrentBet();
@@ -412,6 +468,7 @@ const handleResetBetClick = () => {
     setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
   }
 };
+
 // Добавлено: функция для добавления фиксированных сумм
 const addToBet = (amount) => {
   saveCurrentBet();
@@ -427,7 +484,6 @@ const incrementBet = () => {
   currentBet.value = Math.min(currentBet.value + betStep, maxBet);
 };
 
-
 const decrementBet = () => {
   // Сохраняем только при первом вызове
   if (!actionInterval.value && !actionTimeout.value) {
@@ -435,7 +491,6 @@ const decrementBet = () => {
   }
   currentBet.value = Math.max(currentBet.value - betStep, minBet);
 };
-
 
 // Функция для сброса ставки к нулю
 const handleOtmenaButtonClick = () => {
@@ -488,6 +543,7 @@ const stopAction = () => {
   }
   actionSpeed.value = 300;
 };
+
 // ==============================
 // ОБНОВЛЕНИЕ КНОПОК СТАВОК
 // ==============================
@@ -498,7 +554,6 @@ const stavkiButtons = ref([
   { id: '100', amount: 100, src: '/images/buttons/100.png', alt: '100' },
   { id: '500', amount: 500, src: '/images/buttons/500.png', alt: '500' },
 ]);
-
 
 const menuButtons = ref(
   Array.from({ length: 49 }, (_, index) => ({
@@ -537,22 +592,21 @@ const toggleMenuButton = (btn) => {
   btn.selected = !btn.selected;
 };
 
-
-
 // Измененный метод для переключения центрального меню
 const toggleCenterMenu = () => {
   const wasOpen = centerMenuVisible.value;
   centerMenuVisible.value = !wasOpen;
 
   // Добавьте вотчер для сброса состояния кнопок
-watch(centerWinMenuVisible, (isVisible) => {
-  if (!isVisible) {
-    // Сбрасываем выделение у всех кнопок победы
-    winButtons.value.forEach(btn => {
-      btn.selected = false;
-    });
-  }
-});
+  watch(centerWinMenuVisible, (isVisible) => {
+    if (!isVisible) {
+      // Сбрасываем выделение у всех кнопок победы
+      winButtons.value.forEach(btn => {
+        btn.selected = false;
+      });
+    }
+  });
+  
   // Закрываем меню победы при открытии нижнего меню
   if (!wasOpen) {
     centerWinMenuVisible.value = false;
@@ -561,16 +615,19 @@ watch(centerWinMenuVisible, (isVisible) => {
     historyBetsVisible.value = false;
   }
 };
+
 // Обновите метод закрытия меню
 const closeWinMenu = () => {
   centerWinMenuVisible.value = false;
 };
+
 // Добавьте вотчер для автоматического закрытия меню победы
 watch(centerMenuVisible, (newVal) => {
   if (newVal) {
     centerWinMenuVisible.value = false;
   }
 });
+
 // Обработчики кликов по кнопкам
 // Обработчик кликов по кнопкам победы (УПРОЩЕН)
 const handleButtonClick = (btn) => {
@@ -687,7 +744,7 @@ const handleGenerateClick = async () => {
 
 // Запуск анимации движения
 const startAnimation = () => {
-  console.log('Starting animation...')
+  console.log('Starting animation...');
   isRaceStarted.value = true;
   let lastTimestamp = performance.now();
   
@@ -818,6 +875,26 @@ onUnmounted(() => {
 
 
 <style scoped>
+.win-menu-center .menu-stavki {
+  position: absolute;
+  bottom: 79%;
+  left: 56%;
+  transform: translateX(-50%);
+  margin-bottom: 3px;
+  height: 50%;
+  width: 130%;
+  max-width: 640px;
+  border: 1px solid red !important;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .win-menu-center .menu-stavki,
+  .bottom-menu {
+    transform: translateX(-50%) scale(0.9);
+    margin-bottom: 15px;
+  }
+}
 /* Добавляем стили для изображений */
 .bug-image {
   position: absolute;
@@ -1181,6 +1258,7 @@ onUnmounted(() => {
   justify-content: center;
    gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
   width: 89%;
+  height: 0%;
   left: -19.2%;
   z-index: 9;
   padding: 0;

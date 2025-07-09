@@ -127,8 +127,14 @@
         <div 
           class="button-1" 
           id="Button-1" 
-          @click="handleButtonClick(1)"
+          @click="toggleLastGameMenu"
         ></div>
+        <!-- Меню последней игры -->
+        <LastGameMenu 
+          v-if="lastGameMenuVisible"
+          :isCenterMenuOpen="centerMenuVisible"
+          :games="lastGames"
+        />
         <div 
           class="button-2" 
           id="Button-2" 
@@ -259,12 +265,13 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
-
+import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
 const socket = io('https://your-websocket-server.com');
 
 // Добавьте состояние для истории ставок
@@ -309,7 +316,12 @@ const speedChangeIntervals = ref([]);
 const finishZones = ref([]);
 const bugs = ref([]);
 const animationFrame = ref(null);
-
+// Добавляем состояние для меню последней игры
+const lastGameMenuVisible = ref(false);
+const lastGames = ref([
+  { id: 1, results: [{ position: 1, color: '#FF0000' }, { position: null, color: '#00FF00' }] },
+  { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
+]);
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
@@ -426,7 +438,18 @@ const restorePreviousBet = () => {
     currentBet.value = betHistory.value.pop();
   }
 };
-
+// Функция переключения видимости
+const toggleLastGameMenu = () => {
+  if (centerMenuVisible.value) return;
+  
+  lastGameMenuVisible.value = !lastGameMenuVisible.value;
+};
+// Закрываем меню при открытии центрального
+watch(centerMenuVisible, (newVal) => {
+  if (newVal) {
+    lastGameMenuVisible.value = false;
+  }
+});
 // Исправляем логику сброса ставки (теперь это отмена последнего действия)
 const handleResetClick = () => {
   stopAction(); // Останавливаем любые активные интервалы

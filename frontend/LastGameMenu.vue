@@ -59,7 +59,18 @@ const sortedResults = (results) => {
     
     return [...finished, ...unfinished];
 };
-
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+// Замените текущий метод loadGameHistory
+const loadGameHistory = async () => {
+  try {
+    const gameCode = 'your-game-code'; // Получать из контекста приложения
+    const response = await fetch(`/api/v1/gameplay/games/sessions/${gameCode}/last`);
+    lastGames.value = await response.json();
+  } catch (error) {
+    console.error('Error loading game history:', error);
+  }
+};
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
 </script>
 <style scoped>
 /* Добавьте этот стиль */

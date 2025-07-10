@@ -11,15 +11,7 @@
       class="main-bg-container" 
       :style="{ transform: `scale(${scaleFactor})` }"
     ></div>
-    <!-- Добавить таймеры в верхнюю часть интерфейса -->
-  <div class="timers-container">
-    <div v-if="!raceInProgress" class="timer">
-      До начала: {{ countdown }} сек.
-    </div>
-    <div v-if="raceInProgress" class="timer">
-      До конца: {{ raceCountdown }} сек.
-    </div>
-  </div>
+ 
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
       <!-- Центральное фиксированное меню -->
@@ -81,7 +73,7 @@
         :key="'btn-'+btn.id"
         class="button-win-container"
         :class="{
-          'disabled': areWinButtonsDisabled,
+          'disabled': !isBettingPhase, 
           [`button-win-${index + 1}`]: true
         }"
       >
@@ -110,28 +102,28 @@
   v-for="bug in bugs" 
   :key="'bug-'+bug.id"
 >
-  <!-- Взрыв -->
-  <div 
-    v-if="!bug.finished && bug.explodeFrame !== undefined"
-    class="explosion"
-    :style="{
-      backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
-      left: `${bug.position[0]}px`,
-      top: `${bug.position[1]}px`
-    }"
-  ></div>
+  <<!-- Взрыв показываем только для не финишировавших -->
+    <div 
+      v-if="bug.explodeFrame !== undefined && !bug.finished"
+      class="explosion"
+      :style="{
+        backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
+        left: `${bug.position[0]}px`,
+        top: `${bug.position[1]}px`
+      }"
+    ></div>
   
-  <!-- Таракан -->
-  <div 
-    v-else-if="!bug.exploded"
-    class="tarakan"
-    :style="{
-      backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-      left: `${bug.position[0]}px`,
-      top: `${bug.position[1]}px`
-    }"
-  ></div>
-</div>
+ <! <!-- Таракан показываем если не взорван ИЛИ если он финишировал -->
+    <div 
+      v-else-if="!bug.exploded || bug.finished"
+      class="tarakan"
+      :style="{
+        backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+        left: `${bug.position[0]}px`,
+        top: `${bug.position[1]}px`
+      }"
+    ></div>
+  </div>
       
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
@@ -272,7 +264,20 @@
           <div class="icon-button">
             <div class="icon-1"></div>
           </div>
+           <!-- Добавлен прогресс-бар -->
+          <!-- Прогресс-бар -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            :style="{ width: progress + '%' }"
+          ></div>
         </div>
+        <div v-if="breakInProgress" class="make-bets-label">
+          MAKE YOUR BETS
+        </div>
+      </div>
+    </div>
       </div> 
     </div>
   </div>
@@ -289,8 +294,10 @@ import PodiumResults from './PodiumResults.vue';
 
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
+// Добавляем phaseStartTime в разделе состояний
+const phaseStartTime = ref(Date.now());
 
-// ==============================
+// ===0===========================
 // СОСТОЯНИЯ ПРИЛОЖЕНИЯ
 // ==============================
 const isLoading = ref(false);
@@ -298,16 +305,21 @@ const scaleFactor = ref(1);
 const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
+const isBettingPhase = ref(true);
 
 // Добавьте эти переменные
-
+// Добавляем состояние для прогресса
+const progress = ref(0);
+// Добавляем состояние для отслеживания взрыва
+const explosionActive = ref(false);
 // Добавить новые переменные состояния
-const raceInterval = ref(15000); // 15 секунд гонка
-const breakInterval = ref(5000); // 5 секунд перерыв
+const raceInterval = ref(12000); // 12 секунд гонка
+const breakInterval = ref(5000);  // 5 секунд перерыв
 const raceInProgress = ref(false);
 const breakInProgress = ref(true);
+const animationFrameId = ref(null);
 const countdown = ref(5); // отсчет до начала гонки
-const raceCountdown = ref(15); // отсчет до конца гонки
+const raceCountdown = ref(12); // отсчет до конца гонки
 let cycleTimer = null;
 let raceTimer = null;
 // Новые состояния для взаимодействия с тараканами в меню
@@ -330,7 +342,8 @@ const actionInterval = ref(null);
 const actionTimeout = ref(null);
 const speedUpInterval = ref(null); // Добавлено для интервала ускорения
 const actionSpeed = ref(300); // начальная скорость в ms
-
+// Новое состояние для отслеживания реального начала гонки
+const raceActualStartTime = ref(null)
 // Прогресс и состояние тараканов
 const bugProgress = ref([]);
 const bugSpeeds = ref([]);
@@ -346,24 +359,31 @@ const lastGames = ref([
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
 ]);
 
-// Функция запуска цикла гонок
+// Обновляем функцию startRaceCycle
 const startRaceCycle = () => {
-  clearInterval(cycleTimer);
+  breakInProgress.value = true;
+  raceInProgress.value = false;
+  phaseStartTime.value = Date.now();
   
-  cycleTimer = setInterval(() => {
-    if (breakInProgress.value) {
-      countdown.value--;
-      
-      if (countdown.value <= 0) {
-        // Начинаем гонку
-        breakInProgress.value = false;
-        raceInProgress.value = true;
-        raceCountdown.value = raceInterval.value / 1000;
-        handleGenerateClick();
-      }
-    }
-  }, 1000);
 };
+
+
+// Функция для взрыва всех тараканов
+const explodeAllBugs = () => {
+  if (bugs.value.length === 0) return;
+  
+  // Помечаем всех тараканов для взрыва
+  bugs.value.forEach(bug => {
+    if (!bug.finished) {
+      bug.explodeFrame = 0;
+      bug.exploded = false;
+    }
+  });
+  
+  // Запускаем анимацию взрыва
+  startExplosionAnimation();
+};
+
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
@@ -857,7 +877,7 @@ watch(centerMenuVisible, (newVal) => {
 // Обработчики кликов по кнопкам
 // Обработчик кликов по кнопкам победы (УПРОЩЕН)
 const handleButtonClick = (btn) => {
-  if (isRaceStarted.value || areWinButtonsDisabled.value) return;
+   if (!isBettingPhase.value) return;
   
   if (btn.selected) {
     btn.selected = false;
@@ -907,10 +927,18 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+  if (animationExplodeFrame.value) {
+    cancelAnimationFrame(animationExplodeFrame.value);
+    animationExplodeFrame.value = null;
+  }
+  
+  explosionActive.value = false;
+  bugs.value = [];
   try {
     areWinButtonsDisabled.value = false;
     isRaceStarted.value = false;
     isLoading.value = true;
+    bugs.value = []; // Важно: очищаем предыдущих тараканов
     
     // Сброс состояния кнопок
     winButtons.value.forEach(btn => {
@@ -958,37 +986,14 @@ const handleGenerateClick = async () => {
         targetButtonId: null,
         bluePointProgress: 0,
         finishTime: null,
-        explodeFrame: undefined, // Добавляем свойство для кадра взрыва
-        exploded: false          // Флаг завершения взрыва
+        explodeFrame: undefined,
+        exploded: false
       };
     });
     
+    // Фиксируем реальное время начала гонки
+    raceActualStartTime.value = Date.now();
     startAnimation();
-    
-    // Таймер для завершения гонки
-    raceTimer = setTimeout(() => {
-      raceInProgress.value = false;
-      breakInProgress.value = true;
-      countdown.value = breakInterval.value / 1000;
-      
-      // Останавливаем анимацию, если еще идет
-      if (animationFrame.value) {
-        cancelAnimationFrame(animationFrame.value);
-      }
-      // Запускаем анимацию взрыва для незавершивших
-      startExplosionAnimation();
-      // Сохраняем результаты
-      saveGameResults();
-    }, raceInterval.value);
-    
-    // Таймер отсчета времени гонки
-    const raceCountdownInterval = setInterval(() => {
-      if (raceCountdown.value > 0) {
-        raceCountdown.value--;
-      } else {
-        clearInterval(raceCountdownInterval);
-      }
-    }, 1000);
     
   } catch (error) {
     console.error('Ошибка генерации путей:', error);
@@ -996,27 +1001,81 @@ const handleGenerateClick = async () => {
     isLoading.value = false;
   }
 };
-// Функция для анимации взрыва
+// Новая функция обновления прогресс-бара
+const updateProgress = () => {
+  const now = Date.now();
+  
+  if (breakInProgress.value) {
+    // Прогресс перерыва
+    const breakElapsed = now - phaseStartTime.value;
+    progress.value = Math.min(100, (breakElapsed / breakInterval.value) * 100);
+    isBettingPhase.value = true;
+
+    if (breakElapsed >= breakInterval.value) {
+      // Переход к фазе гонки
+      breakInProgress.value = false;
+      raceInProgress.value = true;
+      phaseStartTime.value = now;
+      handleGenerateClick(); // Добавленный вызов
+    }
+  } else if (raceInProgress.value) {
+    // Прогресс гонки с учетом реального времени начала
+    if (raceActualStartTime.value) {
+      const raceElapsed = now - raceActualStartTime.value;
+      progress.value = Math.min(100, (raceElapsed / raceInterval.value) * 100);
+      centerWinMenuVisible.value = false; // Скрываем меню при начале гонки
+      isBettingPhase.value = false;
+
+      if (raceElapsed >= raceInterval.value) {
+        // Завершение гонки
+        raceInProgress.value = false;
+        breakInProgress.value = true;
+        phaseStartTime.value = now;
+        raceActualStartTime.value = null;
+        saveGameResults();
+        explodeAllBugs();
+      }
+    } else {
+      // Если гонка официально началась, но тараканы еще не готовы
+      // Показываем 0% прогресса до их появления
+      progress.value = 0;
+    }
+  }
+  
+  animationFrameId.value = requestAnimationFrame(updateProgress);
+};
+
+// Обновленная функция анимации взрыва
 const startExplosionAnimation = () => {
+  if (explosionActive.value) return;
+  explosionActive.value = true;
+  
   const explosionStartTime = performance.now();
   
   const animateExplosion = (timestamp) => {
     const elapsed = timestamp - explosionStartTime;
     
+   // Обновляем кадры взрыва только для не финишировавших
     bugs.value.forEach(bug => {
-      if (!bug.finished) {
-        // Рассчитываем текущий кадр взрыва (0-5)
+      if (bug.explodeFrame !== undefined && !bug.finished) {
         const frame = Math.min(5, Math.floor(elapsed / 100));
         bug.explodeFrame = frame;
       }
     });
     
-    // Продолжаем анимацию пока не прошло 600мс (6 кадров по 100мс)
     if (elapsed < 600) {
       animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
     } else {
-      // Удаляем взорвавшихся тараканов после анимации
+      // Удаляем только взорванных тараканов, финишировавших оставляем
       bugs.value = bugs.value.filter(bug => bug.finished);
+       // Сбрасываем занятость кнопок для не финишировавших
+      winButtons.value.forEach(btn => {
+        if (!bugs.value.some(bug => bug.targetButtonId === btn.id)) {
+          btn.occupied = false;
+        }
+      });
+      explosionActive.value = false;
+      animationExplodeFrame.value = null;
     }
   };
   
@@ -1038,6 +1097,9 @@ onMounted(() => {
   updateScale();
   window.addEventListener('resize', updateScale);
   startRaceCycle(); // Запускаем цикл при монтировании
+  loadGameHistory(); // Загружаем историю игр
+   // Запускаем обновление прогресса
+  animationFrameId.value = requestAnimationFrame(updateProgress);
 
   // Отслеживание изменения масштаба
   let lastDevicePixelRatio = window.devicePixelRatio;
@@ -1061,36 +1123,65 @@ onUnmounted(() => {
   clearInterval(cycleTimer);
   clearTimeout(raceTimer);
   window.removeEventListener('resize', updateScale);
-  if (animationFrame.value) cancelAnimationFrame(animationFrame.value);
-  if (animationExplodeFrame.value) {
-    cancelAnimationFrame(animationExplodeFrame.value);
+ if (animationFrameId.value) {
+    cancelAnimationFrame(animationFrameId.value);
   }
 });
 </script>
 
 
 <style scoped>
-/* Стили для таймеров */
-.timers-container {
+/* Добавим стиль для заблокированных кнопок */
+.button-win-container.disabled .button-win {
+  cursor: not-allowed !important;
+  pointer-events: none;
+  opacity: 1;
+  filter: grayscale(-10%);
+}
+/* Существующие стили прогресс-бара */
+.progress-container {
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 8px 16px;
-  border-radius: 20px;
-  color: white;
-  font-family: 'Bahnschrift', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  top: 50px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+  z-index: 5;
 }
 
-.timer {
-  min-width: 120px;
+.progress-bar {
+  height: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
 }
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  border-radius: 5px;
+  transition: width 0.1s linear; /* Более плавное обновление */
+}
+
+.make-bets-label {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: #FFFFFF;
+  text-align: center;
+  margin-top: 5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
 
 .win-menu-center .menu-stavki {
   position: absolute;
@@ -1818,7 +1909,7 @@ onUnmounted(() => {
 }
 /* Добавляем стили для заблокированных кнопок */
 .button-win-container.disabled {
-  opacity: 0.6;
+  
   cursor: default !important;
   pointer-events: none;
   filter: grayscale(70%);
@@ -1954,6 +2045,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-position: center;
   cursor: pointer;
   z-index: 3;
+   opacity: 1; /* Гарантируем нормальную прозрачность */
   transition: all 0.3s ease;
 }
 /* Адаптация для маленьких экранов */
@@ -2245,7 +2337,7 @@ position: absolute;
   transition: opacity 0.2s ease;
 }
 .button-win-disabled {
-  opacity: 0.6;
+  opacity: 1;
   filter: grayscale(70%);
 }
 /* *****************************************ТЕСТИРОВАНИЕ**********************************/

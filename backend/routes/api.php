@@ -8,6 +8,17 @@ use App\Http\Controllers\GameHistoryController;
 require_once base_path('path_generator/PathGenerator.php');
 require_once base_path('path_generator/a_star.php');
 
+// Кешированная конфигурация сетки
+$cachedGridConfig = null;
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+Route::get('/api/v1/gameplay/games/sessions/{code}/last', [GameHistoryController::class, 'getLastGamesForSession']);
+Route::options('/api/v1/gameplay/games/sessions/{code}/last', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
 // Обработка CORS для OPTIONS запроса
 Route::options('/generate-paths', function () {
     return response('', 204)
@@ -16,16 +27,9 @@ Route::options('/generate-paths', function () {
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
         ->header('Access-Control-Max-Age', '86400');
 });
-// api.php
-Route::options('/generate-paths', function () {
-    return response()->make('OK', 200)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-});
+
 // Основной обработчик
-// Основной обработчик
-Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) {
+Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use (&$cachedGridConfig) {
     try {
         // Для GET-запросов возвращаем информацию о сервисе
         if ($request->isMethod('GET')) {
@@ -48,18 +52,20 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) {
         // Для POST-запросов генерируем пути
         $gridConfigPath = base_path('config/race_grid.json');
         
-        if (!file_exists($gridConfigPath)) {
-            throw new \Exception("Grid config file not found: $gridConfigPath");
+        // Загружаем конфиг только если он еще не закеширован
+        if ($cachedGridConfig === null) {
+            if (!file_exists($gridConfigPath)) {
+                throw new \Exception("Grid config file not found: $gridConfigPath");
+            }
+            
+            $cachedGridConfig = json_decode(file_get_contents($gridConfigPath), true);
+            
+            if (!$cachedGridConfig || !isset($cachedGridConfig['cols'], $cachedGridConfig['rows'])) {
+                throw new \Exception("Invalid grid configuration");
+            }
         }
         
-        // Правильное чтение JSON-файла
-        $gridConfig = json_decode(file_get_contents($gridConfigPath), true);
-        
-        if (!$gridConfig || !isset($gridConfig['cols'], $gridConfig['rows'])) {
-            throw new \Exception("Invalid grid configuration");
-        }
-        
-        $generator = new \PathGenerator($gridConfig);
+        $generator = new \PathGenerator($cachedGridConfig);
         
         $result = $generator->generatePaths(
             $request->input('bug_count', 7),
@@ -69,7 +75,7 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) {
         
         // Добавляем информацию о сетке, если запрошено
         if ($request->input('include_grid', false)) {
-            $result['grid'] = $gridConfig;
+            $result['grid'] = $cachedGridConfig;
         }
         
         return response()->json($result)

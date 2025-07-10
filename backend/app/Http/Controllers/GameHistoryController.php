@@ -31,7 +31,26 @@ public function getLastGames()
     return response()->json([]);
   }
 }
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+public function getLastGamesForSession($code)
+{
+    try {
+        $filePath = $this->getFilePath();
+        
+        if (!file_exists($filePath)) {
+            return response()->json([]);
+        }
 
+        $content = file_get_contents($filePath);
+        $history = json_decode($content, true) ?? [];
+
+        return response()->json(array_slice($history, 0, self::MAX_GAMES));
+    } catch (\Exception $e) {
+        Log::error('Error loading session history: '.$e->getMessage());
+        return response()->json([]);
+    }
+}
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
     public function saveGameResult(Request $request)
     {
         try {

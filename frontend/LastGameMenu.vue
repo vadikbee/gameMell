@@ -140,6 +140,7 @@ const sortedResults = (results) => {
   background: rgba(0, 0, 0, 0.3);
   padding: 2px 5px;
   border-radius: 3px;
+  margin-left: 20px;
 }
 
 /* Контейнер результатов */

@@ -156,10 +156,11 @@
             alt="Center Menu" 
             class="menu-image"
           >
-          <img 
-            src="/images/menus/group.png" 
-            class="menu-image group-image"
-          >
+         <PodiumResults 
+          v-if="lastGames.length > 0" 
+          :games="lastGames" 
+          class="group-image"
+        />
           <HistoryBets 
             v-if="historyBetsVisible && historyBetsInsideCenter" 
             :isCenterMenuOpen="centerMenuVisible" 
@@ -272,7 +273,7 @@ import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
 import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
-
+import PodiumResults from './PodiumResults.vue';
 
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
@@ -322,6 +323,8 @@ const lastGames = ref([
   { id: 1, results: [{ position: 1, color: '#FF0000' }, { position: null, color: '#00FF00' }] },
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
 ]);
+
+
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
@@ -382,11 +385,12 @@ const saveGameResults = async () => {
 
 
 // Загрузка истории
+// В методе loadGameHistory
 const loadGameHistory = async () => {
   try {
     const response = await fetch('http://127.0.0.1:8000/api/game-history/last');
     lastGames.value = await response.json();
-  }  catch (error) {
+  } catch (error) {
     console.error('Error loading game history:', error);
   }
 };
@@ -1685,7 +1689,22 @@ onUnmounted(() => {
   cursor: default !important;
   pointer-events: none;
 }
+.group-image {
+  position: absolute;
+  top: -165%;
+  left: 0;
+  width: 119px;
+  height: 151px;
+  z-index: 3;
+}
 
+@media (max-width: 480px) {
+  .group-image {
+    top: -160%;
+    left: -10%;
+    transform: scale(0.8);
+  }
+}
 
 .main-bg-container {
   transform-origin: top center;
@@ -1980,16 +1999,7 @@ position: absolute;
   object-fit: contain;
   border: 1px solid red !important;
 }
-/* Группа слева - точное позиционирование */
-.group-image {
-  position: absolute;
-  background-image: url('/images/menus/group.png');
-  width: 119px;
-  height: 151px;
-  top: -165%; /* Точное позиционирование сверху */
-  left: 0px; /* Точное позиционирование слева */
-  z-index: 3;
-} 
+
 .stavki-image {
   width: 95%; /* Ширина относительно основного изображения */
   max-width: 370px; /* Чуть меньше основного */

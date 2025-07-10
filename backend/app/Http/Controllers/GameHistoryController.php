@@ -11,24 +11,26 @@ class GameHistoryController extends Controller
     const HISTORY_FILE = 'game_history.json';
     const MAX_GAMES = 5;
 
-    public function getLastGames()
-    {
-        try {
-            $filePath = $this->getFilePath();
-            
-            if (!file_exists($filePath)) {
-                return response()->json([]);
-            }
-
-            $content = file_get_contents($filePath);
-            $history = json_decode($content, true) ?? [];
-
-            return response()->json(array_slice($history, 0, self::MAX_GAMES));
-        } catch (\Exception $e) {
-            Log::error('Error loading history: '.$e->getMessage());
-            return response()->json([]);
-        }
+   // GameHistoryController.php
+public function getLastGames()
+{
+  try {
+    $filePath = $this->getFilePath();
+    
+    if (!file_exists($filePath)) {
+      return response()->json([]);
     }
+
+    $content = file_get_contents($filePath);
+    $history = json_decode($content, true) ?? [];
+
+    // Возвращаем последние 5 игр
+    return response()->json(array_slice($history, 0, 5));
+  } catch (\Exception $e) {
+    Log::error('Error loading history: '.$e->getMessage());
+    return response()->json([]);
+  }
+}
 
     public function saveGameResult(Request $request)
     {

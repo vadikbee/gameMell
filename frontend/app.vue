@@ -272,7 +272,7 @@ import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
 import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
-const socket = io('https://your-websocket-server.com');
+
 
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
@@ -370,18 +370,6 @@ const clickBug = (index) => {
   console.log(`Clicked on bug ${menuBugs.value[index].id}`);
 };
 
-onMounted(() => {
-  socket.on('bet-update', (newBet) => {
-    if (historyBetsVisible.value) {
-      bets.value.unshift(newBet);
-      if (bets.value.length > 10) bets.value.pop();
-    }
-  });
-});
-
-onUnmounted(() => {
-  socket.disconnect();
-});
 
 const loadBetHistory = async () => {
   try {

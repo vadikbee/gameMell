@@ -71,7 +71,7 @@ class AStar {
         if ($nx >=0 && $nx < $width && $ny >=0 && $ny < $height) {
             $isWall = false;
             foreach ($walls as $wall) {
-                if ($wall[0] == $nx && $wall[1] == $ny) {
+                if (($wall['x'] ?? $wall[0]) == $nx && ($wall['y'] ?? $wall[1]) == $ny) {
                     $isWall = true;
                     break;
                 }

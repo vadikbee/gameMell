@@ -84,10 +84,10 @@ class PathGenerator {
         return $points;
     }
 
-   private function convertGridToPixels(array $point): array {
+private function convertGridToPixels(array $point): array {
     return [
-        $point[0] * $this->cellSize + $this->grid['offset_x'],
-        $point[1] * $this->cellSize + $this->grid['offset_y']
+        ($point['x'] ?? $point[0]) * $this->cellSize + $this->grid['offset_x'],
+        ($point['y'] ?? $point[1]) * $this->cellSize + $this->grid['offset_y']
     ];
 }
 

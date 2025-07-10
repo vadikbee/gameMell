@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import vue from '@vitejs/plugin-vue'; // Добавьте импорт Vue
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     plugins: [
@@ -8,15 +8,15 @@ export default defineConfig({
             input: [
                 'resources/css/app.css', 
                 'resources/js/app.js',
-                'resources/views/**/*.blade.php' // Добавьте шаблоны Blade
+                'resources/views/**/*.blade.php'
             ],
             refresh: true,
         }),
-        vue() // Добавьте плагин Vue
+        vue()
     ],
     resolve: {
         alias: {
-            '@': '/resources/js', // Добавьте алиас
+            '@': '/resources/js',
         },
     },
     server: {
@@ -25,13 +25,14 @@ export default defineConfig({
         strictPort: true,
         hmr: {
             host: 'localhost',
-            protocol: 'ws'
+            protocol: 'ws',
+            path: '/vite-hmr' // Явно указываем путь
         },
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, '/api'), // Исправлено
+                rewrite: (path) => path.replace(/^\/api/, ''), // Убираем префикс /api
                 secure: false,
             }
         }

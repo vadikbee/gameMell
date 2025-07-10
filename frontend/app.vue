@@ -12,18 +12,15 @@
       class="main-bg-container" 
       :style="{ transform: `scale(${scaleFactor})` }"
     ></div>
-    
-    <!-- Кнопка генерации тараканов -->
-    <div 
-      class="tarakan-test"
-      id="generateButton"
-      @click="handleGenerateClick" 
-      :style="{
-        opacity: isLoading ? 0.7 : 1,
-        cursor: isLoading ? 'wait' : 'pointer'
-      }"
-    ></div>
-    
+    <!-- Добавить таймеры в верхнюю часть интерфейса -->
+  <div class="timers-container">
+    <div v-if="!raceInProgress" class="timer">
+      До начала: {{ countdown }} сек.
+    </div>
+    <div v-if="raceInProgress" class="timer">
+      До конца: {{ raceCountdown }} сек.
+    </div>
+  </div>
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
       <!-- Центральное фиксированное меню -->
@@ -288,6 +285,16 @@ const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
 
 // Добавьте эти переменные
+
+// Добавить новые переменные состояния
+const raceInterval = ref(15000); // 15 секунд гонка
+const breakInterval = ref(5000); // 5 секунд перерыв
+const raceInProgress = ref(false);
+const breakInProgress = ref(true);
+const countdown = ref(5); // отсчет до начала гонки
+const raceCountdown = ref(15); // отсчет до конца гонки
+let cycleTimer = null;
+let raceTimer = null;
 // Новые состояния для взаимодействия с тараканами в меню
 const hoveredBugIndex = ref(null);
 const clickedBugIndex = ref(null);
@@ -324,7 +331,24 @@ const lastGames = ref([
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
 ]);
 
-
+// Функция запуска цикла гонок
+const startRaceCycle = () => {
+  clearInterval(cycleTimer);
+  
+  cycleTimer = setInterval(() => {
+    if (breakInProgress.value) {
+      countdown.value--;
+      
+      if (countdown.value <= 0) {
+        // Начинаем гонку
+        breakInProgress.value = false;
+        raceInProgress.value = true;
+        raceCountdown.value = raceInterval.value / 1000;
+        handleGenerateClick();
+      }
+    }
+  }, 1000);
+};
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
@@ -864,7 +888,7 @@ const generatePaths = async () => {
   }
 };
 
-// Запуск генерации тараканов
+// Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
   try {
     areWinButtonsDisabled.value = false;
@@ -916,19 +940,42 @@ const handleGenerateClick = async () => {
         phase: 'racing',
         targetButtonId: null,
         bluePointProgress: 0,
-        finishTime: null // <-- ИНИЦИАЛИЗАЦИЯ
+        finishTime: null
       };
     });
     
     startAnimation();
+    
+    // Таймер для завершения гонки
+    raceTimer = setTimeout(() => {
+      raceInProgress.value = false;
+      breakInProgress.value = true;
+      countdown.value = breakInterval.value / 1000;
+      
+      // Останавливаем анимацию, если еще идет
+      if (animationFrame.value) {
+        cancelAnimationFrame(animationFrame.value);
+      }
+      
+      // Сохраняем результаты
+      saveGameResults();
+    }, raceInterval.value);
+    
+    // Таймер отсчета времени гонки
+    const raceCountdownInterval = setInterval(() => {
+      if (raceCountdown.value > 0) {
+        raceCountdown.value--;
+      } else {
+        clearInterval(raceCountdownInterval);
+      }
+    }, 1000);
+    
   } catch (error) {
     console.error('Ошибка генерации путей:', error);
   } finally {
     isLoading.value = false;
   }
-}
-
-
+};
 
 // ==============================
 // ЖИЗНЕННЫЕ ЦИКЛЫ
@@ -945,7 +992,8 @@ const updateScale = () => {
 onMounted(() => {
   updateScale();
   window.addEventListener('resize', updateScale);
-  
+  startRaceCycle(); // Запускаем цикл при монтировании
+
   // Отслеживание изменения масштаба
   let lastDevicePixelRatio = window.devicePixelRatio;
   const updateZoomFactor = () => {
@@ -964,6 +1012,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  // Очищаем таймеры при уничтожении компонента
+  clearInterval(cycleTimer);
+  clearTimeout(raceTimer);
   window.removeEventListener('resize', updateScale);
   if (animationFrame.value) cancelAnimationFrame(animationFrame.value);
 });
@@ -971,6 +1022,28 @@ onUnmounted(() => {
 
 
 <style scoped>
+/* Стили для таймеров */
+.timers-container {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.timer {
+  min-width: 120px;
+}
+
 .win-menu-center .menu-stavki {
   position: absolute;
   bottom: 79%;

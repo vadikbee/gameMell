@@ -6,7 +6,6 @@
       :isCenterMenuOpen="centerMenuVisible" 
       class="outside-center"
     />
-
     <!-- Контейнер для масштабирования фона -->
     <div 
       class="main-bg-container" 
@@ -108,15 +107,31 @@
       
       <!-- Тараканы -->
       <div 
-        v-for="bug in bugs" 
-        :key="'bug-'+bug.id"
-        class="tarakan"
-        :style="{
-          backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-          left: `${bug.position[0]}px`,
-          top: `${bug.position[1]}px`
-        }"
-      ></div>
+  v-for="bug in bugs" 
+  :key="'bug-'+bug.id"
+>
+  <!-- Взрыв -->
+  <div 
+    v-if="!bug.finished && bug.explodeFrame !== undefined"
+    class="explosion"
+    :style="{
+      backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
+      left: `${bug.position[0]}px`,
+      top: `${bug.position[1]}px`
+    }"
+  ></div>
+  
+  <!-- Таракан -->
+  <div 
+    v-else-if="!bug.exploded"
+    class="tarakan"
+    :style="{
+      backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+      left: `${bug.position[0]}px`,
+      top: `${bug.position[1]}px`
+    }"
+  ></div>
+</div>
       
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
@@ -407,7 +422,9 @@ const saveGameResults = async () => {
     }
 };
 
-
+// Добавляем состояние для анимации взрыва
+const animationExplodeFrame = ref(null);
+const explosionImages = ref(Array.from({length: 6}, (_, i) => `/images/bax/bax-${i+1}.png`));
 // Загрузка истории
 // В методе loadGameHistory
 const loadGameHistory = async () => {
@@ -940,7 +957,9 @@ const handleGenerateClick = async () => {
         phase: 'racing',
         targetButtonId: null,
         bluePointProgress: 0,
-        finishTime: null
+        finishTime: null,
+        explodeFrame: undefined, // Добавляем свойство для кадра взрыва
+        exploded: false          // Флаг завершения взрыва
       };
     });
     
@@ -956,7 +975,8 @@ const handleGenerateClick = async () => {
       if (animationFrame.value) {
         cancelAnimationFrame(animationFrame.value);
       }
-      
+      // Запускаем анимацию взрыва для незавершивших
+      startExplosionAnimation();
       // Сохраняем результаты
       saveGameResults();
     }, raceInterval.value);
@@ -976,7 +996,32 @@ const handleGenerateClick = async () => {
     isLoading.value = false;
   }
 };
-
+// Функция для анимации взрыва
+const startExplosionAnimation = () => {
+  const explosionStartTime = performance.now();
+  
+  const animateExplosion = (timestamp) => {
+    const elapsed = timestamp - explosionStartTime;
+    
+    bugs.value.forEach(bug => {
+      if (!bug.finished) {
+        // Рассчитываем текущий кадр взрыва (0-5)
+        const frame = Math.min(5, Math.floor(elapsed / 100));
+        bug.explodeFrame = frame;
+      }
+    });
+    
+    // Продолжаем анимацию пока не прошло 600мс (6 кадров по 100мс)
+    if (elapsed < 600) {
+      animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
+    } else {
+      // Удаляем взорвавшихся тараканов после анимации
+      bugs.value = bugs.value.filter(bug => bug.finished);
+    }
+  };
+  
+  animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
+};
 // ==============================
 // ЖИЗНЕННЫЕ ЦИКЛЫ
 // ==============================
@@ -1017,6 +1062,9 @@ onUnmounted(() => {
   clearTimeout(raceTimer);
   window.removeEventListener('resize', updateScale);
   if (animationFrame.value) cancelAnimationFrame(animationFrame.value);
+  if (animationExplodeFrame.value) {
+    cancelAnimationFrame(animationExplodeFrame.value);
+  }
 });
 </script>
 
@@ -1628,6 +1676,24 @@ onUnmounted(() => {
   column-gap: var(--column-gap);
   row-gap: var(--row-gap);
   
+}
+/* Стили для взрыва */
+.explosion {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: translate(-50%, -50%);
+  z-index: 5; /* Выше обычных тараканов */
+  pointer-events: none;
+  animation: explosion-pulse 0.1s infinite alternate;
+}
+
+@keyframes explosion-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1.1); }
 }
 /* Стили для новой кнопки Group 164 */
 .group-164-button {

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GameHistoryController;
 
 require_once base_path('path_generator/PathGenerator.php');
 require_once base_path('path_generator/a_star.php');
@@ -82,3 +83,13 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) {
             ->header('Access-Control-Allow-Origin', '*');
     }
 });
+
+Route::options('/game-history/save', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
+Route::post('/game-history/save', [GameHistoryController::class, 'saveGameResult']);
+Route::get('/game-history/last', [GameHistoryController::class, 'getLastGames']);

@@ -1,4 +1,3 @@
-<!-- LastGameMenu.vue -->
 <template>
   <div class="last-game-menu" :class="positionClass">
     <div class="history-header">
@@ -7,34 +6,35 @@
     
     <div class="games-container">
       <div 
-        v-for="(game, index) in gamesList" 
-        :key="index" 
-        class="game-item"
-      >
-        <div class="game-id">#{{ game.id }}</div>
-        <div class="results-container">
-    <div 
-      v-for="(result, resultIndex) in game.results" 
-      :key="resultIndex" 
-      class="result-item"
-    >
-      <div class="position">
-        {{ result.position !== null ? result.position : '-' }}
-      </div>
+    v-for="(game, index) in gamesList" 
+    :key="game.id"  
+    class="game-item"
+  >
+    <div class="game-id">#{{ index + 1 }}</div>
+    <div class="results-container">
+      <!-- Сортируем результаты по позициям -->
       <div 
-        class="bug-color" 
-        :class="{ empty: result.position === null }"
-        :style="{ background: result.color }"
-      ></div>
+        v-for="result in sortedResults(game.results)" 
+        :key="result.color"
+        class="result-item"
+      >
+        <div class="position">
+          {{ result.position || '-' }}
+        </div>
+        <div 
+          class="bug-color" 
+          :class="{ empty: result.position === null }"
+          :style="{ background: result.position !== null ? result.color : 'transparent' }"
+        ></div>
+      </div>
     </div>
   </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue';
+import { defineProps, ref, watch } from 'vue';
 
 const props = defineProps({
   isCenterMenuOpen: Boolean,
@@ -46,10 +46,28 @@ const gamesList = computed(() => props.games || []);
 const positionClass = computed(() => {
   return props.isCenterMenuOpen ? 'top-left' : 'bottom-left';
 });
+// Добавляем computed для сортировки результатов
+const sortedResults = (results) => {
+    // Сначала фильтруем завершивших гонку
+    const finished = results.filter(r => r.position !== null);
+    
+    // Сортируем по позициям (1, 2, 3...)
+    finished.sort((a, b) => a.position - b.position);
+    
+    // Добавляем не завершивших
+    const unfinished = results.filter(r => r.position === null);
+    
+    return [...finished, ...unfinished];
+};
+
 </script>
-
-
 <style scoped>
+/* Добавьте этот стиль */
+.bug-color.empty {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
 .last-game-menu {
   position: absolute;
   width: auto; /* Ширина по содержимому */

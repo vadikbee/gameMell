@@ -16,6 +16,7 @@
         class="reset-button"
         @click="$emit('reset-click')"
       >
+      
       <img 
         src="/images/menus/Group 164.png" 
         alt="Group 164" 

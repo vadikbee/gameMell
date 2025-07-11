@@ -161,22 +161,39 @@
             alt="Center Menu" 
             class="menu-image"
           >
-          <div class="menu-tabs">
-          <div 
-            class="tab-button result-tab"
-            :class="{ active: activeTab === 'result' }"
-            @click="setActiveTab('result')"
-          >
-            RESULT
-          </div>
-          <div 
-            class="tab-button overtaking-tab"
-            :class="{ active: activeTab === 'overtaking' }"
-            @click="setActiveTab('overtaking')"
-          >
-            OVERTAKING
-          </div>
+           <div class="menu-tabs">
+    <!-- Изменено: поменяны местами вкладки -->
+        <div 
+          class="tab-button overtaking-tab"
+          :class="{ active: activeTab === 'overtaking' }"
+          @click="setActiveTab('overtaking')"
+        >
+          OVERTAKING
         </div>
+        <div 
+          class="tab-button result-tab"
+          :class="{ active: activeTab === 'result' }"
+          @click="setActiveTab('result')"
+        >
+          RESULT
+        </div>
+      </div>
+         <!-- Контейнер для кнопок в зависимости от активной вкладки -->
+    <!-- app.vue -->
+      <div class="menu-buttons-container">
+          <div 
+            v-for="btn in menuButtons" 
+            :key="btn.id"
+            class="menu-button"
+            :class="{
+              selected: btn.selected,
+              'text-button': activeTab === 'result',
+              'visible': isButtonVisible(btn)
+            }"
+            @click="toggleMenuButton(btn)"
+          ></div>
+        </div>
+
          <PodiumResults 
           v-if="lastGames.length > 0" 
           :games="lastGames" 
@@ -260,17 +277,20 @@
           
           <!-- Кнопки меню -->
           <div class="menu-buttons-container">
-            <div 
-              v-for="btn in menuButtons" 
-              :key="btn.id"
-              class="menu-button"
-              :class="{ 
-                selected: btn.selected,
-                diagonal: diagonalButtons.includes(btn.id) 
-              }"
-              @click="toggleMenuButton(btn)"
-            ></div>
-          </div>
+    <div 
+      v-for="btn in menuButtons" 
+      :key="btn.id"
+      class="menu-button"
+      :class="{
+        selected: btn.selected,
+        'text-button': activeTab === '',
+        // Изменено: исправлена логика отображения кнопок
+        'visible-diagonal': activeTab === 'result' && diagonalButtons.includes(btn.id),
+        'visible-non-diagonal': activeTab === 'overtaking' && !diagonalButtons.includes(btn.id)
+      }"
+      @click="toggleMenuButton(btn)"
+    ></div>
+  </div>
         </div>
         
         <!-- Верхняя панель баланса -->
@@ -421,7 +441,17 @@ const processedGames = computed(() => {
     sortedResults: sortedResults(game.results)
   }));
 });
-
+const isButtonVisible = (btn) => {
+  // В режиме Result показываем ВСЕ кнопки
+  if (activeTab.value === 'result') return true;
+  
+  // В режиме Overtaking показываем только НЕдиагональные кнопки
+  if (activeTab.value === 'overtaking') {
+    return !diagonalButtons.value.includes(btn.id);
+  }
+  
+  return true; // По умолчанию показываем
+};
 // Вычисляемое свойство для PodiumResults
 const podiums = computed(() => {
   return (lastGames.value || []).slice(0, 5).map(game => {
@@ -927,27 +957,34 @@ const winButtons = ref([
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
 // ==============================
+// app.vue
+// Вычисляемое свойство для диагональных кнопок
 const diagonalButtons = computed(() => {
   const diagonals = [];
   for (let i = 0; i < 7; i++) {
-    diagonals.push(i * 7 + i);
+    diagonals.push(i * 8); // 0, 8, 16, 24, 32, 40, 48
   }
   return diagonals;
 });
+
+const toggleMenuButton = (btn) => {
+  if (activeTab.value === 'overtaking') {
+    btn.selected = !btn.selected;
+  }
+};
 
 // ==============================
 // МЕТОДЫ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ
 // ==============================
 // Переключение кнопки меню
-const toggleMenuButton = (btn) => {
-  btn.selected = !btn.selected;
-};
+
 
 // Измененный метод для переключения центрального меню
 const toggleCenterMenu = () => {
   const wasOpen = centerMenuVisible.value;
   centerMenuVisible.value = !wasOpen;
 
+  
   // Добавьте вотчер для сброса состояния кнопок
   watch(centerWinMenuVisible, (isVisible) => {
     if (!isVisible) {
@@ -1262,10 +1299,74 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId.value);
   }
 });
+const textButtonStyle = {
+  backgroundImage: 'none',
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  borderRadius: '3px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+};
+
+// Вычисляемый стиль для кнопок
+const getButtonStyle = (btn) => {
+  // Для режима Result - сохраняем стиль knopka-menu, но добавляем белый фон
+  if (activeTab.value === 'result') {
+    return {
+      backgroundImage: "url('/images/buttons/knopka-menu.png')",
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      backgroundSize: 'cover',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  }
+  return {}; // Для overtaking - стандартный стиль
+};
 </script>
-
-
 <style scoped>
+
+/* Показываем диагональные кнопки в режиме Result */
+.menu-button.visible-diagonal {
+  visibility: visible;
+  pointer-events: auto;
+}
+/* Показываем недиагональные кнопки в режиме Overtaking */
+.menu-button.visible-non-diagonal {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Обновляем стили для вкладок */
+.menu-tabs {
+  display: flex;
+  flex-direction: row-reverse; /* Инвертируем порядок */
+}
+
+/* Стиль для вкладки Result (теперь справа) */
+.result-tab {
+  border-radius: 0 50px 50px 0; /* Закругление справа */
+  margin-left: 1px; /* Расстояние между вкладками */
+}
+
+/* Стиль для вкладки Overtaking (теперь слева) */
+.overtaking-tab {
+  border-radius: 50px 0 0 50px; /* Закругление слева */
+}
+.button-text {
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 20px;
+  color: #3F3F3F;
+  text-align: center;
+}
+
+/* Стиль для активной вкладки */
+.tab-button.active {
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
+  filter: brightness(1.2);
+}
 /* Добавим стиль для заблокированных кнопок */
 .button-win-container.disabled .button-win {
   cursor: not-allowed !important;
@@ -2314,7 +2415,15 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   top: 22px;
   left: 291px; /* Фиксированный отступ от левого края */
 }
+.menu-button {
+  visibility: hidden;
+  pointer-events: none;
+}
 
+.menu-button.visible {
+  visibility: visible;
+  pointer-events: auto;
+}
 /* Стили для панели */
 .panel-layer {
 position: absolute;
@@ -2402,7 +2511,30 @@ position: absolute;
     left: 95%;
     transform: translateX(-50%) scale(0.9); /* Еще меньше */
   }
-  
+  /* Стили для диагональных кнопок в режиме Result */
+.menu-button.diagonal {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+  border: 1px solid #FF8C00 !important;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
+}
+
+.menu-button.diagonal:hover {
+  transform: scale(1.1) !important;
+  filter: 
+    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
+    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)) !important;
+}
+
+.menu-button.diagonal.selected {
+  background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%) !important;
+  box-shadow: 0 0 12px rgba(255, 69, 0, 0.8) !important;
+  animation: pulse-diagonal 0.5s infinite alternate;
+}
+
+@keyframes pulse-diagonal {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
   .menu-image {
     max-width: 250px;
     transform: translateX(-50%) scale(0.9);

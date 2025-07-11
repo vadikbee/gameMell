@@ -648,10 +648,18 @@ watch(historyBetsVisible, (visible) => {
 // Обработчик для кнопки истории ставок
 const toggleHistoryBets = () => {
   if (centerMenuVisible.value) {
+    // Закрываем историю игр при открытии ставок внутри центра
+    if (lastGameMenuVisible.value) {
+      lastGameMenuVisible.value = false;
+    }
     historyBetsVisible.value = !historyBetsVisible.value;
     historyBetsInsideCenter.value = true;
   } else {
-    // Закрываем историю внутри центра при открытии внешней
+    // Закрываем историю игр при открытии внешней истории ставок
+    if (lastGameMenuVisible.value) {
+      lastGameMenuVisible.value = false;
+    }
+    
     if (historyBetsInsideCenter.value) {
       historyBetsVisible.value = false;
       historyBetsInsideCenter.value = false;
@@ -682,6 +690,11 @@ const restorePreviousBet = () => {
 // Функция переключения видимости
 const toggleLastGameMenu = () => {
   if (centerMenuVisible.value) return;
+  
+  // Закрываем историю ставок при открытии истории игр
+  if (historyBetsVisible.value) {
+    historyBetsVisible.value = false;
+  }
   
   lastGameMenuVisible.value = !lastGameMenuVisible.value;
 };

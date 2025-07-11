@@ -10,6 +10,8 @@ require_once base_path('path_generator/a_star.php');
 
 // Кешированная конфигурация сетки
 $cachedGridConfig = null;
+// Кешированные сгенерированные пути
+$pathsCache = [];
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
 Route::get('/api/v1/gameplay/games/sessions/{code}/last', [GameHistoryController::class, 'getLastGamesForSession']);
 Route::options('/api/v1/gameplay/games/sessions/{code}/last', function () {
@@ -29,7 +31,7 @@ Route::options('/generate-paths', function () {
 });
 
 // Основной обработчик
-Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use (&$cachedGridConfig) {
+Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use (&$cachedGridConfig, &$pathsCache) {
     try {
         // Для GET-запросов возвращаем информацию о сервисе
         if ($request->isMethod('GET')) {
@@ -47,6 +49,21 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use
                     'include_grid' => 'Include grid configuration (optional)'
                 ]
             ]);
+        }
+
+        // Генерация ключа кэша
+        $cacheKey = md5(serialize([
+            'bug_count' => $request->input('bug_count', 7),
+            'duration' => $request->input('duration', 10000),
+            'max_moves' => $request->input('max_moves', 200),
+            'include_grid' => $request->input('include_grid', false)
+        ]));
+        
+        // Проверка кэша
+        if (isset($pathsCache[$cacheKey])) {
+            return response()->json($pathsCache[$cacheKey])
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         }
 
         // Для POST-запросов генерируем пути
@@ -75,9 +92,14 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use
         
         // Добавляем информацию о сетке, если запрошено
         if ($request->input('include_grid', false)) {
-            $result['grid'] = $cachedGridConfig;
+            $result['grid'] = array_merge($cachedGridConfig, [
+                'finish' => $generator->getFinishPoints()
+            ]);
         }
-        
+
+        // Сохраняем результат в кэш
+        $pathsCache[$cacheKey] = $result;
+
         return response()->json($result)
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

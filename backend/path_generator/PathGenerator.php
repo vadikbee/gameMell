@@ -72,7 +72,7 @@ class PathGenerator {
         return $points;
     }
 
-    private function getFinishPoints(): array {
+    public function getFinishPoints(): array {
         $points = [];
         foreach ($this->grid['finish'] as $finish) {
             $points[] = [
@@ -86,20 +86,20 @@ class PathGenerator {
 
 private function convertGridToPixels(array $point): array {
     return [
-        ($point['x'] ?? $point[0]) * $this->cellSize + $this->grid['offset_x'],
-        ($point['y'] ?? $point[1]) * $this->cellSize + $this->grid['offset_y']
+        $point[0] * $this->cellSize + $this->grid['offset_x'],
+        $point[1] * $this->cellSize + $this->grid['offset_y']
     ];
 }
 
     private function findPath(array $start, array $end): array {
-        return AStar::findPath(
-            $start,
-            $end,
-            $this->grid['walls'],
-            $this->width,
-            $this->height
-        );
-    }
+    return AStar::findPath(
+        $start,
+        $end, 
+        $this->grid['walls'],
+        $this->width,
+        $this->height
+    );
+}
 
     private function addRandomDeviations(array $path, float $intensity): array {
         $newPath = [];
@@ -128,46 +128,80 @@ private function convertGridToPixels(array $point): array {
         return $newPath ?: $path;
     }
 
-    private function interpolatePath(array $path, int $maxMoves): array {
-        if (count($path) < 2) return $path;
+   private function interpolatePath(array $path, int $maxMoves): array {
+    if (count($path) < 2) return $path;
+    
+    // Рассчитываем общую длину пути
+    $totalDistance = 0;
+    for ($i = 0; $i < count($path) - 1; $i++) {
+        $totalDistance += $this->distance($path[$i], $path[$i+1]);
+    }
+    
+    // Рассчитываем шаг для интерполяции
+    $step = $totalDistance / ($maxMoves - 1);
+    $interpolated = [$path[0]];
+    $currentDistance = 0;
+    $currentIndex = 0;
+    
+    for ($i = 1; $i < $maxMoves; $i++) {
+        $targetDistance = $i * $step;
         
-        $interpolated = [];
-        $totalPoints = count($path);
-        $step = ($totalPoints - 1) / ($maxMoves - 1);
-        
-        for ($i = 0; $i < $maxMoves; $i++) {
-            $pos = $i * $step;
-            $idx1 = floor($pos);
-            $idx2 = min($idx1 + 1, $totalPoints - 1);
-            $ratio = $pos - $idx1;
-            
-            $x = $path[$idx1][0] + ($path[$idx2][0] - $path[$idx1][0]) * $ratio;
-            $y = $path[$idx1][1] + ($path[$idx2][1] - $path[$idx1][1]) * $ratio;
-            
-            $interpolated[] = [$x, $y];
+        // Находим сегмент, на котором находится целевая дистанция
+        while ($currentIndex < count($path) - 1 && 
+               $currentDistance + $this->distance($path[$currentIndex], $path[$currentIndex+1]) < $targetDistance) {
+            $currentDistance += $this->distance($path[$currentIndex], $path[$currentIndex+1]);
+            $currentIndex++;
         }
         
-        return $interpolated;
+        // Если достигли конца пути
+        if ($currentIndex >= count($path) - 1) {
+            $interpolated[] = end($path);
+            continue;
+        }
+        
+        // Рассчитываем позицию внутри сегмента
+        $segmentStart = $path[$currentIndex];
+        $segmentEnd = $path[$currentIndex+1];
+        $segmentDistance = $this->distance($segmentStart, $segmentEnd);
+        $t = ($targetDistance - $currentDistance) / $segmentDistance;
+        
+        $x = $segmentStart[0] + $t * ($segmentEnd[0] - $segmentStart[0]);
+        $y = $segmentStart[1] + $t * ($segmentEnd[1] - $segmentStart[1]);
+        
+        $interpolated[] = [$x, $y];
     }
+    
+    return $interpolated;
+}
 
-    private function smoothPath(array $path): array {
-        $smoothed = [];
-        $windowSize = 5;
+private function distance(array $a, array $b): float {
+    // Используем евклидово расстояние для плавности
+    return sqrt(pow($a[0] - $b[0], 2) + pow($a[1] - $b[1], 2));
+}
+
+private function smoothPath(array $path): array {
+    // Уменьшаем окно сглаживания для сохранения деталей
+    $windowSize = 3;
+    $smoothed = [];
+    
+    for ($i = 0; $i < count($path); $i++) {
+        $sumX = 0;
+        $sumY = 0;
+        $count = 0;
         
-        for ($i = 0; $i < count($path); $i++) {
-            $sumX = 0;
-            $sumY = 0;
-            $count = 0;
-            
-            for ($j = max(0, $i - $windowSize); $j <= min(count($path) - 1, $i + $windowSize); $j++) {
-                $sumX += $path[$j][0];
-                $sumY += $path[$j][1];
-                $count++;
-            }
-            
-            $smoothed[] = [$sumX / $count, $sumY / $count];
+        $start = max(0, $i - $windowSize);
+        $end = min(count($path) - 1, $i + $windowSize);
+        
+        for ($j = $start; $j <= $end; $j++) {
+            $sumX += $path[$j][0];
+            $sumY += $path[$j][1];
+            $count++;
         }
         
-        return $smoothed;
+        $smoothed[] = [$sumX / $count, $sumY / $count];
     }
+    
+    return $smoothed;
+}
+
 }

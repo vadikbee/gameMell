@@ -50,6 +50,7 @@ const bets = [
 </script>
 
 <style scoped>
+/* .history-bets обе менюшки  */
 .history-bets {
   position: absolute;
   width: 236px;
@@ -60,7 +61,7 @@ const bets = [
   padding: 5px;
   box-sizing: border-box;
   top: 57.3%;
-  left: 43.5%;
+  margin-left: -6%;
   border: 1px solid red !important; 
 }
 

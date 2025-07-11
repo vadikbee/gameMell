@@ -1,11 +1,7 @@
 <template>
   <div class="main-color">
     <!-- История ставок в основном интерфейсе -->
-    <HistoryBets 
-      v-if="historyBetsVisible && !historyBetsInsideCenter" 
-      :isCenterMenuOpen="centerMenuVisible" 
-      class="outside-center"
-    />
+    
     <!-- Контейнер для масштабирования фона -->
     <div 
       class="main-bg-container" 
@@ -14,6 +10,11 @@
  
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
+      <HistoryBets 
+      v-if="historyBetsVisible && !historyBetsInsideCenter" 
+      :isCenterMenuOpen="centerMenuVisible" 
+      class="outside-center"
+    />
       <!-- Центральное фиксированное меню -->
       <div 
         v-if="centerWinMenuVisible" 
@@ -1420,11 +1421,11 @@ onUnmounted(() => {
 }
 
 /* Добавляем новые стили для позиционирования */
-/* Позиция внутри центрального меню */
+/* Позиция внутри центрального меню history-bets (в главном меню)*/
 .history-bets.inside-center {
   position: absolute;
   top: -163%;
-  margin-left: -5%;
+  margin-left: 38%;
   width: 240px;
   height: 150px;
   z-index: 1;

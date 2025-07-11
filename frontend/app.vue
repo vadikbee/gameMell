@@ -383,6 +383,28 @@ const explodeAllBugs = () => {
   // Запускаем анимацию взрыва
   startExplosionAnimation();
 };
+// Вычисляемое свойство для LastGameMenu
+const processedGames = computed(() => {
+  return (props.games || []).map(game => ({
+    ...game,
+    sortedResults: sortedResults(game.results)
+  }));
+});
+
+// Вычисляемое свойство для PodiumResults
+const podiums = computed(() => {
+  return (lastGames.value || []).slice(0, 5).map(game => {
+    if (!game.results) return [null, null, null];
+    
+    const places = [null, null, null];
+    game.results.forEach(result => {
+      if (result.position >= 1 && result.position <= 3) {
+        places[result.position - 1] = result;
+      }
+    });
+    return places;
+  });
+});
 
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
@@ -561,11 +583,6 @@ const startAnimation = () => {
   
 };
 
-watch(lastGameMenuVisible, (visible) => {
-  if (visible) {
-    loadGameHistory();
-  }
-});
 
 // Загружаем историю при открытии меню
 watch(lastGameMenuVisible, (visible) => {
@@ -1032,7 +1049,7 @@ const updateProgress = () => {
         breakInProgress.value = true;
         phaseStartTime.value = now;
         raceActualStartTime.value = null;
-        saveGameResults();
+        
         explodeAllBugs();
       }
     } else {

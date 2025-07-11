@@ -311,6 +311,12 @@ const isBettingPhase = ref(true);
 // Добавьте эти переменные
 // Добавляем состояние для прогресса
 const progress = ref(0);
+
+// Добавляем новые переменные для отслеживания времени
+const raceStartTime = ref(0);
+const lastUpdateTime = ref(0);
+const accumulatedTime = ref(0);
+const isTabActive = ref(true);
 // Добавляем состояние для отслеживания взрыва
 const explosionActive = ref(false);
 // Добавить новые переменные состояния
@@ -337,7 +343,7 @@ const currentBet = ref(0);
 const minBet = 0;
 const maxBet = 10000;
 const betStep = 1;
-
+const tabInactiveTime = ref(0);
 // Добавлено: переменные для управления зажатием кнопок
 const actionInterval = ref(null);
 const actionTimeout = ref(null);
@@ -371,6 +377,7 @@ const startRaceCycle = () => {
 
 // Функция для взрыва всех тараканов
 const explodeAllBugs = () => {
+  if (!isTabActive.value) return; // Не взрываем если вкладка неактивна
   if (bugs.value.length === 0) return;
   
   // Помечаем всех тараканов для взрыва
@@ -432,9 +439,33 @@ const bugColors = ref([
   '#800080', // Фиолетовый (6)
   '#00FF00'  // Зеленый (7)
 ]);
-
+// Обработчик изменения видимости вкладки
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'hidden') {
+    // Запоминаем время ухода
+    tabInactiveTime.value = Date.now();
+  } else {
+    // Рассчитываем время отсутствия
+    const inactiveDuration = Date.now() - tabInactiveTime.value;
+    if (raceActualStartTime.value) {
+      // Корректируем время начала гонки
+      raceActualStartTime.value += inactiveDuration;
+    }
+    if (phaseStartTime.value) {
+      // Корректируем время фазы
+      phaseStartTime.value += inactiveDuration;
+    }
+    
+    lastUpdateTime.value = performance.now();
+    if (isRaceStarted.value && !animationFrame.value) {
+      animationFrame.value = requestAnimationFrame(animate);
+    }
+  }
+  isTabActive.value = document.visibilityState === 'visible';
+};
 // В методе saveGameResults
 const saveGameResults = async () => {
+    if (!isTabActive.value) return; // Не сохраняем результаты если вкладка неактивна
     // Фильтруем только финишировавших тараканов и сортируем по времени финиша
     const finishedBugs = bugs.value
         .filter(bug => bug.finished)
@@ -482,102 +513,112 @@ const loadGameHistory = async () => {
 watch(lastGameMenuVisible, (visible) => {
   if (visible) loadGameHistory();
 });
-// Запуск анимации движения
+// Обновляем функцию анимации
 const startAnimation = () => {
   console.log('Starting animation...');
   isRaceStarted.value = true;
-  let lastTimestamp = performance.now();
-  
+  raceStartTime.value = performance.now();
+  lastUpdateTime.value = performance.now();
+  accumulatedTime.value = 0;
+
   winButtons.value.forEach(btn => {
     btn.menuVisible = false;
     btn.selected = false;
   });
+
+  const animate = () => {
+  const now = performance.now();
+  let deltaTime = now - lastUpdateTime.value;
+  lastUpdateTime.value = now;
+
+  if (!isTabActive.value) {
+    accumulatedTime.value += deltaTime;
+    animationFrame.value = requestAnimationFrame(animate);
+    return;
+  }
+
+  if (accumulatedTime.value > 0) {
+    deltaTime += accumulatedTime.value;
+    accumulatedTime.value = 0;
+  }
+
+  const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
+  let activeBugs = 0;
   
-  const animate = (timestamp) => {
-    const deltaTime = timestamp - lastTimestamp;
-    lastTimestamp = timestamp;
-    const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
+  bugs.value.forEach((bug, index) => {
+    if (bug.finished) return;
+    activeBugs++;
     
-    let activeBugs = 0;
-    
-    bugs.value.forEach((bug, index) => {
-      if (bug.finished) return;
-      activeBugs++;
-      
-      // Фаза гонки
-      if (bug.phase === 'racing') {
-        // Обновление скорости
-        if (timestamp - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
-          bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
-          lastSpeedChange.value[index] = timestamp;
-          speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
-        }
-        
-        // Обновление позиции
-        bugProgress.value[index] += bugSpeeds.value[index] * (safeDeltaTime / 16);
-        bugProgress.value[index] = Math.max(0, Math.min(bugProgress.value[index], 1));
-        
-        const totalSteps = bug.path.length;
-        const currentIndex = Math.floor(bugProgress.value[index] * (totalSteps - 1));
-        const safeIndex = Math.max(0, Math.min(currentIndex, totalSteps - 1));
-        const point = bug.path[safeIndex];
-        
-        if (Array.isArray(point) && point.length >= 2) {
-          bug.position = [point[0], point[1]];
-        } else {
-          console.error(`Invalid path point`, point);
-          bug.finished = true;
-        }
-        
-        // Проверка финиша
-        if (bugProgress.value[index] >= 1 && !bug.finished) {
-          const bugX = bug.position[0];
-          const zone = finishZones.value.find(zone => 
-            bugX >= zone.minX && bugX < zone.maxX
-          );
-          
-          if (zone) {
-            bug.targetButtonId = zone.buttonId;
-            bug.phase = 'to_blue_point';
-            bug.bluePointProgress = 0;
-          } else {
-            bug.finished = true;
-          }
-        }
+    // Фаза гонки
+    if (bug.phase === 'racing') {
+      // Обновление скорости
+      if (now - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
+        bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
+        lastSpeedChange.value[index] = now;
+        speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
       }
       
-      // Фаза движения к точке финиша
-      else if (bug.phase === 'to_blue_point') {
-        bug.bluePointProgress += 0.2 * (safeDeltaTime / 16);
+      // Обновление позиции
+      bugProgress.value[index] += bugSpeeds.value[index] * (safeDeltaTime / 16);
+      bugProgress.value[index] = Math.max(0, Math.min(bugProgress.value[index], 1));
+      
+      const totalSteps = bug.path.length;
+      const currentIndex = Math.floor(bugProgress.value[index] * (totalSteps - 1));
+      const safeIndex = Math.max(0, Math.min(currentIndex, totalSteps - 1));
+      const point = bug.path[safeIndex];
+      
+      if (Array.isArray(point) && point.length >= 2) {
+        bug.position = [point[0], point[1]];
+      } else {
+        console.error(`Invalid path point`, point);
+        bug.finished = true;
+      }
+      
+      // Проверка финиша
+      if (bugProgress.value[index] >= 1 && !bug.finished) {
+        const bugX = bug.position[0];
+        const zone = finishZones.value.find(zone => 
+          bugX >= zone.minX && bugX < zone.maxX
+        );
         
-        const button = winButtons.value.find(b => b.id === bug.targetButtonId);
-        if (button) {
-          const [targetX, targetY] = button.bluePoint;
-          bug.position[0] = bug.position[0] + (targetX - bug.position[0]) * bug.bluePointProgress;
-          bug.position[1] = bug.position[1] + (targetY - bug.position[1]) * bug.bluePointProgress;
-          
-          if (bug.bluePointProgress >= 1) {
-            bug.finished = true;
-            button.occupied = true;
-            // Записываем время финиша
-            bug.finishTime = timestamp; // <-- НОВАЯ СТРОКА
-          }
+        if (zone) {
+          bug.targetButtonId = zone.buttonId;
+          bug.phase = 'to_blue_point';
+          bug.bluePointProgress = 0;
         } else {
           bug.finished = true;
         }
       }
-    });
-    
-    if (activeBugs > 0) {
-      animationFrame.value = requestAnimationFrame(animate);
     }
-      if (activeBugs === 0) {
+    
+    // Фаза движения к точке финиша
+    else if (bug.phase === 'to_blue_point') {
+      bug.bluePointProgress += 0.2 * (safeDeltaTime / 16);
+      
+      const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+      if (button) {
+        const [targetX, targetY] = button.bluePoint;
+        bug.position[0] = bug.position[0] + (targetX - bug.position[0]) * bug.bluePointProgress;
+        bug.position[1] = bug.position[1] + (targetY - bug.position[1]) * bug.bluePointProgress;
+        
+        if (bug.bluePointProgress >= 1) {
+          bug.finished = true;
+          button.occupied = true;
+          bug.finishTime = now;
+        }
+      } else {
+        bug.finished = true;
+      }
+    }
+  });
+  
+  if (activeBugs > 0) {
+    animationFrame.value = requestAnimationFrame(animate);
+  } else {
     cancelAnimationFrame(animationFrame.value);
-    // Сохраняем результаты через 1 секунду
     setTimeout(saveGameResults, 1000);
   }
-    
-  };
+};
   
   
   animationFrame.value = requestAnimationFrame(animate);
@@ -1034,6 +1075,11 @@ const handleGenerateClick = async () => {
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {
+  if (!isTabActive.value) {
+    // Пропускаем обновление если вкладка неактивна
+    animationFrameId.value = requestAnimationFrame(updateProgress);
+    return;
+  }
   const now = Date.now();
   
   if (breakInProgress.value) {
@@ -1078,6 +1124,7 @@ const updateProgress = () => {
 
 // Обновленная функция анимации взрыва
 const startExplosionAnimation = () => {
+    if (!isTabActive.value) return; // Не запускаем анимацию если вкладка неактивна
   if (explosionActive.value) return;
   explosionActive.value = true;
   
@@ -1125,6 +1172,7 @@ const updateScale = () => {
 };
 
 onMounted(() => {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
   updateScale();
   window.addEventListener('resize', updateScale);
   startRaceCycle(); // Запускаем цикл при монтировании
@@ -1150,6 +1198,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   // Очищаем таймеры при уничтожении компонента
   clearInterval(cycleTimer);
   clearTimeout(raceTimer);

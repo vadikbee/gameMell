@@ -161,6 +161,22 @@
             alt="Center Menu" 
             class="menu-image"
           >
+          <div class="menu-tabs">
+          <div 
+            class="tab-button result-tab"
+            :class="{ active: activeTab === 'result' }"
+            @click="setActiveTab('result')"
+          >
+            RESULT
+          </div>
+          <div 
+            class="tab-button overtaking-tab"
+            :class="{ active: activeTab === 'overtaking' }"
+            @click="setActiveTab('overtaking')"
+          >
+            OVERTAKING
+          </div>
+        </div>
          <PodiumResults 
           v-if="lastGames.length > 0" 
           :games="lastGames" 
@@ -172,6 +188,7 @@
             :insideCenter="true"
             class="inside-center"
           />
+          
           <!-- Меню ставок -->
           <div class="menu-stavki"> 
             <img 
@@ -297,7 +314,8 @@ import PodiumResults from './PodiumResults.vue';
 const historyBetsVisible = ref(false);
 // Добавляем phaseStartTime в разделе состояний
 const phaseStartTime = ref(Date.now());
-
+// Добавляем состояние для активной вкладки
+const activeTab = ref('result');
 // ===0===========================
 // СОСТОЯНИЯ ПРИЛОЖЕНИЯ
 // ==============================
@@ -374,7 +392,12 @@ const startRaceCycle = () => {
   
 };
 
-
+// Функция для переключения вкладок
+const setActiveTab = (tab) => {
+  activeTab.value = tab;
+  // Здесь можно добавить логику для отображения соответствующего контента
+  console.log(`Active tab changed to: ${tab}`);
+};
 // Функция для взрыва всех тараканов
 const explodeAllBugs = () => {
   if (!isTabActive.value) return; // Не взрываем если вкладка неактивна
@@ -2522,6 +2545,61 @@ position: absolute;
     right: 15px;
     
   }
+}
+/* Стили для контейнера вкладок */
+.menu-tabs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 24px; /* Высота кнопок */
+  z-index: 15; /* Поверх других элементов */
+}
+
+/* Общие стили для кнопок вкладок */
+.tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 50px;
+  padding: 4px 0;
+}
+
+/* Стиль для вкладки Result */
+.result-tab {
+  background: rgba(0, 0, 0, 0.4);
+  margin-right: 1px;
+}
+
+/* Стиль для вкладки Overtaking */
+.overtaking-tab {
+  background: linear-gradient(180deg, rgba(127, 0, 254, 0.7) 0%, rgba(102, 0, 143, 0.7) 98.9%);
+  border: 1px solid #6B51FF;
+}
+
+/* Стиль для активной вкладки */
+.tab-button.active {
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
+  filter: brightness(1.2);
+}
+
+/* Эффекты при наведении */
+.tab-button:hover {
+  filter: brightness(1.1);
+}
+
+.tab-button:active {
+  transform: scale(0.98);
 }
 /* Для кнопок добавляем transform для улучшения производительности */
 .button-1,

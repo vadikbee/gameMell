@@ -4,12 +4,21 @@ class PathGenerator {
     private $grid;
     private $width;
     private $height;
-    private $cellSize = 13; // Размер клетки в пикселях
+    private $cellSize = 13;
+    private $wallsGrid;
 
     public function __construct(array $grid) {
         $this->grid = $grid;
         $this->width = $grid['cols'];
         $this->height = $grid['rows'];
+        $this->wallsGrid = array_fill(0, $this->height, array_fill(0, $this->width, false));
+        foreach ($grid['walls'] as $wall) {
+            $x = $wall['x'] ?? $wall[0];
+            $y = $wall['y'] ?? $wall[1];
+            if ($x < $this->width && $y < $this->height) {
+                $this->wallsGrid[$y][$x] = true;
+            }
+        }
     }
 
     public function generatePaths(int $bugCount, int $duration, int $maxMoves): array {
@@ -18,7 +27,7 @@ class PathGenerator {
         $startPoints = $this->getStartPoints();
         $finishPoints = $this->getFinishPoints();
 
-        // Все тараканы стартуют из одной и той же точки
+        // Все тараканы стартуют из одной точки
         $start = $startPoints[0] ?? ['x' => 15, 'y' => 3, 'id' => 1];
         
         for ($i = 0; $i < $bugCount; $i++) {
@@ -29,6 +38,8 @@ class PathGenerator {
                 [$finish['x'], $finish['y']]
             );
 
+            // Добавляем петли для разнообразия путей
+            $path = $this->addLoops($path, 0.3);
             // Добавление случайных отклонений
             $path = $this->addRandomDeviations($path, 0.4);
             
@@ -59,6 +70,84 @@ class PathGenerator {
             'results' => $results
         ];
     }
+
+    private function addLoops(array $path, float $intensity): array {
+        if (count($path) < 2) return $path;
+
+        $newPath = [];
+        $loopChance = $intensity;
+
+        for ($i = 0; $i < count($path) - 1; $i++) {
+            $current = $path[$i];
+            $newPath[] = $current;
+
+            // Пропускаем начало и конец
+            if ($i > 3 && $i < count($path)-5 && mt_rand(0, 100) < ($loopChance * 100)) {
+                $next = $path[$i+1];
+                $loopPath = $this->generateSmallLoop($current, $next);
+                if ($loopPath) {
+                    $newPath = array_merge($newPath, $loopPath);
+                    $i++; // пропускаем следующую точку (next)
+                    continue;
+                }
+            }
+        }
+
+        $newPath[] = end($path);
+        return $newPath;
+    }
+
+    private function generateSmallLoop(array $current, array $next): array {
+        $dx = $next[0] - $current[0];
+        $dy = $next[1] - $current[1];
+
+        // Определяем основное направление
+        $mainDir = null;
+        if ($dx != 0) {
+            $mainDir = [$dx > 0 ? 1 : -1, 0];
+        } else if ($dy != 0) {
+            $mainDir = [0, $dy > 0 ? 1 : -1];
+        } else {
+            return [];
+        }
+
+        // Перпендикулярные направления
+        $perpDirs = [];
+        if ($mainDir[0] != 0) {
+            $perpDirs[] = [0, 1];
+            $perpDirs[] = [0, -1];
+        } else {
+            $perpDirs[] = [1, 0];
+            $perpDirs[] = [-1, 0];
+        }
+
+        shuffle($perpDirs);
+
+        foreach ($perpDirs as $pDir) {
+            $p1 = [$current[0] + $pDir[0], $current[1] + $pDir[1]];
+            $p2 = [$p1[0] + $mainDir[0], $p1[1] + $mainDir[1]];
+            $p3 = $next;
+
+            if ($this->isValidPoint($p1) && $this->isValidPoint($p2)) {
+                return [$p1, $p2, $p3];
+            }
+        }
+
+        return [];
+    }
+
+    private function isValidPoint(array $point): bool {
+        $x = (int)round($point[0]);
+        $y = (int)round($point[1]);
+        if ($x < 0 || $x >= $this->width || $y < 0 || $y >= $this->height) {
+            return false;
+        }
+        return !$this->wallsGrid[$y][$x];
+    }
+
+    // Остальные методы без изменений (getStartPoints, getFinishPoints, convertGridToPixels, 
+    // findPath, addRandomDeviations, interpolatePath, distance, smoothPath) 
+
 
     private function getStartPoints(): array {
         $points = [];

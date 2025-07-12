@@ -99,32 +99,36 @@
       </div>
       
       <!-- Тараканы -->
-      <div 
-  v-for="bug in bugs" 
-  :key="'bug-'+bug.id"
->
-  <<!-- Взрыв показываем только для не финишировавших -->
-    <div 
-      v-if="bug.explodeFrame !== undefined && !bug.finished"
-      class="explosion"
-      :style="{
-        backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
-        left: `${bug.position[0]}px`,
-        top: `${bug.position[1]}px`
-      }"
-    ></div>
   
- <! <!-- Таракан показываем если не взорван ИЛИ если он финишировал -->
     <div 
-      v-else-if="!bug.exploded || bug.finished"
-      class="tarakan"
-      :style="{
-        backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-        left: `${bug.position[0]}px`,
-        top: `${bug.position[1]}px`
-      }"
-    ></div>
-  </div>
+      v-for="(bug, index) in bugs" 
+      :key="'bug-'+bug.id"
+    >
+      <!-- Взрыв показываем только для не финишировавших -->
+      <div 
+        v-if="bug.explodeFrame !== undefined && !bug.finished"
+        class="explosion"
+        :style="{
+          backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
+          left: `${bug.position[0]}px`,
+          top: `${bug.position[1]}px`
+        }"
+      ></div>
+  
+  <!-- Таракан показываем если не взорван ИЛИ если он финишировал -->
+   <div 
+        v-else-if="!bug.exploded || bug.finished"
+        class="tarakan"
+        :class="{ dizzy: bug.dizzy }"
+        @click="makeBugDizzy(index)"
+        @touchstart="() => makeBugDizzy(index)"
+        :style="{
+          backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+          left: `${bug.position[0]}px`,
+          top: `${bug.position[1]}px`
+        }"
+      ></div>
+    </div>
       
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
@@ -466,6 +470,26 @@ const podiums = computed(() => {
     return places;
   });
 });
+// Добавляем обработчик головокружения
+const makeBugDizzy = (index) => {
+  // Проверяем что bugs.value существует и index в пределах массива
+  if (!bugs.value || index >= bugs.value.length) return;
+  
+  const bug = bugs.value[index];
+  
+  // Проверяем наличие необходимых свойств
+  if (!bug || bug.finished || bug.exploded || 
+     (bug.explodeFrame !== undefined && !bug.finished)) {
+    return;
+  }
+  
+  // Устанавливаем состояние головокружения
+  bug.dizzy = true;
+  bug.dizzyUntil = performance.now() + 1000; // 1 секунда
+  
+  // Для отладки
+  console.log(`Tarakan ${index} is dizzy!`);
+};
 
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
@@ -604,6 +628,14 @@ const startAnimation = () => {
       
       // Фаза гонки
       if (bug.phase === 'racing') {
+      let currentSpeed = bugSpeeds.value[index];
+      if (bug.dizzy && now < bug.dizzyUntil) {
+        currentSpeed *= 0.5; // Замедляем в 2 раза
+      } else if (bug.dizzy) {
+        bug.dizzy = false; // Сбрасываем состояние
+      }
+      
+      
         // Обновление скорости
         if (now - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
           bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
@@ -984,7 +1016,6 @@ const toggleCenterMenu = () => {
   const wasOpen = centerMenuVisible.value;
   centerMenuVisible.value = !wasOpen;
 
-  
   // Добавьте вотчер для сброса состояния кнопок
   watch(centerWinMenuVisible, (isVisible) => {
     if (!isVisible) {
@@ -2247,7 +2278,15 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 /* Анимация пульсации свечения */
   animation: glow-pulse 2s infinite alternate;          
 }
+/* Анимация головокружения */
+.tarakan.dizzy {
+  animation: spin 0.5s linear infinite;
+}
 
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
 /* Усиление свечения при наведении */
 .tarakan:hover {
   filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1))

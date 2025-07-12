@@ -276,9 +276,9 @@ defineEmits([
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
   .bet-counter-container {
-    top: 30%;
+    top: -373.5%;
     margin-top: 98%;
-    left: 37%;
+    left: 35%;
   }
   
   .bet-display {
@@ -323,7 +323,33 @@ defineEmits([
     left: 48.5%;
   }
 }
-
+/* Адаптация для маленьких экранов */
+@media (max-width: 768px) {
+  .stavki-buttons-container {
+    top: 9%;
+    left: -24%;
+  }
+   .reset-button {
+    left: 2%;
+    margin-top: -10.9%;
+    transform: scale(0.95);
+  }
+  .otmena-button {
+    
+    left: 1%;
+  }
+   .x2-button {
+    
+    left: 30%;
+    
+  }
+  .group-164-button {
+    width: 113px;
+    margin-top: -21%;
+    left: 3%;
+  }
+  
+}
 @media (max-width: 480px) {
   .bet-display {
     width: 70px;

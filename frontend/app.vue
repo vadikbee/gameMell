@@ -362,7 +362,7 @@ const isTabActive = ref(true);
 // Добавляем состояние для отслеживания взрыва
 const explosionActive = ref(false);
 // Добавить новые переменные состояния
-const raceInterval = ref(12000); // 12 секунд гонка
+const raceInterval = ref(12000); // 12 секунд гонка начало старт
 const breakInterval = ref(7000);  // 7 секунд перерыв
 const raceInProgress = ref(false);
 const breakInProgress = ref(true);
@@ -1827,9 +1827,9 @@ const getButtonStyle = (btn) => {
    gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
   width: 89%;
   height: 0%;
-  left: -19.2%;
+  left: -19%;
   z-index: 9;
-  padding: 0;
+  padding: 0px;
   border: 1px solid rgb(36, 223, 15) !important; 
 }
 
@@ -1857,6 +1857,7 @@ const getButtonStyle = (btn) => {
 @media (max-width: 768px) {
   .stavki-buttons-container {
     top: 404%;
+    left: -20%;
     width: 85%;
     transform: translateX(0); /* Сбрасываем transform если был */
     padding-left: 15px; /* Регулируйте значение по необходимости */

@@ -281,19 +281,19 @@
           
           <!-- Кнопки меню -->
           <div class="menu-buttons-container">
-    <div 
-      v-for="btn in menuButtons" 
-      :key="btn.id"
-      class="menu-button"
-      :class="{
-        selected: btn.selected,
-        'text-button': activeTab === '',
-        // Изменено: исправлена логика отображения кнопок
-        'visible-diagonal': activeTab === 'result' && diagonalButtons.includes(btn.id),
-        'visible-non-diagonal': activeTab === 'overtaking' && !diagonalButtons.includes(btn.id)
-      }"
-      @click="toggleMenuButton(btn)"
-    ></div>
+    <!-- Заменить текущее условие видимости -->
+<div 
+  v-for="btn in menuButtons" 
+  :key="btn.id"
+  class="menu-button"
+  :class="{
+    selected: btn.selected,
+    'text-button': activeTab === 'result',
+    'button-visible': activeTab === 'result' || 
+                     (activeTab === 'overtaking' && !diagonalButtons.includes(btn.id))
+  }"
+  @click="toggleMenuButton(btn)"
+></div>
   </div>
         </div>
         
@@ -446,15 +446,9 @@ const processedGames = computed(() => {
   }));
 });
 const isButtonVisible = (btn) => {
-  // В режиме Result показываем ВСЕ кнопки
-  if (activeTab.value === 'result') return true;
-  
-  // В режиме Overtaking показываем только НЕдиагональные кнопки
-  if (activeTab.value === 'overtaking') {
-    return !diagonalButtons.value.includes(btn.id);
-  }
-  
-  return true; // По умолчанию показываем
+  return (activeTab.value === 'result') || 
+         (activeTab.value === 'overtaking' && 
+          !diagonalButtons.value.includes(btn.id));
 };
 // Вычисляемое свойство для PodiumResults
 const podiums = computed(() => {
@@ -1000,9 +994,8 @@ const diagonalButtons = computed(() => {
 });
 
 const toggleMenuButton = (btn) => {
-  if (activeTab.value === 'overtaking') {
-    btn.selected = !btn.selected;
-  }
+  // Разрешаем выделение для обеих вкладок
+  btn.selected = !btn.selected;
 };
 
 // ==============================
@@ -2399,6 +2392,35 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   transition: all 0.3s ease;
 }
 
+
+/* Анимация выделения */
+.menu-button.selected {
+  filter: 
+    brightness(1.2) 
+    sepia(1) 
+    saturate(5) 
+    hue-rotate(5deg);
+}
+
+/* Анимация наведения */
+.menu-button:hover {
+  transform: scale(1.05);
+  filter: 
+    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
+    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+}
+
+/* Анимация нажатия */
+.menu-button:active {
+  transform: scale(0.95);
+}
+
+/* Специфичные стили для диагональных кнопок в Result */
+.menu-button.diagonal {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: 1px solid #FF8C00;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
+}
 .main-bg {
   background-image: url('/images/background/Frame 560.png');
   background-position: center top;
@@ -2591,6 +2613,10 @@ position: absolute;
     max-width: 240px;
     transform: translateX(-50%) scale(0.8);
   }
+}
+.menu-button.button-visible {
+  visibility: visible;
+  pointer-events: auto;
 }
 .button-balans {
   position: absolute;

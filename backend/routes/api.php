@@ -12,15 +12,99 @@ require_once base_path('path_generator/a_star.php');
 $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
-Route::get('/api/v1/gameplay/games/sessions/{code}/last', [GameHistoryController::class, 'getLastGamesForSession']);
-Route::options('/api/v1/gameplay/games/sessions/{code}/last', function () {
+
+///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
+Route::get('/api/v1/gameplay/games/instances/{code}', function ($code) {
+    // Возвращает настройки игрового инстанса
+    return response()->json([
+        'bet_buttons' => [25, 50, 100, 150], // Номиналы кнопок
+        'currency' => 'RUB', // Валюта
+        'coefficients' => [
+            'win' => 6.3, // Коэффициенты для разных типов ставок
+            'place' => 4.2,
+            'trap' => 8.5
+        ],
+        'available_currencies' => ['RUB', 'USD', 'EUR'], // Доступные валюты
+        'theme_params' => [ // Параметры темы
+            'background' => 'space',
+            'color_scheme' => 'dark'
+        ]
+    ]);
+});
+
+Route::options('/api/v1/gameplay/games/instances/{code}', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+
+///////////////////////////////////////ЭНДПОИНТ (place bet)///////////////////////////////////////
+Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $code) {
+    // Обработка ставки
+    $data = $request->validate([
+        'user_id' => 'required|integer',
+        'amount' => 'required|numeric',
+        'type' => 'required|in:win,place,trap',
+        'selection' => 'required|array' // Выбранные элементы (тарканы/ловушки)
+    ]);
+    
+    // Здесь должна быть логика обработки ставки:
+    // 1. Проверка доступности ставки (гонка не началась)
+    // 2. Списание средств
+    // 3. Сохранение ставки в БД
+    
+    return response()->json([
+        'status' => 'success',
+        'bet_id' => rand(1000, 9999),
+        'new_balance' => 5000 // Пример нового баланса
+    ]);
+});
+
+Route::options('/api/v1/gameplay/games/bets/{code}', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
+///////////////////////////////////////ЭНДПОИНТ (bet history)///////////////////////////////////////
+Route::get('/api/v1/gameplay/games/bets/{code}/latest', function ($code) {
+    // Возвращает последние ставки
+    return response()->json([
+        'bets' => [
+            [
+                'id' => 1,
+                'user' => 'Player1',
+                'amount' => 100,
+                'type' => 'win',
+                'selection' => [3],
+                'time' => '15:30:42',
+                'color' => 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)'
+            ],
+            [
+                'id' => 2,
+                'user' => 'Player2',
+                'amount' => 50,
+                'type' => 'place',
+                'selection' => [1, 2],
+                'time' => '15:31:15',
+                'color' => 'linear-gradient(180deg, #FDF735 0%, #FD7E00 100%)'
+            ]
+        ]
+    ]);
+});
+
+Route::options('/api/v1/gameplay/games/bets/{code}/latest', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+///////////////////////////////////////ЭНДПОИНТ (bet history)///////////////////////////////////////
+
+
+
 // Обработка CORS для OPTIONS запроса
 Route::options('/generate-paths', function () {
     return response('', 204)

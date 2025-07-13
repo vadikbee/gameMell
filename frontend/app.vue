@@ -615,10 +615,14 @@ const animate = () => {
 
   const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
   let activeBugs = 0;
-  
+
   bugs.value.forEach((bug, index) => {
     if (bug.finished) return;
     activeBugs++;
+
+    // Если взорван - пропускаем
+    if (bug.explodeFrame !== undefined) return;
+
     
     // Вычисляем вектор направления
     let dx = 0, dy = 0;
@@ -660,6 +664,7 @@ const animate = () => {
       }
       
       // Проверка финиша (достигли конца пути)
+       // Проверка финиша (достигли конца пути)
       if (bugProgress.value[index] >= 1 && !bug.finished) {
         const bugX = bug.position[0];
         const zone = finishZones.value.find(zone => 
@@ -670,53 +675,55 @@ const animate = () => {
           bug.targetButtonId = zone.buttonId;
           bug.phase = 'to_blue_point'; // Переходим в фазу движения к точке
           bug.bluePointProgress = 0;
-          bug.finishTime = now; // Фиксируем время финиша
+          bug.finishTime = now;
         } else {
-          // Если зона не найдена - таракан не финишировал
-          bug.finished = true;
+          // Если зона не найдена - взрываем
+          bug.explodeFrame = 0;
         }
       }
     }
-    // Фаза движения к точке финиша (после пересечения черты)
+    // Фаза движения к точке финиша
     else if (bug.phase === 'to_blue_point') {
       const button = winButtons.value.find(b => b.id === bug.targetButtonId);
       if (button) {
         const [targetX, targetY] = button.bluePoint;
-        dx = targetX - bug.position[0];
-        dy = targetY - bug.position[1];
-        bug.angle = Math.atan2(dy, dx) - Math.PI /2; // Изменение здесь
-        // Плавное движение к точке с замедлением
-        bug.bluePointProgress += 0.2 * (safeDeltaTime / 16);
         
-        // Интерполяция позиции
-        bug.position[0] = bug.position[0] + (targetX - bug.position[0]) * 0.05;
-        bug.position[1] = bug.position[1] + (targetY - bug.position[1]) * 0.05;
+        // Рассчитываем направление
+        const dx = targetX - bug.position[0];
+        const dy = targetY - bug.position[1];
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Проверка достижения точки (с запасом в 5px)
-        const distance = Math.sqrt(
-          Math.pow(targetX - bug.position[0], 2) + 
-          Math.pow(targetY - bug.position[1], 2)
-        );
+        // Скорость движения к точке (пикселей/сек)
+        const speed = 200;
+        // Расстояние для перемещения в этом кадре
+        const step = Math.min(distance, speed * (deltaTime / 1000));
         
-        if (distance < 5) {
+        if (step > 0) {
+          // Обновляем позицию
+          bug.position[0] += (dx / distance) * step;
+          bug.position[1] += (dy / distance) * step;
+          
+          // Обновляем угол поворота
+          bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
+        }
+
+        // Проверяем достижение точки
+        if (step === 0 || distance <= 5) {
           bug.finished = true;
           button.occupied = true;
         }
       } else {
-        // Если кнопка не найдена - завершаем движение
-        bug.finished = true;
+        // Если кнопка не найдена - взрываем
+        bug.explodeFrame = 0;
       }
     }
-    
-    // Вычисляем угол поворота (в радианах) для обеих фаз
-    bug.angle = Math.atan2(dy, dx) - Math.PI /2;
   });
   
   if (activeBugs > 0) {
     animationFrame.value = requestAnimationFrame(animate);
   } else {
     cancelAnimationFrame(animationFrame.value);
-    // Сохраняем результаты через 1 секунду после завершения гонки
+    animationFrame.value = null;
     setTimeout(saveGameResults, 1000);
   }
 };

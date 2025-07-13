@@ -78,7 +78,7 @@ class AStar {
 
     private static function getNeighbors(int $x, int $y, array $wallsGrid, int $width, int $height): array {
     $neighbors = [];
-    $directions = [[0,1], [1,0], [0,-1], [-1,0]];
+    $directions = [[0,1], [1,0], [-1,0], [0,-1]];
     
     // Перемешиваем направления для случайного порядка
     shuffle($directions);

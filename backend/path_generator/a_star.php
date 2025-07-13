@@ -56,7 +56,10 @@ class AStar {
 
   private static function heuristic(array $a, array $b): float {
     // Только манхэттенское расстояние без случайности
-    return abs($a[0] - $b[0]) + abs($a[1] - $b[1]);
+    $base = abs($a[0] - $b[0]) + abs($a[1] - $b[1]);
+    // Добавляем случайное отклонение (до 00% от базового расстояния)
+    $randomFactor = 1 * $base * (mt_rand(0, 100) / 100);
+    return $base + $randomFactor;
 }
 
     private static function lowestFScore(array $openSet, array $fScore): string {

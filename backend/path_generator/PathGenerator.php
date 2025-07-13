@@ -27,21 +27,48 @@ class PathGenerator {
     $startPoints = $this->getStartPoints();
     $finishPoints = $this->getFinishPoints();
 
+    // Используем все стартовые точки по циклу
+    $startIndex = 0;
+    
     for ($i = 0; $i < $bugCount; $i++) {
-        // Выбираем случайную стартовую точку для каждого таракана
-        $start = $startPoints[array_rand($startPoints)];
+        // Циклический выбор стартовой точки
+        $start = $startPoints[$startIndex % count($startPoints)];
+        $startIndex++;
+        
+        // Случайный финиш
         $finish = $finishPoints[array_rand($finishPoints)];
         
-        $path = $this->findPath(
+        // Генерация основной траектории
+        $mainPath = $this->findPath(
             [$start['x'], $start['y']],
             [$finish['x'], $finish['y']]
         );
-
-        // Обработка пути (добавление петель и отклонений)
-        $path = $this->addLoops($path, 1000);
-        $path = $this->addRandomDeviations($path, 1000);
         
-        // Интерполяция и сглаживание пути
+        // Добавляем 1-2 случайные промежуточные точки
+        $waypoints = [];
+        for ($w = 0; $w < mt_rand(1, 2); $w++) {
+            $waypoints[] = $this->getRandomWaypoint($mainPath);
+        }
+        
+        // Строим комбинированный путь через waypoints
+        $fullPath = [];
+        $currentPoint = $mainPath[0];
+        
+        foreach ($waypoints as $waypoint) {
+            $segment = $this->findPath($currentPoint, $waypoint);
+            $fullPath = array_merge($fullPath, array_slice($segment, 1));
+            $currentPoint = $waypoint;
+        }
+        
+        // Последний сегмент до финиша
+        $finalSegment = $this->findPath($currentPoint, end($mainPath));
+        $fullPath = array_merge($fullPath, array_slice($finalSegment, 1));
+        
+        // Обработка пути
+        $path = $this->addLoops($fullPath, 1500); // Увеличена интенсивность
+        $path = $this->addRandomDeviations($path, 1500); // Увеличена интенсивность
+        
+        // Интерполяция и сглаживание
         $interpolatedPath = $this->interpolatePath($path, $maxMoves);
         $smoothPath = $this->smoothPath($interpolatedPath);
 
@@ -54,7 +81,7 @@ class PathGenerator {
         ];
     }
 
-    // Конвертация координат в пиксели
+    // Конвертация в пиксели
     foreach ($paths as &$bugPath) {
         foreach ($bugPath as &$point) {
             $point = $this->convertGridToPixels($point);
@@ -66,7 +93,26 @@ class PathGenerator {
         'results' => $results
     ];
 }
-
+// Новый метод для генерации случайных промежуточных точек
+private function getRandomWaypoint(array $mainPath): array {
+    // Берем случайную точку из основной траектории (кроме начала и конца)
+    $index = mt_rand(ceil(count($mainPath) * 0.3), floor(count($mainPath) * 0.7));
+    $point = $mainPath[$index];
+    
+    // Случайное смещение
+    $deviation = mt_rand(3, 7);
+    $newPoint = [
+        $point[0] + mt_rand(-$deviation, $deviation),
+        $point[1] + mt_rand(-$deviation, $deviation)
+    ];
+    
+    // Корректируем точку, если она невалидна
+    if (!$this->isValidPoint($newPoint)) {
+        return $point;
+    }
+    
+    return $newPoint;
+}
     private function addLoops(array $path, float $intensity): array {
         if (count($path) < 2) return $path;
 
@@ -221,7 +267,7 @@ private function convertGridToPixels(array $point): array {
 
     private function addRandomDeviations(array $path, float $intensity): array {
     $newPath = [];
-    $deviationRange = 0.1; // Максимальное отклонение
+    $deviationRange = 0.3; // Максимальное отклонение
     
     foreach ($path as $point) {
         if (count($newPath) > 0 && mt_rand(0, 100) < ($intensity * 100)) {
@@ -252,6 +298,7 @@ private function convertGridToPixels(array $point): array {
 }
 
    private function interpolatePath(array $path, int $maxMoves): array {
+    
     if (count($path) < 2) return $path;
     
     $totalDistance = 0;

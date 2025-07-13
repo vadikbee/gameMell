@@ -1236,7 +1236,11 @@ const updateProgress = () => {
         breakInProgress.value = true;
         phaseStartTime.value = now;
         raceActualStartTime.value = null;
-        
+        // Остановка анимации гонки
+    if (animationFrame.value) {
+      cancelAnimationFrame(animationFrame.value);
+      animationFrame.value = null;
+    }
         explodeAllBugs();
       }
     } else {

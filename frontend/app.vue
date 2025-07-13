@@ -126,6 +126,7 @@
       top: `${bug.position[1]}px`,
       transform: `translate(-50%, -50%) rotate(${bug.angle}rad)`
     }"
+    @click="makeBugDizzy(index)" 
       ></div>
     </div>
       
@@ -623,7 +624,10 @@ const animate = () => {
 
     // Если взорван - пропускаем
     if (bug.explodeFrame !== undefined) return;
-
+    // Проверяем истекло ли время головокружения
+    if (bug.dizzy && performance.now() > bug.dizzyUntil) {
+      bug.dizzy = false;
+    }
     
     // Вычисляем вектор направления
     let dx = 0, dy = 0;

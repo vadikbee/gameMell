@@ -55,7 +55,10 @@ class AStar {
 
 
     private static function heuristic(array $a, array $b): float {
-    return abs($a[0] - $b[0]) + abs($a[1] - $b[1]);
+    $base = abs($a[0] - $b[0]) + abs($a[1] - $b[1]);
+    // Добавляем случайное отклонение (до 00% от базового расстояния)
+    $randomFactor = 600000 * $base * (mt_rand(0, 100) / 100);
+    return $base + $randomFactor;
 }
 
     private static function lowestFScore(array $openSet, array $fScore): string {
@@ -74,19 +77,21 @@ class AStar {
     }
 
     private static function getNeighbors(int $x, int $y, array $wallsGrid, int $width, int $height): array {
-        $neighbors = [];
-        $directions = [[0,1], [1,0], [0,-1], [-1,0]];
-        
-        foreach ($directions as $dir) {
-            $nx = $x + $dir[0];
-            $ny = $y + $dir[1];
-            
-            if ($nx >=0 && $nx < $width && $ny >=0 && $ny < $height && !$wallsGrid[$ny][$nx]) {
-                $neighbors[] = [$nx, $ny];
-            }
+    $neighbors = [];
+    $directions = [[0,1], [1,0], [0,-1], [-1,0]];
+    
+    // Перемешиваем направления для случайного порядка
+    shuffle($directions);
+    
+    foreach ($directions as $dir) {
+        $nx = $x + $dir[0];
+        $ny = $y + $dir[1];
+        if ($nx >=0 && $nx < $width && $ny >=0 && $ny < $height && !$wallsGrid[$ny][$nx]) {
+            $neighbors[] = [$nx, $ny];
         }
-        return $neighbors;
     }
+    return $neighbors;
+}
 
     private static function reconstructPath(array $cameFrom, array $current): array {
         $path = [$current];

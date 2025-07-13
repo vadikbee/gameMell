@@ -22,54 +22,50 @@ class PathGenerator {
     }
 
     public function generatePaths(int $bugCount, int $duration, int $maxMoves): array {
-        $paths = [];
-        $results = [];
-        $startPoints = $this->getStartPoints();
-        $finishPoints = $this->getFinishPoints();
+    $paths = [];
+    $results = [];
+    $startPoints = $this->getStartPoints();
+    $finishPoints = $this->getFinishPoints();
 
-        // Все тараканы стартуют из одной точки
-        $start = $startPoints[0] ?? ['x' => 15, 'y' => 3, 'id' => 1];
+    for ($i = 0; $i < $bugCount; $i++) {
+        // Выбираем случайную стартовую точку для каждого таракана
+        $start = $startPoints[array_rand($startPoints)];
+        $finish = $finishPoints[array_rand($finishPoints)];
         
-        for ($i = 0; $i < $bugCount; $i++) {
-            // Генерация пути до случайной финишной точки
-            $finish = $finishPoints[array_rand($finishPoints)];
-            $path = $this->findPath(
-                [$start['x'], $start['y']],
-                [$finish['x'], $finish['y']]
-            );
+        $path = $this->findPath(
+            [$start['x'], $start['y']],
+            [$finish['x'], $finish['y']]
+        );
 
-            // Добавляем петли для разнообразия путей
-            $path = $this->addLoops($path, 0.3);
-            // Добавление случайных отклонений
-            $path = $this->addRandomDeviations($path, 0.4);
-            
-            // Интерполяция пути
-            $interpolatedPath = $this->interpolatePath($path, $maxMoves);
-            
-            // Добавление плавности
-            $smoothPath = $this->smoothPath($interpolatedPath);
+        // Обработка пути (добавление петель и отклонений)
+        $path = $this->addLoops($path, 1000);
+        $path = $this->addRandomDeviations($path, 1000);
+        
+        // Интерполяция и сглаживание пути
+        $interpolatedPath = $this->interpolatePath($path, $maxMoves);
+        $smoothPath = $this->smoothPath($interpolatedPath);
 
-            $paths[$i] = $smoothPath;
-            $results[$i] = [
-                'start_id' => $start['id'],
-                'finish_id' => $finish['id'],
-                'path_length' => count($path),
-                'finish_time' => $duration * mt_rand(80, 100) / 100
-            ];
-        }
-
-        // Конвертация координат в пиксели
-        foreach ($paths as &$bugPath) {
-            foreach ($bugPath as &$point) {
-                $point = $this->convertGridToPixels($point);
-            }
-        }       
-
-        return [
-            'paths' => $paths,
-            'results' => $results
+        $paths[$i] = $smoothPath;
+        $results[$i] = [
+            'start_id' => $start['id'],
+            'finish_id' => $finish['id'],
+            'path_length' => count($path),
+            'finish_time' => $duration * mt_rand(80, 100) / 100
         ];
     }
+
+    // Конвертация координат в пиксели
+    foreach ($paths as &$bugPath) {
+        foreach ($bugPath as &$point) {
+            $point = $this->convertGridToPixels($point);
+        }
+    }       
+
+    return [
+        'paths' => $paths,
+        'results' => $results
+    ];
+}
 
     private function addLoops(array $path, float $intensity): array {
         if (count($path) < 2) return $path;

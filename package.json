@@ -2,5 +2,8 @@
   "devDependencies": {
     "@nuxt/devtools": "^2.5.0",
     "esbuild": "^0.25.5"
+  },
+  "dependencies": {
+    "vue-i18n": "^9.14.4"
   }
 }

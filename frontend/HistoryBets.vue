@@ -2,7 +2,8 @@
   <div class="history-bets" :class="positionClass">
     <!-- Заголовок -->
     <div class="history-header">
-      <div class="history-title">History of bets</div>
+      <div class="history-title">{{ title  }}</div>
+      
     </div>
     
     <!-- Список ставок -->
@@ -22,9 +23,11 @@
 <script setup>
 import { computed,defineProps  } from 'vue';
 
+
 const props = defineProps({
   isCenterMenuOpen: Boolean,
-  insideCenter: Boolean // Добавляем новый пропс
+  insideCenter: Boolean, // Добавляем новый пропс
+  title: String
 });
 
 const positionClass = computed(() => {

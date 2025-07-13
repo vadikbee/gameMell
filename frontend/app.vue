@@ -13,6 +13,7 @@
       <HistoryBets 
       v-if="historyBetsVisible && !historyBetsInsideCenter" 
       :isCenterMenuOpen="centerMenuVisible" 
+      :title="t('history_bets')"
       class="outside-center"
     />
       <!-- Центральное фиксированное меню -->
@@ -207,6 +208,7 @@
             v-if="historyBetsVisible && historyBetsInsideCenter" 
             :isCenterMenuOpen="centerMenuVisible" 
             :insideCenter="true"
+            :title="t('history_bets')"
             class="inside-center"
           />
           
@@ -299,8 +301,11 @@
         
         <!-- Верхняя панель баланса -->
         <div class="panel-up">
+          <div class="language-switcher" @click="switchLanguage">
+         {{ currentLanguage }}
+        </div>
           <div class="balance-container">
-            <div class="balance-text">Balance</div>
+            <div class="balance-text">{{ t('balance') }}</div>
             <div class="button-balans">228</div>
           </div>
           <div class="icon-button">
@@ -315,9 +320,9 @@
             :style="{ width: progress + '%' }"
           ></div>
         </div>
-        <div v-if="breakInProgress" class="make-bets-label">
-          MAKE YOUR BETS
-        </div>
+         <div v-if="breakInProgress" class="make-bets-label">
+     {{ makeBetsText }}
+   </div>
       </div>
     </div>
       </div> 
@@ -327,12 +332,35 @@
 
 
 <script setup>
+
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
 import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
 import PodiumResults from './PodiumResults.vue';
+
+// Добавьте новый импорт i18n
+import i18n from '../src/i18n'
+const { t } = i18n.global
+const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
+// Получаем локаль из URL
+const urlParams = new URLSearchParams(window.location.search)
+const langParam = urlParams.get('lang')
+if (langParam && i18n.global.availableLocales.includes(langParam)) {
+  i18n.global.locale.value = langParam
+}
+
+const switchLanguage = () => {
+  const newLang = i18n.global.locale.value === 'en' ? 'ru' : 'en';
+  i18n.global.locale.value = newLang;
+  currentLanguage.value = newLang.toUpperCase();
+  
+  // Обновляем URL с новым параметром языка
+  const url = new URL(window.location);
+  url.searchParams.set('lang', newLang);
+  window.history.replaceState(null, '', url);
+};
 
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
@@ -404,6 +432,8 @@ const speedChangeIntervals = ref([]);
 const finishZones = ref([]);
 const bugs = ref([]);
 const animationFrame = ref(null);
+const makeBetsText = computed(() => t('make_bets'));
+
 // Добавляем состояние для меню последней игры
 const lastGameMenuVisible = ref(false);
 const lastGames = ref([
@@ -437,7 +467,17 @@ const explodeAllBugs = () => {
     }
   });
   
-  // Запускаем анимацию взрыва
+
+// При монтировании проверяем параметр lang в URL
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const langParam = urlParams.get('lang');
+  if (langParam && (langParam === 'en' || langParam === 'ru')) {
+    i18n.global.locale.value = langParam;
+    currentLanguage.value = langParam.toUpperCase();
+  }
+});
+// Запускаем анимацию взрыва
   startExplosionAnimation();
 };
 // Вычисляемое свойство для LastGameMenu
@@ -1370,7 +1410,31 @@ const getButtonStyle = (btn) => {
 };
 </script>
 <style scoped>
+.language-switcher {
+  position: absolute;
+  top: 7px;
+  right: 350px; /* Слева от иконки */
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  background-color: #000000;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
+.language-switcher:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
 /* Показываем диагональные кнопки в режиме Result */
 .menu-button.visible-diagonal {
   visibility: visible;

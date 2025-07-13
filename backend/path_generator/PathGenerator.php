@@ -75,8 +75,12 @@ class PathGenerator {
 
         for ($i = 0; $i < count($path) - 1; $i++) {
             $current = $path[$i];
+            $next = $path[$i+1]; // Перенесено сюда
             $newPath[] = $current;
-
+            // Не генерируем петли возле финиша
+            if ($this->isNearFinish($current) || $this->isNearFinish($next)) {
+            continue;
+            }
             // Пропускаем начало и конец
             if ($i > 3 && $i < count($path)-5 && mt_rand(0, 100) < ($loopChance * 100)) {
                 $next = $path[$i+1];
@@ -92,54 +96,78 @@ class PathGenerator {
         $newPath[] = end($path);
         return $newPath;
     }
-
+    private function isNearFinish(array $point): bool {
+    $finishPoints = $this->getFinishPoints();
+    $threshold = 1.5; // Расстояние в клетках для проверки
+    
+    foreach ($finishPoints as $finish) {
+        $distance = sqrt(pow($point[0] - $finish['x'], 2) + pow($point[1] - $finish['y'], 2));
+        if ($distance <= $threshold) {
+            return true;
+        }
+    }
+    return false;
+}
     private function generateSmallLoop(array $current, array $next): array {
-        $dx = $next[0] - $current[0];
-        $dy = $next[1] - $current[1];
-
-        // Определяем основное направление
-        $mainDir = null;
-        if ($dx != 0) {
-            $mainDir = [$dx > 0 ? 1 : -1, 0];
-        } else if ($dy != 0) {
-            $mainDir = [0, $dy > 0 ? 1 : -1];
-        } else {
-            return [];
+    $dx = $next[0] - $current[0];
+    $dy = $next[1] - $current[1];
+    
+    if ($dx != 0) $mainDir = [$dx > 0 ? 1 : -1, 0];
+    else if ($dy != 0) $mainDir = [0, $dy > 0 ? 1 : -1];
+    else return [];
+    
+    $perpDirs = $mainDir[0] != 0 
+        ? [[0, 1], [0, -1]] 
+        : [[1, 0], [-1, 0]];
+    
+    shuffle($perpDirs);
+    
+    foreach ($perpDirs as $pDir) {
+        $p1 = [$current[0] + $pDir[0], $current[1] + $pDir[1]];
+        $p2 = [$p1[0] + $mainDir[0], $p1[1] + $mainDir[1]];
+        $p3 = $next; // Используем переданный $next
+        
+        // Проверяем ВСЕ точки петли
+        if ($this->isValidPoint($p1) && 
+            $this->isValidPoint($p2) && 
+            $this->isValidPoint($p3)) 
+        {
+            return [$p1, $p2, $p3];
         }
-
-        // Перпендикулярные направления
-        $perpDirs = [];
-        if ($mainDir[0] != 0) {
-            $perpDirs[] = [0, 1];
-            $perpDirs[] = [0, -1];
-        } else {
-            $perpDirs[] = [1, 0];
-            $perpDirs[] = [-1, 0];
-        }
-
-        shuffle($perpDirs);
-
-        foreach ($perpDirs as $pDir) {
-            $p1 = [$current[0] + $pDir[0], $current[1] + $pDir[1]];
-            $p2 = [$p1[0] + $mainDir[0], $p1[1] + $mainDir[1]];
-            $p3 = $next;
-
-            if ($this->isValidPoint($p1) && $this->isValidPoint($p2)) {
-                return [$p1, $p2, $p3];
+    }
+    
+    return [];
+}
+    private function isValidPoint(array $point): bool {
+    $x = (int)round($point[0]);
+    $y = (int)round($point[1]);
+    
+    // Основная проверка границ
+    if ($x < 0 || $x >= $this->width || $y < 0 || $y >= $this->height) {
+        return false;
+    }
+    
+    // Усиленная проверка для финишных зон
+    if ($this->isNearFinish($point)) {
+        // Проверяем 9 точек: центр + 8 соседей
+        for ($dx = -1; $dx <= 1; $dx++) {
+            for ($dy = -1; $dy <= 1; $dy++) {
+                $nx = $x + $dx;
+                $ny = $y + $dy;
+                
+                if ($nx >= 0 && $nx < $this->width && 
+                    $ny >= 0 && $ny < $this->height &&
+                    $this->wallsGrid[$ny][$nx]) {
+                    return false;
+                }
             }
         }
-
-        return [];
+        return true;
     }
-
-    private function isValidPoint(array $point): bool {
-        $x = (int)round($point[0]);
-        $y = (int)round($point[1]);
-        if ($x < 0 || $x >= $this->width || $y < 0 || $y >= $this->height) {
-            return false;
-        }
-        return !$this->wallsGrid[$y][$x];
-    }
+    
+    // Стандартная проверка для остальных зон
+    return !$this->wallsGrid[$y][$x];
+}
 
     // Остальные методы без изменений (getStartPoints, getFinishPoints, convertGridToPixels, 
     // findPath, addRandomDeviations, interpolatePath, distance, smoothPath) 
@@ -187,42 +215,45 @@ private function convertGridToPixels(array $point): array {
 }
 
     private function addRandomDeviations(array $path, float $intensity): array {
-        $newPath = [];
-        $deviationRange = 0.1; // Максимальное отклонение в клетках
-        
-        foreach ($path as $point) {
-            if (count($newPath) > 0 && mt_rand(0, 100) < ($intensity * 100)) {
-                $lastPoint = end($newPath);
-                $devX = mt_rand(-$deviationRange, $deviationRange);
-                $devY = mt_rand(-$deviationRange, $deviationRange);
-                
-                // Плавный переход к отклонению
-                $newPath[] = [
-                    $lastPoint[0] + $devX * 0.3,
-                    $lastPoint[1] + $devY * 0.3
-                ];
-                
-                $newPath[] = [
-                    $lastPoint[0] + $devX * 0.7,
-                    $lastPoint[1] + $devY * 0.7
-                ];
+    $newPath = [];
+    $deviationRange = 0.1; // Максимальное отклонение
+    
+    foreach ($path as $point) {
+        if (count($newPath) > 0 && mt_rand(0, 100) < ($intensity * 100)) {
+            $lastPoint = end($newPath);
+            $devX = mt_rand(-$deviationRange, $deviationRange);
+            $devY = mt_rand(-$deviationRange, $deviationRange);
+            
+            // Создаем новые точки с отклонениями
+            $newPoint1 = [
+                $lastPoint[0] + $devX * 0.3,
+                $lastPoint[1] + $devY * 0.3
+            ];
+            $newPoint2 = [
+                $lastPoint[0] + $devX * 0.7,
+                $lastPoint[1] + $devY * 0.7
+            ];
+            
+            // Проверяем валидность обеих точек
+            if ($this->isValidPoint($newPoint1) && $this->isValidPoint($newPoint2)) {
+                $newPath[] = $newPoint1;
+                $newPath[] = $newPoint2;
             }
-            $newPath[] = $point;
         }
-        
-        return $newPath ?: $path;
+        $newPath[] = $point;
     }
+    
+    return $newPath ?: $path;
+}
 
    private function interpolatePath(array $path, int $maxMoves): array {
     if (count($path) < 2) return $path;
     
-    // Рассчитываем общую длину пути
     $totalDistance = 0;
     for ($i = 0; $i < count($path) - 1; $i++) {
         $totalDistance += $this->distance($path[$i], $path[$i+1]);
     }
     
-    // Рассчитываем шаг для интерполяции
     $step = $totalDistance / ($maxMoves - 1);
     $interpolated = [$path[0]];
     $currentDistance = 0;
@@ -231,20 +262,17 @@ private function convertGridToPixels(array $point): array {
     for ($i = 1; $i < $maxMoves; $i++) {
         $targetDistance = $i * $step;
         
-        // Находим сегмент, на котором находится целевая дистанция
         while ($currentIndex < count($path) - 1 && 
                $currentDistance + $this->distance($path[$currentIndex], $path[$currentIndex+1]) < $targetDistance) {
             $currentDistance += $this->distance($path[$currentIndex], $path[$currentIndex+1]);
             $currentIndex++;
         }
         
-        // Если достигли конца пути
         if ($currentIndex >= count($path) - 1) {
             $interpolated[] = end($path);
             continue;
         }
         
-        // Рассчитываем позицию внутри сегмента
         $segmentStart = $path[$currentIndex];
         $segmentEnd = $path[$currentIndex+1];
         $segmentDistance = $this->distance($segmentStart, $segmentEnd);
@@ -252,8 +280,21 @@ private function convertGridToPixels(array $point): array {
         
         $x = $segmentStart[0] + $t * ($segmentEnd[0] - $segmentStart[0]);
         $y = $segmentStart[1] + $t * ($segmentEnd[1] - $segmentStart[1]);
+        $point = [$x, $y];
         
-        $interpolated[] = [$x, $y];
+        // Проверка валидности точки
+        if (!$this->isValidPoint($point)) {
+            // Используем последнюю валидную точку
+            $point = count($interpolated) > 0 
+                ? $interpolated[count($interpolated)-1] 
+                : $segmentStart;
+        }
+        // Специальная обработка финишных точек
+        if ($i == $maxMoves - 1) {
+            $point = $this->ensureFinishPointValid($point);
+        }
+
+        $interpolated[] = $point;
     }
     
     return $interpolated;
@@ -263,9 +304,26 @@ private function distance(array $a, array $b): float {
     // Используем евклидово расстояние для плавности
     return sqrt(pow($a[0] - $b[0], 2) + pow($a[1] - $b[1], 2));
 }
-
+// Новый метод для гарантии валидности финиша
+private function ensureFinishPointValid(array $point): array {
+    $finishPoints = $this->getFinishPoints();
+    $closestValid = $point;
+    $minDistance = PHP_FLOAT_MAX;
+    
+    // Ищем ближайшую валидную точку
+    foreach ($finishPoints as $finish) {
+        $finishPoint = [$finish['x'], $finish['y']];
+        $distance = $this->distance($point, $finishPoint);
+        
+        if ($distance < $minDistance && $this->isValidPoint($finishPoint)) {
+            $minDistance = $distance;
+            $closestValid = $finishPoint;
+        }
+    }
+    
+    return $closestValid;
+}
 private function smoothPath(array $path): array {
-    // Уменьшаем окно сглаживания для сохранения деталей
     $windowSize = 3;
     $smoothed = [];
     
@@ -283,7 +341,29 @@ private function smoothPath(array $path): array {
             $count++;
         }
         
-        $smoothed[] = [$sumX / $count, $sumY / $count];
+        $smoothedPoint = [$sumX / $count, $sumY / $count];
+        
+        // Проверка валидности сглаженной точки
+        if (!$this->isValidPoint($smoothedPoint)) {
+            $smoothedPoint = $path[$i]; // Возвращаем исходную точку
+        }
+        // Дополнительная проверка для точек возле финиша
+        if ($this->isNearFinish($smoothedPoint)) {
+            $safePoint = $path[$i];
+            $steps = 5;
+            
+            // Ищем безопасную точку на пути назад
+            for ($j = 1; $j <= $steps; $j++) {
+                $backIndex = max(0, $i - $j);
+                if ($this->isValidPoint($path[$backIndex])) {
+                    $safePoint = $path[$backIndex];
+                    break;
+                }
+            }
+            
+            $smoothedPoint = $safePoint;
+        }
+        $smoothed[] = $smoothedPoint;
     }
     
     return $smoothed;

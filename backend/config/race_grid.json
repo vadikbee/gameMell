@@ -1200,6 +1200,14 @@
             40
         ],
         [
+            4,
+            40
+        ],
+        [
+            12,
+            40
+        ],
+        [
             17,
             40
         ],
@@ -1217,6 +1225,10 @@
         ],
         [
             21,
+            40
+        ],
+        [
+            25,
             40
         ],
         [
@@ -1537,181 +1549,181 @@
             "x": 0,
             "y": 43,
             "id": 1,
-            "pixels": 45
+            "pixels": 9
         },
         {
             "x": 1,
             "y": 43,
             "id": 2,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 2,
             "y": 43,
             "id": 3,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 3,
             "y": 43,
             "id": 4,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 4,
             "y": 43,
             "id": 5,
-            "pixels": 50
+            "pixels": 6
         },
         {
             "x": 5,
             "y": 43,
             "id": 6,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 6,
             "y": 43,
             "id": 7,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 7,
             "y": 43,
             "id": 8,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 8,
             "y": 43,
             "id": 9,
-            "pixels": 50
+            "pixels": 6
         },
         {
             "x": 9,
             "y": 43,
             "id": 10,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 10,
             "y": 43,
             "id": 11,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 11,
             "y": 43,
             "id": 12,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 12,
             "y": 43,
             "id": 13,
-            "pixels": 50
+            "pixels": 8
         },
         {
             "x": 13,
             "y": 43,
             "id": 14,
-            "pixels": 65
+            "pixels": 11
         },
         {
             "x": 14,
             "y": 43,
             "id": 15,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 15,
             "y": 43,
             "id": 16,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 16,
             "y": 43,
             "id": 17,
-            "pixels": 65
+            "pixels": 11
         },
         {
             "x": 17,
             "y": 43,
             "id": 18,
-            "pixels": 50
+            "pixels": 8
         },
         {
             "x": 18,
             "y": 43,
             "id": 19,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 19,
             "y": 43,
             "id": 20,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 20,
             "y": 43,
             "id": 21,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 21,
             "y": 43,
             "id": 22,
-            "pixels": 50
+            "pixels": 6
         },
         {
             "x": 22,
             "y": 43,
             "id": 23,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 23,
             "y": 43,
             "id": 24,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 24,
             "y": 43,
             "id": 25,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 25,
             "y": 43,
             "id": 26,
-            "pixels": 50
+            "pixels": 6
         },
         {
             "x": 26,
             "y": 43,
             "id": 27,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 27,
             "y": 43,
             "id": 28,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 28,
             "y": 43,
             "id": 29,
-            "pixels": 65
+            "pixels": 13
         },
         {
             "x": 29,
             "y": 43,
             "id": 30,
-            "pixels": 45
+            "pixels": 9
         }
     ],
     "start": [

@@ -348,7 +348,10 @@ const isRaceStarted = ref(false);
 const areWinButtonsDisabled = ref(false);
 const centerMenuVisible = ref(false);
 const isBettingPhase = ref(true);
-
+// ===1. Обновим состояния для управления паузой===
+const isPaused = ref(false);
+const pauseStartTime = ref(0);
+const pausedDuration = ref(0);
 // Добавьте эти переменные
 // Добавляем состояние для прогресса
 const progress = ref(0);
@@ -409,12 +412,11 @@ const lastGames = ref([
 
 // Обновляем функцию startRaceCycle
 const startRaceCycle = () => {
+  isPaused.value = false; // Сброс паузы при начале цикла
   breakInProgress.value = true;
   raceInProgress.value = false;
   phaseStartTime.value = Date.now();
-  
 };
-
 // Функция для переключения вкладок
 const setActiveTab = (tab) => {
   activeTab.value = tab;
@@ -509,29 +511,22 @@ const bugColors = ref([
   '#800080', // Фиолетовый (6)
   '#00FF00'  // Зеленый (7)
 ]);
-// Обработчик изменения видимости вкладки
+// ===2. Упрощенная функция обработки видимости===
+// 2. Упрощенный обработчик видимости вкладки
 const handleVisibilityChange = () => {
   if (document.visibilityState === 'hidden') {
-    // Запоминаем время ухода
-    tabInactiveTime.value = Date.now();
+    pauseStartTime.value = Date.now();
+    isPaused.value = true;
   } else {
-    // Рассчитываем время отсутствия
-    const inactiveDuration = Date.now() - tabInactiveTime.value;
-    if (raceActualStartTime.value) {
-      // Корректируем время начала гонки
-      raceActualStartTime.value += inactiveDuration;
-    }
-    if (phaseStartTime.value) {
-      // Корректируем время фазы
-      phaseStartTime.value += inactiveDuration;
-    }
+    pausedDuration.value = Date.now() - pauseStartTime.value;
+    isPaused.value = false;
     
-    lastUpdateTime.value = performance.now();
-    if (isRaceStarted.value && !animationFrame.value) {
-      animationFrame.value = requestAnimationFrame(animate);
+    // Корректируем временные метки
+    phaseStartTime.value += pausedDuration.value;
+    if (raceActualStartTime.value) {
+      raceActualStartTime.value += pausedDuration.value;
     }
   }
-  isTabActive.value = document.visibilityState === 'visible';
 };
 // В методе saveGameResults
 const saveGameResults = async () => {
@@ -589,7 +584,8 @@ const startAnimation = () => {
   raceStartTime.value = performance.now();
   lastUpdateTime.value = performance.now();
   accumulatedTime.value = 0;
-
+isPaused.value = false;
+  pausedDuration.value = 0;
   winButtons.value.forEach(btn => {
     btn.occupied = false; // Сбрасываем занятость кнопок
     btn.menuVisible = false;
@@ -598,6 +594,11 @@ const startAnimation = () => {
 
   // ... предыдущий код ...
 const animate = () => {
+  if (isPaused.value) {
+    animationFrame.value = requestAnimationFrame(animate);
+    return;
+  }
+
   const now = performance.now();
   let deltaTime = now - lastUpdateTime.value;
   lastUpdateTime.value = now;
@@ -683,40 +684,34 @@ const animate = () => {
       }
     }
     // Фаза движения к точке финиша
-    else if (bug.phase === 'to_blue_point') {
-      const button = winButtons.value.find(b => b.id === bug.targetButtonId);
-      if (button) {
-        const [targetX, targetY] = button.bluePoint;
-        
-        // Рассчитываем направление
-        const dx = targetX - bug.position[0];
-        const dy = targetY - bug.position[1];
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Скорость движения к точке (пикселей/сек)
-        const speed = 200;
-        // Расстояние для перемещения в этом кадре
-        const step = Math.min(distance, speed * (deltaTime / 1000));
-        
-        if (step > 0) {
-          // Обновляем позицию
-          bug.position[0] += (dx / distance) * step;
-          bug.position[1] += (dy / distance) * step;
-          
-          // Обновляем угол поворота
-          bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
-        }
-
-        // Проверяем достижение точки
-        if (step === 0 || distance <= 5) {
-          bug.finished = true;
-          button.occupied = true;
-        }
-      } else {
-        // Если кнопка не найдена - взрываем
-        bug.explodeFrame = 0;
-      }
+    // Используйте простое движение без проверок:
+else if (bug.phase === 'to_blue_point') {
+  const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+  if (button) {
+    const [targetX, targetY] = button.bluePoint;
+    const dx = targetX - bug.position[0];
+    const dy = targetY - bug.position[1];
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const speed = 200; // пикселей в секунду
+    
+    // Рассчитываем шаг на основе времени
+    const step = Math.min(distance, speed * (deltaTime / 1000));
+    
+    if (step > 0) {
+      // Обновляем позицию
+      bug.position[0] += (dx / distance) * step;
+      bug.position[1] += (dy / distance) * step;
+      // Обновляем угол
+      bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
     }
+    
+    // Если осталось мало до цели, считаем финиш
+    if (distance <= 5) {
+      bug.finished = true;
+      button.occupied = true;
+    }
+  }
+}
   });
   
   if (activeBugs > 0) {
@@ -1209,8 +1204,7 @@ if (data.grid) {
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {
-  if (!isTabActive.value) {
-    // Пропускаем обновление если вкладка неактивна
+  if (isPaused.value) {
     animationFrameId.value = requestAnimationFrame(updateProgress);
     return;
   }

@@ -112,10 +112,13 @@ class PathGenerator {
     $dx = $next[0] - $current[0];
     $dy = $next[1] - $current[1];
     
-    if ($dx != 0) $mainDir = [$dx > 0 ? 1 : -1, 0];
-    else if ($dy != 0) $mainDir = [0, $dy > 0 ? 1 : -1];
-    else return [];
+    // Определяем основные направления
+    $mainDir = match(true) {
+        abs($dx) > abs($dy) => [$dx > 0 ? 1 : -1, 0],
+        default => [0, $dy > 0 ? 1 : -1]
+    };
     
+    // Перпендикулярные направления
     $perpDirs = $mainDir[0] != 0 
         ? [[0, 1], [0, -1]] 
         : [[1, 0], [-1, 0]];
@@ -125,13 +128,14 @@ class PathGenerator {
     foreach ($perpDirs as $pDir) {
         $p1 = [$current[0] + $pDir[0], $current[1] + $pDir[1]];
         $p2 = [$p1[0] + $mainDir[0], $p1[1] + $mainDir[1]];
-        $p3 = $next; // Используем переданный $next
+        $p3 = $next;
         
-        // Проверяем ВСЕ точки петли
+        // Усиленная проверка ВСЕХ точек
         if ($this->isValidPoint($p1) && 
             $this->isValidPoint($p2) && 
-            $this->isValidPoint($p3)) 
-        {
+            $this->isValidPoint($p3) &&
+            $this->isValidPoint([($p1[0]+$p2[0])/2, ($p1[1]+$p2[1])/2]) && // Проверка середины
+            $this->isValidPoint([($p2[0]+$p3[0])/2, ($p2[1]+$p3[1])/2])) {
             return [$p1, $p2, $p3];
         }
     }
@@ -139,17 +143,18 @@ class PathGenerator {
     return [];
 }
     private function isValidPoint(array $point): bool {
+    // Всегда используем округление до ближайшей целой клетки
     $x = (int)round($point[0]);
     $y = (int)round($point[1]);
     
-    // Основная проверка границ
+    // Проверка границ
     if ($x < 0 || $x >= $this->width || $y < 0 || $y >= $this->height) {
         return false;
     }
     
     // Усиленная проверка для финишных зон
     if ($this->isNearFinish($point)) {
-        // Проверяем 9 точек: центр + 8 соседей
+        // Проверяем саму точку и всех соседей
         for ($dx = -1; $dx <= 1; $dx++) {
             for ($dy = -1; $dy <= 1; $dy++) {
                 $nx = $x + $dx;
@@ -165,7 +170,7 @@ class PathGenerator {
         return true;
     }
     
-    // Стандартная проверка для остальных зон
+    // Стандартная проверка
     return !$this->wallsGrid[$y][$x];
 }
 
@@ -282,18 +287,14 @@ private function convertGridToPixels(array $point): array {
         $y = $segmentStart[1] + $t * ($segmentEnd[1] - $segmentStart[1]);
         $point = [$x, $y];
         
-        // Проверка валидности точки
+        // Критически важная проверка
         if (!$this->isValidPoint($point)) {
-            // Используем последнюю валидную точку
+            // Используем последнюю безопасную точку
             $point = count($interpolated) > 0 
                 ? $interpolated[count($interpolated)-1] 
                 : $segmentStart;
         }
-        // Специальная обработка финишных точек
-        if ($i == $maxMoves - 1) {
-            $point = $this->ensureFinishPointValid($point);
-        }
-
+        
         $interpolated[] = $point;
     }
     

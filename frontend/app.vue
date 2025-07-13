@@ -328,6 +328,7 @@
       </div> 
     </div>
   </div>
+  <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
 </template>
 
 
@@ -339,7 +340,9 @@ import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
 import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
 import PodiumResults from './PodiumResults.vue';
-
+// Исправляем работу со звуком
+const dizzySoundElement = ref(null);
+const soundVolume = ref(0.5);
 // Добавьте новый импорт i18n
 import i18n from '../src/i18n'
 const { t } = i18n.global
@@ -361,7 +364,9 @@ const switchLanguage = () => {
   url.searchParams.set('lang', newLang);
   window.history.replaceState(null, '', url);
 };
+// Добавляем переменные для звука
 
+const dizzySound = ref(null);
 // Добавьте состояние для истории ставок
 const historyBetsVisible = ref(false);
 // Добавляем phaseStartTime в разделе состояний
@@ -470,6 +475,12 @@ const explodeAllBugs = () => {
 
 // При монтировании проверяем параметр lang в URL
 onMounted(() => {
+  
+  dizzySound.value = new Audio('/sounds/star.mp3');
+  dizzySound.value.volume = soundVolume.value;
+  
+  // Предзагрузка звука
+  dizzySound.value.load();
   const urlParams = new URLSearchParams(window.location.search);
   const langParam = urlParams.get('lang');
   if (langParam && (langParam === 'en' || langParam === 'ru')) {
@@ -477,6 +488,13 @@ onMounted(() => {
     currentLanguage.value = langParam.toUpperCase();
   }
 });
+// Функция для регулировки громкости
+const setVolume = (volume) => {
+  soundVolume.value = volume;
+  if (dizzySound.value) {
+    dizzySound.value.volume = volume;
+  }
+};
 // Запускаем анимацию взрыва
   startExplosionAnimation();
 };
@@ -522,11 +540,43 @@ const makeBugDizzy = (index) => {
   // Устанавливаем состояние головокружения
   bug.dizzy = true;
   bug.dizzyUntil = performance.now() + 1000; // 1 секунда
-  
+  if (dizzySound.value) {
+    dizzySound.value.currentTime = 0; // Перематываем в начало
+    dizzySound.value.play().catch(e => console.error("Ошибка воспроизведения:", e));
+  }
+
   // Для отладки
   console.log(`Tarakan ${index} is dizzy!`);
+if (dizzySoundElement.value) {
+    try {
+      // Сбрасываем позицию воспроизведения
+      dizzySoundElement.value.currentTime = 0;
+      
+      // Устанавливаем громкость
+      dizzySoundElement.value.volume = soundVolume.value;
+      
+      // Пытаемся воспроизвести
+      const playPromise = dizzySoundElement.value.play();
+      
+      // Обрабатываем возможные ошибки воспроизведения
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.error("Ошибка воспроизведения:", e);
+          // Показываем пользователю сообщение при необходимости
+        });
+      }
+    } catch (e) {
+      console.error("Ошибка воспроизведения:", e);
+    }
+  }
 };
-
+// Функция регулировки громкости
+const setVolume = (volume) => {
+  soundVolume.value = volume;
+  if (dizzySoundElement.value) {
+    dizzySoundElement.value.volume = volume;
+  }
+};
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================

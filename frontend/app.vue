@@ -344,7 +344,7 @@ import PodiumResults from './PodiumResults.vue';
 const dizzySoundElement = ref(null);
 const soundVolume = ref(0.5);
 // Добавьте новый импорт i18n
-import i18n from '../src/i18n'
+import i18n from './i18n.js'
 const { t } = i18n.global
 const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
 // Получаем локаль из URL

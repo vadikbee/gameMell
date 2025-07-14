@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import en from './locales/en.json'
-import ru from './locales/ru.json'  // Добавлен русский язык
+import en from './en.json'
+import ru from './ru.json'  // Добавлен русский язык
 
 const messages = {
   en,

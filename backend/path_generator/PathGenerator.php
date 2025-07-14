@@ -65,7 +65,7 @@ class PathGenerator {
         $fullPath = array_merge($fullPath, array_slice($finalSegment, 1));
         
         // Обработка пути
-        $path = $this->addLoops($fullPath, 1500); // Увеличена интенсивность
+        $path = $this->addLoops($fullPath, 100); // Увеличена интенсивность (петли)
         $path = $this->addRandomDeviations($path, 1500); // Увеличена интенсивность
         
         // Интерполяция и сглаживание

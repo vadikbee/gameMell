@@ -2375,7 +2375,7 @@ const getButtonStyle = (btn) => {
   margin-top: -695px; /* Фиксированная позиция вверху экрана */
   z-index: 4;
   background: #000000;
-  /*border: 1px solid red !important; /* Для отладки */
+  border: 1px solid red !important; /* Для отладки */
 }
 
 /* Контейнер для элементов баланса */
@@ -2384,6 +2384,7 @@ const getButtonStyle = (btn) => {
   width: 100%;
   height: 100%; 
   gap: 10px; /* Расстояние между элементами */
+  
 }
 
 .main-color {
@@ -2399,7 +2400,7 @@ const getButtonStyle = (btn) => {
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */
-    
+    border: 1px solid red !important;
 filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
           drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
  
@@ -2427,6 +2428,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   width: 52px;
   height: 64px;
   z-index: 4;
+  border: 1px solid red !important;
 }
 
 /* Позиции контейнеров */
@@ -2525,6 +2527,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   cursor: pointer;
   transition: all 0.3s ease;
+  border: 1px solid red !important;
 }
 
 
@@ -2583,7 +2586,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   z-index: 3;
   top: 22px;
   left: 8px;
-  
+  border: 1px solid red !important;
 }
 /* Корректируем позиционирование кнопки */
 .button-2 {
@@ -2613,6 +2616,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 291px; /* Фиксированный отступ от левого края */
+  border: 1px solid red !important;
 }
 .menu-button {
   visibility: hidden;

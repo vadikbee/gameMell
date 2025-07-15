@@ -134,11 +134,13 @@
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
         <!-- Кнопки управления -->
-        <div 
+      <div 
           class="button-1" 
           id="Button-1" 
           @click="toggleLastGameMenu"
-        ></div>
+        >
+          <span class="button-text">LAST<br>GAME</span>
+        </div>
         <!-- Меню последней игры -->
         <LastGameMenu 
           v-if="lastGameMenuVisible"
@@ -149,12 +151,16 @@
           class="button-2" 
           id="Button-2" 
           @click="toggleCenterMenu"
-        ></div>
+        >
+          <span class="button-text">MAKE A BET</span>
+        </div>
         <div 
           class="button-3" 
           id="Button-3" 
           @click="toggleHistoryBets"
-        ></div>
+        >
+          <span class="button-text">HISTORY<br>OF BETS</span>
+        </div>
        
         <!-- Центральное меню -->
         <div 
@@ -1512,14 +1518,7 @@ const getButtonStyle = (btn) => {
 .overtaking-tab {
   border-radius: 50px 0 0 50px; /* Закругление слева */
 }
-.button-text {
-  font-family: 'Hero', 'Bahnschrift', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 20px;
-  color: #3F3F3F;
-  text-align: center;
-}
+
 
 /* Стиль для активной вкладки */
 .tab-button.active {
@@ -2373,7 +2372,7 @@ const getButtonStyle = (btn) => {
   width: 390px;
   height: 43px;
   left: calc(50% - 390px/2);
-  margin-top: -795px; /* Фиксированная позиция вверху экрана */
+  margin-top: -695px; /* Фиксированная позиция вверху экрана */
   z-index: 4;
   background: #000000;
   /*border: 1px solid red !important; /* Для отладки */
@@ -2575,7 +2574,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 /* Обновленные стили для кнопок */
 .button-1 {
   position: absolute;
-  background-image: url('/images/buttons/Group 256.png');
+  background-image: url('/images/buttons/Group 255.png');
   background-size: contain;
   background-repeat: no-repeat;
   width: 90px;
@@ -2584,6 +2583,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   z-index: 3;
   top: 22px;
   left: 8px;
+  
 }
 /* Корректируем позиционирование кнопки */
 .button-2 {
@@ -2592,11 +2592,13 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-size: contain;
   background-repeat: no-repeat;
   width: 170px;
-  height: 100px;
+  height: 46px;
   cursor: pointer;
   z-index: 3;
   top: 22px;
-  right: -110px; /* Исправленное позиционирование */
+  right: 110px; /* Исправленное позиционирование */
+  border: 1px solid red !important; 
+  
 }
 
 .button-3 {
@@ -2616,7 +2618,35 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   visibility: hidden;
   pointer-events: none;
 }
+.button-text {
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 14x;
+  line-height: 17px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  white-space: pre-line; /* Для обработки переносов через <br> */
+}
 
+/* Специфичные стили для каждой кнопки */
+.button-1 .button-text {
+  padding: 0 10px;
+  text-align: center;
+}
+
+.button-2 .button-text {
+  font-size: 24px; /* Чуть больше для центральной кнопки */
+  padding: 0 15px;
+}
+
+.button-3 .button-text {
+  padding: 0 10px;
+  text-align: center;
+}
 .menu-button.visible {
   visibility: visible;
   pointer-events: auto;
@@ -2781,14 +2811,14 @@ position: absolute;
 }
 
 /* Эффекты при наведении */
-.button-1:hover, .button-2:hover, .button-3:hover,.tarakan-test {
+.button-1:hover, .button-2:hover, .button-3:hover {
   filter: 
     brightness(1.1) /* Увеличение яркости (первое число - размытие, второе - прозрачность).*/
     drop-shadow(6 6 8px rgba(178, 56, 58, 0.8)); 
 }
 
 /* Эффект при нажатии */
-.button-1:active, .button-2:active,.tarakan-test {
+.button-1:active, .button-2:active,.button-3:active {
   transform: scale(0.98);
   filter: brightness(0.95);
 }
@@ -2808,32 +2838,6 @@ position: absolute;
   opacity: 1;
   filter: grayscale(70%);
 }
-/* *****************************************ТЕСТИРОВАНИЕ**********************************/
-.tarakan-test {
-  background-image: url('/images/tarakani/Property 1=Default (1).png');
-  position: fixed; /* Фиксированная позиция относительно окна */
-  background-size: contain;
-  background-repeat: no-repeat;
-  width: 20vw; /* Относительная ширина */
-  height: 10vh; /* Относительная высота */
-  top: 15vh; /* Позиционирование по вертикали */
-  left: 70vw; /* Позиционирование по горизонтали */
-  z-index: 3;
-  cursor: pointer;
-  transform: 
-    scale(0.98) 
-    rotate(180deg)
-    translateZ(0); /* Аппаратное ускорение */
-  filter: brightness(0.95);
-  transform-origin: center;
-  will-change: transform; /* Оптимизация анимации */
-}
-/* Добавьте этот стиль для индикации загрузки */
-.tarakan-test {
-  transition: opacity 0.3s ease;
-}
-
-/* *****************************************ТЕСТИРОВАНИЕ**********************************/
 
 /* *****************************************  БЛОК ДЛЯ @  **********************************/
 @media (max-width: 390px) {
@@ -2940,6 +2944,9 @@ position: absolute;
 .button-3 {
   transform: translateZ(0);
   will-change: transform;
+  display: flex;
+  justify-content: center; /* Горизонтальное центрирование */
+  align-items: center;     /* Вертикальное центрирование */
 }
 
 /* Адаптивность по высоте */
@@ -2968,9 +2975,5 @@ position: absolute;
     background-position: top center;
   }
 }
-/* Дополнительный стиль для предотвращения мерцания */
-.button-2 {
-  position: relative;
-  z-index: 4;
-}
+
 </style>

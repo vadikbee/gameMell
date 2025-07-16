@@ -139,7 +139,7 @@
           id="Button-1" 
           @click="toggleLastGameMenu"
         >
-          <span class="button-text">LAST<br>GAME</span>
+          <span class="button-text bth-1-text">{{ t('last_games') }}</span>
         </div>
         <!-- Меню последней игры -->
         <LastGameMenu 
@@ -152,14 +152,14 @@
           id="Button-2" 
           @click="toggleCenterMenu"
         >
-          <span class="button-text">MAKE A BET</span>
+          <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
         </div>
         <div 
           class="button-3" 
           id="Button-3" 
           @click="toggleHistoryBets"
         >
-          <span class="button-text">HISTORY<br>OF BETS</span>
+          <span class="button-text">{{ t('history_bets') }}</span>
         </div>
        
         <!-- Центральное меню -->
@@ -179,14 +179,14 @@
           :class="{ active: activeTab === 'overtaking' }"
           @click="setActiveTab('overtaking')"
         >
-          OVERTAKING
+          {{ t('OVERTAKING') }}
         </div>
         <div 
           class="tab-button result-tab"
           :class="{ active: activeTab === 'result' }"
           @click="setActiveTab('result')"
         >
-          RESULT
+          {{ t('RESULT') }}
         </div>
       </div>
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
@@ -364,6 +364,7 @@ const switchLanguage = () => {
   const newLang = i18n.global.locale.value === 'en' ? 'ru' : 'en';
   i18n.global.locale.value = newLang;
   currentLanguage.value = newLang.toUpperCase();
+  document.documentElement.lang = newLang; // Добавлено
   
   // Обновляем URL с новым параметром языка
   const url = new URL(window.location);
@@ -2395,7 +2396,7 @@ const getButtonStyle = (btn) => {
 
 .tarakan {
   position: absolute; /* Вместо relative */
-  width: 32px;
+  width: 30px;
   height: 38px;
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;
@@ -2625,7 +2626,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 .button-text {
   font-family: 'Hero', 'Bahnschrift', sans-serif;
   font-weight: 700;
-  font-size: 14x;
+  font-size: 14px;
   line-height: 17px;
   display: flex;
   align-items: center;
@@ -2643,8 +2644,8 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 }
 
 .button-2 .button-text {
-  font-size: 24px; /* Чуть больше для центральной кнопки */
-  padding: 0 15px;
+  font-size: 20px; /* Чуть больше для центральной кнопки */
+  padding: 0px 15px;
 }
 
 .button-3 .button-text {
@@ -2980,4 +2981,14 @@ position: absolute;
   }
 }
 
+/*//////////////////// стили для языка/////////////////////*/
+html[lang="ru"] .bth-1-text {
+  font-size: 13px; /* Уменьшаем размер шрифта */
+  letter-spacing: -0.3px; /* Опционально: сжимаем межбуквенный интервал */
+}
+html[lang="ru"] .bth-2-text {
+  font-size: 20px; /* Уменьшаем размер шрифта */
+  letter-spacing: 1px; /* Опционально: сжимаем межбуквенный интервал */
+}
+/*///////////////////// стили для языка/////////////////////*/
 </style>

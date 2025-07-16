@@ -1,6 +1,6 @@
 <template>
   <div class="podium-container">
-    <div class="podium-title">Last games</div>
+    <div class="podium-title">{{ t('last_games') }}</div>
     
     <!-- Добавляем контейнер для выравнивания с номерами игр -->
     <div class="cups-container">
@@ -55,7 +55,9 @@
 
 <script setup>
 import { computed } from 'vue';
-
+import i18n from './i18n.js'
+const { t } = i18n.global
+const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
 const props = defineProps({
   games: Array
 });

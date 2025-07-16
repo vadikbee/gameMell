@@ -5,5 +5,8 @@
   "last_games": "Last games",
   "bet": "BET",
   "reset": "RESET",
-  "cancel": "CANCEL"
+  "cancel": "CANCEL",
+  "make_a_bet": "Make a bet",
+  "OVERTAKING": "OVERTAKING",
+  "RESULT": "RESULT"
 }

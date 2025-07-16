@@ -80,7 +80,7 @@ function imageToGrid($imagePath, $cellSize) {
             $rgb = imagecolorsforindex($image, $colorIndex);
             
             // Пропускаем полностью прозрачные пиксели
-            if ($rgb['alpha'] > 100) continue;
+            if ($rgb['alpha'] > 120) continue;
             
             // Определяем координаты клетки
             $gridX = intdiv($x, $cellSize);

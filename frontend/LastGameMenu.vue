@@ -1,7 +1,7 @@
 <template>
   <div class="last-game-menu" :class="positionClass">
     <div class="history-header">
-      <div class="history-title">Last games</div>
+      <div class="history-title">{{ t('last_games') }}</div>
     </div>
     
     <div class="games-container">
@@ -35,7 +35,10 @@
 
 <script setup>
 import { defineProps, ref, watch } from 'vue';
-
+import { computed } from 'vue';
+import i18n from './i18n.js'
+const { t } = i18n.global
+const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
 const props = defineProps({
   isCenterMenuOpen: Boolean,
   games: Array

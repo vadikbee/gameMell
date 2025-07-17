@@ -189,8 +189,6 @@ private function getRandomWaypoint(array $mainPath): array {
     return [];
 }
     private function isValidPoint(array $point): bool {
-    $width = 32;
-    $height = 38;
     // Всегда используем округление до ближайшей целой клетки
     $x = (int)round($point[0]);
     $y = (int)round($point[1]);
@@ -204,24 +202,19 @@ private function getRandomWaypoint(array $mainPath): array {
     if ($this->isNearFinish($point)) {
         // Проверяем саму точку и всех соседей
         for ($dx = -1; $dx <= 1; $dx++) {
-        for ($dy = -1; $dy <= 1; $dy++) {
-            $checkX = (int)round($point[0]) + $dx;
-            $checkY = (int)round($point[1]) + $dy;
-            
-            // Проверка выхода за границы
-            if ($checkX < 0 || $checkX >= $this->width || 
-                $checkY < 0 || $checkY >= $this->height) {
-                return false;
-            }
-            
-            // Проверка на стену
-            if ($this->wallsGrid[$checkY][$checkX]) {
-                return false;
+            for ($dy = -1; $dy <= 1; $dy++) {
+                $nx = $x + $dx;
+                $ny = $y + $dy;
+                
+                if ($nx >= 0 && $nx < $this->width && 
+                    $ny >= 0 && $ny < $this->height &&
+                    $this->wallsGrid[$ny][$nx]) {
+                    return false;
+                }
             }
         }
+        return true;
     }
-    return true;
-}
     
     // Стандартная проверка
     return !$this->wallsGrid[$y][$x];

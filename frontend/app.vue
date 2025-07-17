@@ -79,6 +79,20 @@
           [`button-win-${index + 1}`]: true
         }"
       >
+        <!-- Цветной индикатор -->
+            <div 
+              v-if="btn.occupied" 
+              class="color-indicator"
+              :style="{ backgroundImage: 'url(' + getColorImage(bugColors[btn.finishedBugId]) + ')' }"
+            ></div>
+
+            <!-- Индикатор победы -->
+        <div 
+          v-if="btn.occupied" 
+          class="win-indicator"
+          :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }"
+        ></div>
+
         <!-- Основная кнопка победы -->
         <div 
           class="button-win"
@@ -90,13 +104,8 @@
             cursor: isRaceStarted ? 'default' : 'pointer'
           }"
         ></div>
-       
-        <!-- Индикатор победы -->
-        <div 
-          v-if="btn.occupied" 
-          class="win-indicator"
-          :style="{ backgroundImage: `url('/images/buttons/Property 1=Variant2.png')` }"
-        ></div>
+          
+        
       </div>
       
       <!-- Тараканы -->
@@ -445,7 +454,19 @@ const finishZones = ref([]);
 const bugs = ref([]);
 const animationFrame = ref(null);
 const makeBetsText = computed(() => t('make_bets'));
-
+// Выносим из метода explodeAllBugs в область setup
+const getColorImage = (color) => {
+  const colorMap = {
+    '#FFFF00': '/images/colors/Rectangle-yellow.png',
+    '#FFA500': '/images/colors/Rectangle-orange.png',
+    '#FF0000': '/images/colors/Rectangle-red.png',
+    '#0000FF': '/images/colors/Rectangle-blue.png',
+    '#8B0000': '/images/colors/Rectangle-dark-orange.png',
+    '#800080': '/images/colors/Rectangle-purple.png',
+    '#00FF00': '/images/colors/Rectangle-green.png'
+  };
+  return colorMap[color] || '';
+};
 // Добавляем состояние для меню последней игры
 const lastGameMenuVisible = ref(false);
 const lastGames = ref([
@@ -810,6 +831,7 @@ else if (bug.phase === 'to_blue_point') {
     if (distance <= 5) {
       bug.finished = true;
       button.occupied = true;
+      button.finishedBugId = bug.id;  // Сохраняем ID таракана
     }
   }
 }
@@ -1085,13 +1107,13 @@ const menuButtons = ref(
 
 // Кнопки победы
 const winButtons = ref([
-  { id: 7, occupied: false, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 6, occupied: false, hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 5, occupied: false, hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 4, occupied: false, hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 3, occupied: false, hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 2, occupied: false, hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 1, occupied: false, hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 7, occupied: false, finishedBugId: null, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 6, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 5, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 4, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 3, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 2, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 1, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
 
 // ==============================
@@ -1226,6 +1248,7 @@ const handleGenerateClick = async () => {
       btn.menuVisible = false;
       btn.hovered = false;
       btn.selected = false;
+      btn.finishedBugId = null;  // Сбрасываем ID таракана
       if (btn.menuTimer) clearTimeout(btn.menuTimer);
     });
 
@@ -1531,7 +1554,7 @@ const getButtonStyle = (btn) => {
   cursor: not-allowed !important;
   pointer-events: none;
   opacity: 1;
-  filter: grayscale(-10%);
+  
 }
 /* Существующие стили прогресс-бара */
 .progress-container {
@@ -2303,13 +2326,7 @@ const getButtonStyle = (btn) => {
     background-size: contain;
   }
 }
-/* Добавляем стили для заблокированных кнопок */
-.button-win-container.disabled {
-  
-  cursor: default !important;
-  pointer-events: none;
-  filter: grayscale(70%);
-}
+
 /* Отключаем эффекты при блокировке */
 .button-win-container.disabled .button-win {
   cursor: default !important;
@@ -2916,7 +2933,16 @@ position: absolute;
   border-radius: 50px;
   padding: 4px 0;
 }
-
+.color-indicator {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 5;
+  opacity: 0.7;
+}
 /* Стиль для вкладки Result */
 .result-tab {
   background: rgba(0, 0, 0, 0.4);

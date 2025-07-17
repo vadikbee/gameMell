@@ -79,12 +79,22 @@
           [`button-win-${index + 1}`]: true
         }"
       >
-        <!-- Цветной индикатор -->
-            <div 
-              v-if="btn.occupied" 
-              class="color-indicator"
-              :style="{ backgroundImage: 'url(' + getColorImage(bugColors[btn.finishedBugId]) + ')' }"
-            ></div>
+         <!-- Контейнер для цветных индикаторов (обновлено) -->
+  <div class="color-indicators" v-if="btn.bugs.length > 0">
+  <div 
+    v-for="(bugId, bugIndex) in btn.bugs" 
+    :key="bugIndex"
+    class="color-indicator"
+    :class="{
+      'full': btn.bugs.length === 1,
+      'half': btn.bugs.length === 2
+    }"
+    :style="{ 
+      backgroundImage: 'url(' + getColorImage(bugColors[bugId]) + ')',
+      left: btn.bugs.length === 2 && bugIndex === 1 ? '50%' : '0'
+    }"
+  ></div>
+</div>
 
             <!-- Индикатор победы -->
         <div 
@@ -455,7 +465,9 @@ const bugs = ref([]);
 const animationFrame = ref(null);
 const makeBetsText = computed(() => t('make_bets'));
 // Выносим из метода explodeAllBugs в область setup
-const getColorImage = (color) => {
+// Обновленная функция для получения изображения цвета
+const getColorImage = (color, bugCount) => {
+  // Убрана зависимость от количества тараканов - всегда используем полное изображение
   const colorMap = {
     '#FFFF00': '/images/colors/Rectangle-yellow.png',
     '#FFA500': '/images/colors/Rectangle-orange.png',
@@ -796,10 +808,16 @@ const animate = () => {
         
         if (zone) {
           bug.targetButtonId = zone.buttonId;
-          bug.phase = 'to_blue_point'; // Переходим в фазу движения к точке
+          bug.phase = 'to_blue_point';
           bug.bluePointProgress = 0;
           bug.finishTime = now;
-        } else {
+          
+          // Добавляем таракана в кнопку (максимум 2)
+          const button = winButtons.value.find(b => b.id === zone.buttonId);
+          if (button && button.bugs.length < 2) {
+            button.bugs.push(bug.id);
+          }
+            } else {
           // Если зона не найдена - взрываем
           bug.explodeFrame = 0;
         }
@@ -1105,17 +1123,16 @@ const menuButtons = ref(
   }))
 );
 
-// Кнопки победы
+// Обновленные кнопки победы
 const winButtons = ref([
-  { id: 7, occupied: false, finishedBugId: null, hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 6, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 5, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 4, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 3, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 2, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 1, occupied: false, finishedBugId: null,hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 7, bugs: [], hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 6, bugs: [], hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 5, bugs: [], hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 4, bugs: [], hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 3, bugs: [], hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 2, bugs: [], hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 1, bugs: [], hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
-
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
 // ==============================
@@ -1229,6 +1246,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;
@@ -1248,6 +1266,7 @@ const handleGenerateClick = async () => {
       btn.menuVisible = false;
       btn.hovered = false;
       btn.selected = false;
+      btn.bugs = []; // Сбрасываем тараканов
       btn.finishedBugId = null;  // Сбрасываем ID таракана
       if (btn.menuTimer) clearTimeout(btn.menuTimer);
     });
@@ -1415,10 +1434,6 @@ const startExplosionAnimation = () => {
   
   animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
 };
-// ==============================
-// ЖИЗНЕННЫЕ ЦИКЛЫ
-// ==============================
-// Масштабирование интерфейса
 const updateScale = () => {
   const baseWidth = 390;
   const baseHeight = 844;
@@ -2582,7 +2597,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-position: center top;
   background-repeat: no-repeat;
   background-size: 100% auto;
-  /* Фиксированные размеры контейнера ///*/
+  /* Фиксированные размеры контейнера */
   width: 390px;
   min-height: 844px;
   height: 100vh;
@@ -2861,7 +2876,7 @@ position: absolute;
   filter: grayscale(70%);
 }
 
-/* *****************************************  БЛОК ДЛЯ @  **********************************/
+
 @media (max-width: 390px) {
   .black-menu {
     gap: 20px; /* Уменьшаем расстояние между элементами */
@@ -2933,15 +2948,41 @@ position: absolute;
   border-radius: 50px;
   padding: 4px 0;
 }
-.color-indicator {
+
+.color-indicators {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-size: 100% 100%;
+  z-index: 4;
+  display: flex; /* Убираем flex-контейнер */
+}
+
+.color-indicator {
+  position: absolute; /* Абсолютное позиционирование */
+  top: 0;
+  height: 100%;
+  background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  z-index: 5;
-  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.color-indicator.full {
+  width: 100%;
+  left: 0;
+}
+
+.color-indicator.half {
+  width: 50%;
+}
+
+/* Специальные классы для позиционирования */
+.color-indicator.first-half {
+  left: 0;
+}
+
+.color-indicator.second-half {
+  left: 50%;
 }
 /* Стиль для вкладки Result */
 .result-tab {
@@ -3007,7 +3048,7 @@ position: absolute;
   }
 }
 
-/*//////////////////// стили для языка/////////////////////*/
+/*  стили для языка */
 html[lang="ru"] .bth-1-text {
   font-size: 13px; /* Уменьшаем размер шрифта */
   letter-spacing: -0.3px; /* Опционально: сжимаем межбуквенный интервал */
@@ -3016,5 +3057,5 @@ html[lang="ru"] .bth-2-text {
   font-size: 20px; /* Уменьшаем размер шрифта */
   letter-spacing: 1px; /* Опционально: сжимаем межбуквенный интервал */
 }
-/*///////////////////// стили для языка/////////////////////*/
+/* стили для языка*/
 </style>

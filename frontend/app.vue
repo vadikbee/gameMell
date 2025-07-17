@@ -2955,6 +2955,8 @@ position: absolute;
   height: 100%;
   z-index: 4;
   display: flex; /* Убираем flex-контейнер */
+  pointer-events: none; /* Разрешает клики сквозь индикатор */
+
 }
 
 .color-indicator {

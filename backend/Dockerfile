@@ -1,6 +1,6 @@
 FROM php:8.1-fpm
 
-# Установка зависимостей
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -17,14 +17,20 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 # Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Рабочая директория
+# Создаем рабочую директорию
 WORKDIR /var/www/html
 
-# Копирование приложения
+# Копируем ТОЛЬКО файлы зависимостей (для кэширования слоя)
+COPY composer.json composer.lock ./
+
+# Устанавливаем зависимости (без скриптов)
+RUN composer install --no-scripts --no-autoloader
+
+# Копируем ВЕСЬ остальной код
 COPY . .
 
-# Установка зависимостей
-RUN composer install
+# Завершаем установку зависимостей
+RUN composer dump-autoload --optimize
 
 # Права доступа
 RUN chown -R www-data:www-data storage bootstrap/cache

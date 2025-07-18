@@ -677,7 +677,7 @@ const saveGameResults = async () => {
     });
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/game-history/save', {
+        const response = await fetch('/api/game-history/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ results })
@@ -697,7 +697,7 @@ const explosionImages = ref(Array.from({length: 6}, (_, i) => `/images/bax/bax-$
 // В методе loadGameHistory
 const loadGameHistory = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/game-history/last');
+    const response = await fetch('/api/game-history/last');
     lastGames.value = await response.json();
   } catch (error) {
     console.error('Error loading game history:', error);

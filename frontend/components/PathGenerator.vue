@@ -5,7 +5,7 @@ const emit = defineEmits(['paths-generated']);
 
 // Запрос к сервиу генерации путей
 const generate = async () => {
-  const response = await fetch('http://localhost:8000/path_service.php', {
+  const response = await fetch('/api/path_service.php', {
     method: 'POST',
     body: JSON.stringify({ bug_count: 7, duration: 10000, max_moves: 200 })
   });

@@ -1,0 +1,19 @@
+4. Команды для запуска
+Dev-режим (с hot-reload):
+
+bash
+# Создаем базовые контейнеры + переопределения для разработки
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
+Prod-режим:
+
+bash
+# Только production-сборка
+docker-compose up --build -d
+Управление окружениями:
+
+bash
+# Остановка dev-окружения:
+docker-compose -f docker-compose.yml -f docker-compose.override.yml down
+
+# Остановка prod-окружения:
+docker-compose down

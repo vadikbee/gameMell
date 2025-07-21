@@ -1,39 +1,49 @@
+#docker-compose.yml
 services:
-  app:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: app
+    container_name: backend
     restart: unless-stopped
     volumes:
       - ./backend:/var/www/html
-    ports:
-      - "8000:8000"
+    env_file:
+      - ./backend/.env.production
     networks:
       - app-network
-    
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - BUILD_ENV=production # Измените на "development" для dev режима
     container_name: frontend
     restart: unless-stopped
     volumes:
-      - ./frontend:/app 
-      - /app/node_modules 
-    ports:
-      - "3000:3000"
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env.production
+    depends_on:
+      - backend
     networks:
       - app-network
-    depends_on:
-      - app
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  mysql-data:
-    driver: local
-
-    

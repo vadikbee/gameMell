@@ -1,0 +1,23 @@
+# docker-compose.override.yml (для dev)
+#docker-compose.override.yml
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        - APP_ENV=development
+    volumes:
+      - ./backend:/var/www/html
+    env_file:
+      - ./backend/.env.development
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - BUILD_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env.development

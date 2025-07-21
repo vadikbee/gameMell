@@ -1956,6 +1956,16 @@ const getButtonStyle = (btn) => {
     margin: 0 -18px;
     
   }
+  .x2-button-container {
+  position: absolute;
+  width: 47px;
+  height: 28px;
+  left: 12%;
+  top: 442%; /* Позиция под кнопками ставок */
+  z-index: 9;
+ 
+  /* border: 1px solid rgb(36, 223, 15) !important; */
+}
 }
 
 @media (max-width: 480px) {
@@ -2049,8 +2059,8 @@ const getButtonStyle = (btn) => {
 @media (max-width: 768px) {
   .stavki-buttons-container {
     top: 404%;
-    left: -19%;
-    width: 85%;
+    left: 0%;
+    width: 63%;
     transform: translateX(0); /* Сбрасываем transform если был */
     padding-left: 15px; /* Регулируйте значение по необходимости */
     box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */

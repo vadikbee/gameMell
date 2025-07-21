@@ -297,12 +297,14 @@
                 class="stavki-button"
                 @click="addToBet(button.amount)"
               >
-              <img 
-                src="/images/buttons/x2.png" 
-                alt="x2"
-                class="x2-button"
-                @click="handleX2ButtonClick"
-              >
+            </div>
+            <div class="x2-button-container">
+            <img 
+              src="/images/buttons/x2.png" 
+              alt="x2"
+              class="x2-button"
+              @click="handleX2ButtonClick"
+            >
             </div>
           </div> 
           
@@ -1973,17 +1975,30 @@ const getButtonStyle = (btn) => {
     height: 20px;
   }
 }
+
+.x2-button-container {
+  position: absolute;
+  width: 47px;
+  height: 28px;
+  left: 12%;
+  top: 442%; /* Позиция под кнопками ставок */
+  z-index: 9;
+ 
+  /* border: 1px solid rgb(36, 223, 15) !important; */
+}
+
 .x2-button {
   position: relative;
-  width: 54px;
-  height: 40px;
+  width: 56px;
+  height: 36px;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
- margin-top: -13.5%;
-  left: 27.7%;
+  margin-top: 0%;
+  left: 0%;
   z-index: 9;
   flex-grow: 0;
+  
    /* Для правильного отображения изображения */
   background-size: contain;
   background-repeat: no-repeat;
@@ -2001,13 +2016,13 @@ const getButtonStyle = (btn) => {
   flex-direction: row;
   justify-content: center;
    gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
-  width: 89%;
-  height: 35%;
-  left: -19%;
+  width: 60%;
+  height: 30%;
+  left: 3%;
   z-index: 9;
   padding: 0px;
   border: 1px solid rgb(36, 223, 15) !important; 
-  top: 400%;
+  top: 404%;
 }
 
 .stavki-button {
@@ -2018,7 +2033,7 @@ const getButtonStyle = (btn) => {
   flex: none;
   order: 1;
   flex-grow: 0;
-  margin-top: -23%;
+  margin-top: 0%;
 }
 
 .stavki-button:hover {
@@ -2046,13 +2061,7 @@ const getButtonStyle = (btn) => {
     transform: none;
     
   }
-   .x2-button {
-    width: 55px;
-    height: 32px;
-    left: 30%;
-    margin-top: 11.1%;
-    border: 1px solid rgb(36, 223, 15) !important; 
-  }
+  
   
 }
 
@@ -2070,11 +2079,7 @@ const getButtonStyle = (btn) => {
     height: 31px;
     
   }
-  .x2-button {
-    width: 45px;
-    height: 32px;
-    left: 20%;
-  }
+  
 }
 
 .otmena-button {

@@ -2793,55 +2793,9 @@ position: absolute;
   }
 }
 
-@media (max-width: 480px) {
-  .center-menu {
-    bottom: calc(350%); /* Дополнительная корректировка */
-    margin-top: 0%;
-    left: 95%;
-    transform: translateX(-50%) scale(0.9); /* Еще меньше */
-  }
-  /* Стили для диагональных кнопок в режиме Result */
-.menu-button.diagonal {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-  border: 1px solid #FF8C00 !important;
-  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
-}
 
-.menu-button.diagonal:hover {
-  transform: scale(1.1) !important;
-  filter: 
-    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
-    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)) !important;
-}
-
-.menu-button.diagonal.selected {
-  background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%) !important;
-  box-shadow: 0 0 12px rgba(255, 69, 0, 0.8) !important;
-  animation: pulse-diagonal 0.5s infinite alternate;
-}
-
-@keyframes pulse-diagonal {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.05); }
-}
-  .menu-image {
-    max-width: 250px;
-    transform: translateX(-50%) scale(0.9);
-  }
   
-  .stavki-image {
-    
-    max-width: 240px;
-    transform: translateX(-50%) scale(0.9);
-  }
-  
-  .group-image {
-    margin-top: 9%;
-    left: -32%;
-    max-width: 240px;
-    transform: translateX(-50%) scale(0.8);
-  }
-}
+
 .menu-button.button-visible {
   visibility: visible;
   pointer-events: auto;
@@ -3079,7 +3033,54 @@ position: absolute;
     /* Адаптация основного контейнера */
     
   }
+  .center-menu {
+    bottom: calc(350%); /* Дополнительная корректировка */
+    margin-top: 0%;
+    left: 50%;
+    
+    transform: translateX(-50%) scale(0.9); /* Еще меньше */
+  }
+  /* Стили для диагональных кнопок в режиме Result */
+.menu-button.diagonal {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+  border: 1px solid #FF8C00 !important;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
+}
+
+.menu-button.diagonal:hover {
+  transform: scale(1.1) !important;
+  filter: 
+    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
+    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)) !important;
+}
+
+.menu-button.diagonal.selected {
+  background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%) !important;
+  box-shadow: 0 0 12px rgba(255, 69, 0, 0.8) !important;
+  animation: pulse-diagonal 0.5s infinite alternate;
+}
+
+@keyframes pulse-diagonal {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+  .menu-image {
+    max-width: 250px;
+    transform: translateX(-50%) scale(0.9);
+  }
   
+  .stavki-image {
+    
+    max-width: 240px;
+    transform: translateX(-50%) scale(0.9);
+  }
+  
+  .group-image {
+    margin-top: 9%;
+    left: -32%;
+    max-width: 240px;
+    transform: translateX(-50%) scale(0.8);
+  }
   .main-bg {
     /* Адаптация фонового контейнера */
   }
@@ -3137,13 +3138,22 @@ position: absolute;
   .tarakan {
     /* Адаптация тараканов */
   }
-  
+  /* Специфичные стили для вкладок */
+  .overtaking-tab {
+    border-radius: 40px 0 0 40px; /* Уменьшаем скругление */
+  }
+
+  .result-tab {
+    border-radius: 0 40px 40px 0; /* Уменьшаем скругление */
+  }
   .explosion {
     /* Адаптация анимации взрыва */
   }
   
-  .center-menu {
-    /* Адаптация центрального меню */
+  .menu-image, .stavki-image {
+    max-width: 100%;
+    transform: scale(0.9);
+    margin-left: 0;
   }
   
   .menu-image {
@@ -3151,17 +3161,32 @@ position: absolute;
   }
   
   .menu-tabs {
-    /* Адаптация вкладок меню */
+    width: 90%;
+    height: 20px; /* Уменьшаем высоту контейнера */
+    top: 25px; /* Сдвигаем вверх для компенсации */
+    left: 5%;
+    
   }
-  
+
   .tab-button {
-    /* Адаптация кнопок вкладок */
+    font-size: 10px; /* Уменьшаем размер шрифта */
+    line-height: 12px; /* Корректируем межстрочный интервал */
+    padding: 2px 0; /* Уменьшаем внутренние отступы */
   }
   
-  .menu-buttons-container {
-    /* Адаптация контейнера кнопок меню */
+   .menu-buttons-container {
+    top: 200%;
+    left: 55%;
+    --button-width: 30px;
+    --button-height: 25px;
+    --column-gap: 2px;
+    --row-gap: 5px;
   }
-  
+   .group-image {
+    top: -170%;
+    left: -35%;
+    transform: scale(0.7);
+  }
   .menu-button {
     /* Адаптация кнопок меню */
   }
@@ -3171,23 +3196,33 @@ position: absolute;
   }
   
   .bet-counter-container {
-    /* Адаптация счетчика ставок */
+    top: 25%;
+    left: 37%;
+    transform: translateX(-50%) scale(0.9);
   }
-  
+   .x2-button-container {
+    left: 10%;
+    top: 440%;
+  }
   .bet-button {
     /* Адаптация кнопок +/- */
   }
   
   .bet-display {
-    /* Адаптация дисплея ставки */
+    font-size: 14px;
+    width: 60px;
   }
   
-  .stavki-buttons-container {
-    /* Адаптация контейнера кнопок ставок */
+    .stavki-buttons-container {
+    top: 380%;
+    left: -70%;
+    gap: 4px;
+    width: 55%;
   }
-  
+
   .stavki-button {
-    /* Адаптация кнопок ставок */
+    width: 45px;
+    height: 28px;
   }
   
   .otmena-button,
@@ -3229,6 +3264,7 @@ position: absolute;
     /* Адаптация результатов подиума */
   }
 }
+
 /*  стили для языка */
 html[lang="ru"] .bth-1-text {
   font-size: 13px; /* Уменьшаем размер шрифта */

@@ -1,0 +1,12 @@
+{
+  "name": "pinia",
+  "configKey": "pinia",
+  "compatibility": {
+    "nuxt": "^3.15.0 || ^4.0.0"
+  },
+  "version": "0.11.2",
+  "builder": {
+    "@nuxt/module-builder": "1.0.1",
+    "unbuild": "3.5.0"
+  }
+}

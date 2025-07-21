@@ -1225,7 +1225,7 @@ watch(isRaceStarted, (newVal) => {
 // Генерация путей для тараканов
 const generatePaths = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/generate-paths', {
+    const response = await fetch('/api/generate-paths', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1283,6 +1283,17 @@ const handleGenerateClick = async () => {
     if (!data || !data.paths) {
       throw new Error('Invalid response from path generator');
     }
+    if (data.grid) {
+    const cellSize = data.grid.cell_size;
+    const offsetX = data.grid.offset_x;
+    
+    // Рассчитываем финишные зоны
+    finishZones.value = data.grid.finish.map(f => ({
+        minX: f.x * cellSize + offsetX,
+        maxX: (f.x + 1) * cellSize + offsetX,
+        buttonId: f.id
+    }));
+}
     // Настройка зон финиша
     const cellSize = data.grid.cell_size;
     const offsetX = data.grid.offset_x;
@@ -1333,17 +1344,7 @@ const handleGenerateClick = async () => {
   }
   // В функции generatePaths после получения данных
 // После получения данных генерации
-if (data.grid) {
-    const cellSize = data.grid.cell_size;
-    const offsetX = data.grid.offset_x;
-    
-    // Рассчитываем финишные зоны
-    finishZones.value = data.grid.finish.map(f => ({
-        minX: f.x * cellSize + offsetX,
-        maxX: (f.x + 1) * cellSize + offsetX,
-        buttonId: f.id
-    }));
-}
+
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {

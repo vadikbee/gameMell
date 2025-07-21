@@ -17,3 +17,5 @@ docker-compose -f docker-compose.yml -f docker-compose.override.yml down
 
 # Остановка prod-окружения:
 docker-compose down
+
+!!!АКТУАЛЬНО НА 21.07.25

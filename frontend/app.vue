@@ -1941,7 +1941,9 @@ const getButtonStyle = (btn) => {
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
   .bet-counter-container {
-    top: 30%;
+    top: 29%;
+    width: 24%;
+    height: 30%;
      margin-top: 98%; /* Позиционирование по вертикали */
     left: 37%;
   }
@@ -2000,11 +2002,12 @@ const getButtonStyle = (btn) => {
   justify-content: center;
    gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
   width: 89%;
-  height: 0%;
+  height: 35%;
   left: -19%;
   z-index: 9;
   padding: 0px;
   border: 1px solid rgb(36, 223, 15) !important; 
+  top: 400%;
 }
 
 .stavki-button {
@@ -2031,13 +2034,14 @@ const getButtonStyle = (btn) => {
 @media (max-width: 768px) {
   .stavki-buttons-container {
     top: 404%;
-    left: -20%;
+    left: -19%;
     width: 85%;
     transform: translateX(0); /* Сбрасываем transform если был */
     padding-left: 15px; /* Регулируйте значение по необходимости */
     box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */
   }
   .stavki-button {
+    margin-left: 0%;
     margin-top: 0%;
     transform: none;
     
@@ -2045,8 +2049,9 @@ const getButtonStyle = (btn) => {
    .x2-button {
     width: 55px;
     height: 32px;
-    left: 31%;
+    left: 30%;
     margin-top: 11.1%;
+    border: 1px solid rgb(36, 223, 15) !important; 
   }
   
 }
@@ -2146,11 +2151,12 @@ const getButtonStyle = (btn) => {
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
   .reset-button {
-    width: 50px;
+    width: 48px;
     height: 24px;
-    top: 392%;
-    left: 56%;
+    top: 488%;
+    left: 0%;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid red !important; 
   }
 }
 /* Анимации для кнопок */
@@ -2171,6 +2177,7 @@ const getButtonStyle = (btn) => {
     height: 21px;
     top: 382%;
     left: 8%;
+    
   }
 }
 .menu-buttons-container {
@@ -2232,7 +2239,7 @@ const getButtonStyle = (btn) => {
   height: 68px;
   
   /* Позиционируем кнопку поверх изображения stavki.png */
-  top: 45%; /* Регулируйте по необходимости */
+  top: 46%; /* Регулируйте по необходимости */
   left: 48.5%;
   transform: translateX(-50%);
   
@@ -2253,8 +2260,10 @@ const getButtonStyle = (btn) => {
 @media (max-width: 768px) {
   .group-164-button {
     width: 113px;
-    top: 45%;
+    top: 43%;
     left: 48.5%;
+    
+    border: 1px solid rgb(255, 0, 0) !important;
   }
 }
 /*@media (max-width: 768px) {
@@ -3050,7 +3059,161 @@ position: absolute;
     background-position: top center;
   }
 }
-
+@media (max-width: 480px) {
+  .main-color {
+    /* Адаптация основного контейнера */
+    
+  }
+  
+  .main-bg {
+    /* Адаптация фонового контейнера */
+  }
+  
+  .labirint-bg {
+    /* Адаптация фона лабиринта */
+  }
+  
+  .panel-up {
+    /* Адаптация верхней панели */
+  }
+  
+  .balance-container {
+    /* Адаптация контейнера баланса */
+  }
+  
+  .language-switcher {
+    /* Адаптация переключателя языка */
+  }
+  
+  .icon-button {
+    /* Адаптация иконки */
+  }
+  
+  .progress-container {
+    /* Адаптация прогресс-бара */
+  }
+  
+  .panel-layer {
+    /* Адаптация нижней панели */
+  }
+  
+  .button-1, 
+  .button-2, 
+  .button-3 {
+    /* Адаптация кнопок управления */
+  }
+  
+  .button-text {
+    /* Адаптация текста кнопок */
+  }
+  
+  .button-win-container {
+    /* Адаптация контейнеров кнопок победы */
+  }
+  
+  .button-win {
+    /* Адаптация кнопок победы */
+  }
+  
+  .color-indicators {
+    /* Адаптация цветовых индикаторов */
+  }
+  
+  .tarakan {
+    /* Адаптация тараканов */
+  }
+  
+  .explosion {
+    /* Адаптация анимации взрыва */
+  }
+  
+  .center-menu {
+    /* Адаптация центрального меню */
+  }
+  
+  .menu-image {
+    /* Адаптация изображений меню */
+  }
+  
+  .menu-tabs {
+    /* Адаптация вкладок меню */
+  }
+  
+  .tab-button {
+    /* Адаптация кнопок вкладок */
+  }
+  
+  .menu-buttons-container {
+    /* Адаптация контейнера кнопок меню */
+  }
+  
+  .menu-button {
+    /* Адаптация кнопок меню */
+  }
+  
+  .menu-stavki {
+    /* Адаптация меню ставок */
+  }
+  
+  .bet-counter-container {
+    /* Адаптация счетчика ставок */
+  }
+  
+  .bet-button {
+    /* Адаптация кнопок +/- */
+  }
+  
+  .bet-display {
+    /* Адаптация дисплея ставки */
+  }
+  
+  .stavki-buttons-container {
+    /* Адаптация контейнера кнопок ставок */
+  }
+  
+  .stavki-button {
+    /* Адаптация кнопок ставок */
+  }
+  
+  .otmena-button,
+  .reset-button,
+  .group-164-button,
+  .x2-button {
+    /* Адаптация специальных кнопок */
+  }
+  
+  .win-menu-center {
+    /* Адаптация центрального меню победы */
+  }
+  
+  .menu-container {
+    /* Адаптация контейнера меню */
+  }
+  
+  .bug-buttons-container {
+    /* Адаптация контейнера кнопок тараканов */
+  }
+  
+  .bug-button {
+    /* Адаптация кнопок тараканов */
+  }
+  
+  .history-bets {
+    /* Адаптация истории ставок */
+  }
+  
+  .last-game-menu {
+    /* Адаптация меню последних игр */
+  }
+  
+  .group-image {
+    /* Адаптация изображения группы */
+  }
+  
+  .podium-results {
+    /* Адаптация результатов подиума */
+  }
+}
 /*  стили для языка */
 html[lang="ru"] .bth-1-text {
   font-size: 13px; /* Уменьшаем размер шрифта */

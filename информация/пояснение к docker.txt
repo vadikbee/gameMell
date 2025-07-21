@@ -3,7 +3,7 @@
 
 Код: Монтирует папку ./backend в контейнер
 
-Порты: Доступен на localhost:8000
+Порты: Доступен на localhost/api
 
 Команда: Запускает Laravel сервер php artisan serve
 
@@ -18,7 +18,7 @@ ROUTE_GENERATOR_URL=http://route-generator:5000 - интеграция с мик
 
 Код: Монтирует папку ./frontend в контейнер
 
-Порты: Доступен на localhost:3000
+Порты: Доступен на localhost
 
 Команда: Запуск в режиме разработки npm run dev
 

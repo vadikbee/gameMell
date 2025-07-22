@@ -354,49 +354,69 @@ defineEmits([
 @media (max-width: 480px) {
   .bet-display {
     width: 70px;
-    height: 23px;
+    height: 20px;
     font-size: 12px;
+    
+    
+    
   }
-  
+
+  .bet-counter-container {
+    top: 49%;
+    border: 1px solid rgb(36, 223, 15) !important;
+    margin-top: 0%;
+    left: 35%;
+  }
   .bet-button {
     width: 20px;
     height: 20px;
+    margin-top: 0%;
+    
   }
   
   .stavki-buttons-container {
-    top: 395%;
-    left: -68%;
-    gap: 5px;
+    top: 10%;
+    width: 75%;
+    height: 30%;
+    left: -19%;
+    gap: 7px;
+    border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .stavki-button {
-    width: 48px;
-    height: 31px;
+    width: 42px;
+    height: 20px;
+    
   }
   
   .x2-button {
     width: 45px;
     height: 32px;
-    left: 20%;
+    left: 30%;
+    top: 10%;
+    border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .otmena-button {
     width: 24px;
     height: 24px;
-    left: -35.4%;
+    left: 1%;
     top: 382%;
+    border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .reset-button {
-    width: 41px;
+    width: 42px;
     height: 21px;
-    top: 382%;
-    left: 8%;
+    margin-top: -11.5%;
+    left: 1.5%;
+    border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .group-164-button {
-    width: 80px;
+    width: 30%;
     top: 41%;
+    height: 58px;
   }
 }
 </style>

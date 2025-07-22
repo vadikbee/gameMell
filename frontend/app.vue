@@ -2996,7 +2996,13 @@ position: absolute;
     max-width: 240px;
     transform: translateX(-50%) scale(0.9);
   }
-  
+   .bet-counter-container {
+    top: 29%;
+    width: 20%;
+    height: 30%;
+     margin-top: 98%; /* Позиционирование по вертикали */
+    left: 37%;
+  }
   .group-image {
     margin-top: 9%;
     left: -32%;
@@ -3005,7 +3011,13 @@ position: absolute;
   }
   .bet-display{
     height: 75%;
-    width: 150%;
+    width: 300%;
+    margin-top: -3%;
+  }
+  .bet-button {
+    /* Адаптация кнопок +/- */
+    width: 100%;
+    height: 85%;
     margin-top: -3%;
   }
   .main-bg {

@@ -323,6 +323,7 @@ defineEmits([
     left: 48.5%;
   }
 }
+
 /* Адаптация для маленьких экранов */
 @media (max-width: 768px) {
   .stavki-buttons-container {

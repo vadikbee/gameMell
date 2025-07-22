@@ -1545,10 +1545,11 @@ const getButtonStyle = (btn) => {
 }
 
 /* Обновляем стили для вкладок */
-.menu-tabs {
-  display: flex;
-  flex-direction: row-reverse; /* Инвертируем порядок */
-}
+ .menu-tabs {
+    top: 15px;
+    height: 20px;
+  }
+  
 
 /* Стиль для вкладки Result (теперь справа) */
 .result-tab {
@@ -1561,7 +1562,16 @@ const getButtonStyle = (btn) => {
   border-radius: 50px 0 0 50px; /* Закругление слева */
 }
 
-
+.x2-button-container {
+  position: absolute;
+  width: 47px;
+  height: 28px;
+  left: 12%;
+  top: 442%; /* Позиция под кнопками ставок */
+  z-index: 9;
+ 
+   border: 1px solid rgb(36, 223, 15) !important; 
+}
 /* Стиль для активной вкладки */
 .tab-button.active {
   box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
@@ -1950,12 +1960,7 @@ const getButtonStyle = (btn) => {
     left: 37%;
   }
   
-  .bet-display {
-    width: 80px;
-    font-size: 17px;
-    margin: 0 -18px;
-    
-  }
+  
   .x2-button-container {
   position: absolute;
   width: 47px;
@@ -1964,62 +1969,13 @@ const getButtonStyle = (btn) => {
   top: 442%; /* Позиция под кнопками ставок */
   z-index: 9;
  
-  /* border: 1px solid rgb(36, 223, 15) !important; */
+   border: 1px solid rgb(36, 223, 15) !important; 
 }
 }
 
-@media (max-width: 480px) {
-  .bet-counter-container {
-    top: 25%;
-    transform: translateX(-50%) scale(0.9);
-  }
-  
-  .bet-display {
-    width: 70px;
-   height: 23px;
-    font-size: 12px;
-  }
-  
-  .bet-button {
-    width: 20px;
-    height: 20px;
-  }
-}
 
-.x2-button-container {
-  position: absolute;
-  width: 47px;
-  height: 28px;
-  left: 12%;
-  top: 442%; /* Позиция под кнопками ставок */
-  z-index: 9;
- 
-  /* border: 1px solid rgb(36, 223, 15) !important; */
-}
 
-.x2-button {
-  position: relative;
-  width: 56px;
-  height: 36px;
-  cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
-  flex: none;
-  margin-top: 0%;
-  left: 0%;
-  z-index: 9;
-  flex-grow: 0;
-  
-   /* Для правильного отображения изображения */
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}.x2-button:hover {
-  transform: scale(1.05);
-  filter: 
-    brightness(1.1)
-    drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
+
 .stavki-buttons-container {
   position: absolute;
   display: flex;
@@ -2055,42 +2011,8 @@ const getButtonStyle = (btn) => {
   transform: scale(0.95);
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .stavki-buttons-container {
-    top: 404%;
-    left: 0%;
-    width: 63%;
-    transform: translateX(0); /* Сбрасываем transform если был */
-    padding-left: 15px; /* Регулируйте значение по необходимости */
-    box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */
-  }
-  .stavki-button {
-    margin-left: 0%;
-    margin-top: 0%;
-    transform: none;
-    
-  }
-  
-  
-}
 
-@media (max-width: 480px) {
-  .stavki-buttons-container {
-    top: 395%;
-    left: -68%;
-    gap: var(--stavki-gap, 5px); 
-    
 
-  }
-  
-  .stavki-button {
-    width: 48px;
-    height: 31px;
-    
-  }
-  
-}
 
 .otmena-button {
   position: absolute;
@@ -2136,17 +2058,16 @@ const getButtonStyle = (btn) => {
   }
 }
 /* Стиль для скрытия диагональных кнопок */
-.menu-button.diagonal {
-  visibility: hidden; /* Скрываем кнопку, но сохраняем место */
-  /* Или можно полностью убрать: */
-  /* display: none; */
-}
+ .menu-button.diagonal {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    border: 1px solid #FF8C00 !important;
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
+    display: block !important; /* Принудительно показываем */
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
 
-/* Альтернатива: сделать диагональные кнопки прозрачными и не кликабельными */
-.menu-button.diagonal {
-  opacity: 0;
-  pointer-events: none;
-}
+
 /* Стили для новой кнопки сброса */
 .reset-button {
   position: absolute;
@@ -3049,6 +2970,7 @@ position: absolute;
 
 .menu-button.diagonal:hover {
   transform: scale(1.1) !important;
+  
   filter: 
     drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
     drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)) !important;
@@ -3080,6 +3002,11 @@ position: absolute;
     left: -32%;
     max-width: 240px;
     transform: translateX(-50%) scale(0.8);
+  }
+  .bet-display{
+    height: 75%;
+    width: 150%;
+    margin-top: -3%;
   }
   .main-bg {
     /* Адаптация фонового контейнера */
@@ -3170,68 +3097,96 @@ position: absolute;
 
   .tab-button {
     font-size: 10px; /* Уменьшаем размер шрифта */
-    line-height: 12px; /* Корректируем межстрочный интервал */
+     /* Корректируем межстрочный интервал */
     padding: 2px 0; /* Уменьшаем внутренние отступы */
   }
   
-   .menu-buttons-container {
-    top: 200%;
-    left: 55%;
-    --button-width: 30px;
-    --button-height: 25px;
-    --column-gap: 2px;
-    --row-gap: 5px;
+    /* Обновленные стили контейнера с учетом диагональных кнопок */
+  .menu-buttons-container {
+    top: 90%;
+    left: 54.75%;
+    transform: translateX(-50%);
+    width: auto;
+    height: auto;
+    --button-width: 36px;
+    --button-height: 30px;
+    --column-gap: 5.5px;
+    --row-gap: 6.75px;
+    display: grid;
+    grid-template-columns: repeat(7, var(--button-width));
+    grid-template-rows: repeat(7, var(--button-height));
+    column-gap: var(--column-gap);
+    row-gap: var(--row-gap);
+    padding: 0 5px;
+    box-sizing: border-box;
   }
    .group-image {
     top: -170%;
     left: -35%;
     transform: scale(0.7);
   }
+  /* Уменьшаем размер кнопок */
   .menu-button {
-    /* Адаптация кнопок меню */
+    background-size: contain;
+    width: var(--button-width);
+    height: var(--button-height);
   }
   
   .menu-stavki {
     /* Адаптация меню ставок */
   }
   
-  .bet-counter-container {
-    top: 25%;
-    left: 37%;
-    transform: translateX(-50%) scale(0.9);
-  }
+ 
+
+  
    .x2-button-container {
-    left: 10%;
-    top: 440%;
+    left: 14%;
+    top: 439%;
+    height: 27.5%;
+   /* border: 1px solid red !important;*/
   }
   .bet-button {
     /* Адаптация кнопок +/- */
+    width: 100%;
+    height: 85%;
   }
   
-  .bet-display {
-    font-size: 14px;
-    width: 60px;
-  }
+ 
   
-    .stavki-buttons-container {
-    top: 380%;
-    left: -70%;
-    gap: 4px;
-    width: 55%;
-  }
+  
 
   .stavki-button {
     width: 45px;
     height: 28px;
   }
-  
-  .otmena-button,
-  .reset-button,
-  .group-164-button,
-  .x2-button {
-    /* Адаптация специальных кнопок */
+  .otmena-button{
+    top: 487%;
+    left: 2%;
+  }
+  .reset-button {
+   top: 488%;
+   left: -2%;
   }
   
+  .x2-button {
+    left: 20%;
+    width: 110% ;
+    height: 120%;
+  }
+  
+  .group-164-button {
+    width: 25%;
+    height: 60%;
+    top: 50%;
+    left: 43%;
+  }
+  .bet-button.minus {
+  margin-right: 0px; /* Отступ справа для минуса */
+}
+
+.bet-button.plus {
+  margin-left: 0px; /* Отступ слева для плюса */
+}
   .win-menu-center {
     /* Адаптация центрального меню победы */
   }
@@ -3249,7 +3204,8 @@ position: absolute;
   }
   
   .history-bets {
-    /* Адаптация истории ставок */
+    margin-top: 15%;
+    margin-left: -2%;
   }
   
   .last-game-menu {

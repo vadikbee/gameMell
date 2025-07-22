@@ -195,4 +195,10 @@ const loadGameHistory = async () => {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px dashed rgba(255, 255, 255, 0.3);
 }
+
+@media (max-width: 390px) {
+  .last-game-menu{
+ transform:  scale(0.7);
+}
+}
 </style>

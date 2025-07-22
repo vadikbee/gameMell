@@ -156,7 +156,7 @@
       <div 
           class="button-1" 
           id="Button-1" 
-          @click="toggleLastGameMenu"
+          @click="!centerWinMenuVisible && toggleLastGameMenu()"
         >
           <span class="button-text bth-1-text">{{ t('last_games') }}</span>
         </div>
@@ -169,14 +169,14 @@
         <div 
           class="button-2" 
           id="Button-2" 
-          @click="toggleCenterMenu"
+          @click="!centerWinMenuVisible && toggleCenterMenu()"
         >
           <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
         </div>
         <div 
           class="button-3" 
           id="Button-3" 
-          @click="toggleHistoryBets"
+          @click="!centerWinMenuVisible && toggleHistoryBets()"
         >
           <span class="button-text">{{ t('history_bets') }}</span>
         </div>
@@ -2793,32 +2793,9 @@ position: absolute;
     background-size: contain;
   }
   
-  .panel-layer {
-    width: 100%;
-  }
   
-  /* Уменьшаем кнопки пропорционально */
-  .button-1 {
-    width: 70px;
-    height: 40px;
-    top: 20px;
-    left: 15px;
-  }
   
-  .button-2 {
-    width: 130px;
-    height: 40px;
-    top: 20px;
-    right: 15px;
-  }
-
-  .button-3 {
-    width: 130px;
-    height: 40px;
-    top: 20px;
-    right: 15px;
-    
-  }
+  
 }
 /* Стили для контейнера вкладок */
 .menu-tabs {
@@ -3146,6 +3123,7 @@ position: absolute;
   
   .menu-stavki {
     /* Адаптация меню ставок */
+    margin-left: -7.5%;
   }
   
  
@@ -3230,6 +3208,200 @@ position: absolute;
   
   .podium-results {
     /* Адаптация результатов подиума */
+  }
+}
+@media (max-width: 390px) {
+  /* Основные контейнеры */
+  .main-bg {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100%;
+    height: auto;
+  }
+  
+  /* Верхняя панель */
+  .panel-up {
+    height: 44%;
+    width: 80%;
+    left: 10%;
+    top: 219%;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+  
+  .balance-text {
+    font-size: 9px;
+    right: 95px;
+    top: 14px;
+  }
+  
+  .button-balans {
+    width: 42px;
+    height: 18px;
+    font-size: 10px;
+    top: 12px;
+    right: 45px;
+  }
+  
+  .icon-button {
+    right: 10px;
+    width: 26px;
+    height: 26px;
+  }
+  
+  .icon-1 {
+    width: 20px;
+    height: 15px;
+  }
+  
+  /* Нижняя панель управления */
+  .panel-layer {
+    height: 12%;
+    width: 100%;
+    
+  }
+  
+  .button-1, 
+  .button-3 {
+    width: 80px;
+    height: 40px;
+    top: 23px;
+    
+  }
+  
+  .button-1 {
+    width: 70px;
+    left: 43px;
+    top: 22px;
+  }
+  
+  .button-2 {
+    width: 130px;
+    height: 40px;
+    
+    top: 23px;
+    right: 121px;
+  }
+  
+  .button-3 {
+    width: 68px;
+    left: 69.5%;
+    top: 22px;
+  }
+  
+  .button-text {
+    font-size: 12px;
+  }
+  
+  .bth-2-text {
+    font-size: 16px;
+  }
+  
+  /* Центральное меню */
+  .center-menu {
+    transform: translateX(-50%) scale(0.8);
+    bottom: calc(400%);
+  }
+  
+  .menu-buttons-container {
+    --button-width: 34px;
+    --button-height: 26px;
+    --column-gap: 4px;
+    --row-gap: 6px;
+    top: 220%;
+    left: 54%;
+  }
+  
+  /* Прогресс бар */
+  .progress-container {
+    top: 45px;
+  }
+  
+  /* Кнопки победы */
+  .button-win-container {
+    transform: scale(0.75);
+    top: 74.3%;
+    left: 100;
+  }
+  
+  .button-win-1 { right: 32px; }
+  .button-win-2 { right: 75px; }
+  .button-win-3 { right: 118px; }
+  .button-win-4 { right: 160px; }
+  .button-win-5 { right: 202px; }
+  .button-win-6 { right: 244px; }
+  .button-win-7 { right: 286px; }
+  
+  
+  /* Меню ставок */
+  .bet-counter-container {
+    left: 36%;
+    width: 25%;
+  }
+  
+  .bet-button {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .bet-display {
+    font-size: 14px;
+    width: 60px;
+  }
+  
+  .stavki-buttons-container {
+    top: 395%;
+  }
+  
+  .stavki-button {
+    width: 42px;
+    height: 24px;
+  }
+  
+  .otmena-button {
+    top: 480%;
+    left: 4%;
+  }
+  
+  .reset-button {
+    top: 480%;
+    left: -1%;
+  }
+  
+  .x2-button-container {
+    left: 15%;
+    top: 432%;
+  }
+  
+  .group-164-button {
+    width: 100px;
+    top: 45%;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+  .button-2 {
+    right: 85px;
+    width: 140px;
+  }
+  
+  .button-win-container {
+    transform: scale(0.8);
+  }
+  
+  .button-win-1 { right: -8px; }
+  .button-win-2 { right: 42px; }
+  .button-win-3 { right: 92px; }
+  .button-win-4 { right: 142px; }
+  .button-win-5 { right: 192px; }
+  .button-win-6 { right: 242px; }
+  .button-win-7 { right: 292px; }
+  
+  .labirint-bg {
+    transform: scale(0.8);
+    margin-top: -4%;
+    z-index: 10;
   }
 }
 

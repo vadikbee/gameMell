@@ -143,4 +143,11 @@ const bets = [
   padding: 2px 5px;
   margin-left: 5px;
 }
+@media (max-width: 390px) {
+  .history-bets{
+    transform: translate(-7%) scale(0.75) translateY(-23%);
+    
+    
+  }
+}
 </style>

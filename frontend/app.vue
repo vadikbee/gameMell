@@ -2948,6 +2948,7 @@ position: absolute;
     margin-top: 0%;
   }
   .main-bg {
+    height: 843px;
     width: 100%;
     max-width: 390px;
     min-height: 100%;
@@ -2955,7 +2956,8 @@ position: absolute;
   }
   
   .labirint-bg {
-    /* Адаптация фона лабиринта */
+    transform: scale(1.0);
+    
   }
   
   .panel-up {

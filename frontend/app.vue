@@ -1677,12 +1677,7 @@ const getButtonStyle = (btn) => {
   100% { transform: translate(-50%, -50%) scale(1.1); }
 }
 
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-  .bug-image {
-    width: 70%;
-  }
-}
+
 /* Контейнер для меню с относительным позиционированием */
 .menu-container {
   position: relative;
@@ -1739,21 +1734,7 @@ const getButtonStyle = (btn) => {
   100% { transform: scale(1.15); }
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .bug-button-hovered {
-    transform: scale(1.1);
-    filter: 
-      drop-shadow(0 0 5px rgba(255, 255, 0, 0.7))
-      drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-  }
-  
-  @keyframes bug-click {
-    0% { transform: scale(1.1); }
-    50% { transform: scale(0.9); }
-    100% { transform: scale(1.1); }
-  }
-}
+
 /* Центральное фиксированное меню */
 /* Обновленные стили для меню */
 .win-menu-center {
@@ -1854,19 +1835,9 @@ const getButtonStyle = (btn) => {
   z-index: 10;
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .history-bets.inside-center {
-    top: -162%;
-    right: -5%;
-    transform: scale(0.9);
-  }
-  
-  .history-bets.outside-center {
-    top: 50%;
-    left: 40%;
-  }
-}
+
+
+
 
 /* Обновляем переходы для плавности */
 .x2-button, .reset-button {
@@ -1936,32 +1907,6 @@ const getButtonStyle = (btn) => {
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .bet-counter-container {
-    top: 29%;
-    width: 24%;
-    height: 30%;
-     margin-top: 98%; /* Позиционирование по вертикали */
-    left: 37%;
-  }
-  
-  
-  .x2-button-container {
-  position: absolute;
-  width: 47px;
-  height: 28px;
-  left: 12%;
-  top: 442%; /* Позиция под кнопками ставок */
-  z-index: 9;
- 
-   border: 1px solid rgb(36, 223, 15) !important; 
-}
-}
-
-
-
-
 .stavki-buttons-container {
   position: absolute;
   display: flex;
@@ -2026,23 +1971,9 @@ const getButtonStyle = (btn) => {
   transform: translateX(-50%) scale(0.95);
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .otmena-button {
-    width: 25px;
-    height: 25px;
-    left: 0%;
-  }
-}
 
-@media (max-width: 480px) {
- .otmena-button {
-    width: 24px;
-    height: 24px;
-    left: -35.4%;
-    top: 382%;
-  }
-}
+
+
 /* Стиль для скрытия диагональных кнопок */
  .menu-button.diagonal {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
@@ -2070,17 +2001,7 @@ const getButtonStyle = (btn) => {
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .reset-button {
-    width: 48px;
-    height: 24px;
-    top: 488%;
-    left: 0%;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid red !important; 
-  }
-}
+
 /* Анимации для кнопок */
 @keyframes resetPulse {
   0% { transform: translateX(-50%) scale(1); }
@@ -2093,15 +2014,7 @@ const getButtonStyle = (btn) => {
   100% { transform: scale(1); }
 }
 
-@media (max-width: 480px) {
-  .reset-button {
-    width: 41px;
-    height: 21px;
-    top: 382%;
-    left: 8%;
-    
-  }
-}
+
 .menu-buttons-container {
   
   position: absolute;
@@ -2178,29 +2091,6 @@ const getButtonStyle = (btn) => {
   transform: translateX(-50%) scale(0.95);
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .group-164-button {
-    width: 113px;
-    top: 43%;
-    left: 48.5%;
-    
-    border: 1px solid rgb(255, 0, 0) !important;
-  }
-}
-/*@media (max-width: 768px) {
-  .main-color {
-    
-    
-  }
-}*/
-@media (max-width: 480px) {
-  .group-164-button {
-    width: 80px;
-    top: 41%;
-    
-  }
-}
 .menu-button {
   background-image: url('/images/buttons/knopka-menu.png');
   background-size: cover;
@@ -2223,56 +2113,9 @@ const getButtonStyle = (btn) => {
     hue-rotate(5deg);
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .menu-buttons-container {
-    width: 200px;
-    height: 175px;
-    grid-gap: 2px;
-    top: 230%; /* Корректировка позиции */
-    left: 55%;
-     /* Разделяем горизонтальное и вертикальное расстояние */
-  --column-gap: 4px; /* Горизонтальное расстояние */
-  --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
-   
-  /* Рассчитываем размер контейнера */
-  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
-  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
-  
-  display: grid;
-  grid-template-columns: repeat(7, var(--button-width));
-  grid-template-rows: repeat(7, var(--button-height));
-  
-  /* Разделяем горизонтальное и вертикальное расстояние */
-  column-gap: var(--column-gap);
-  row-gap: var(--row-gap);
-  }
-  
-  
-}
 
-@media (max-width: 480px) {
-  .menu-buttons-container {
-    top: 219%;
-    left: 4%;
-    --column-gap: 4px;
-    --row-gap: 6px;
-    --button-width: 36px;
-    --button-height: 30px;
-    width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
-    height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
-    display: grid;
-    grid-template-columns: repeat(7, var(--button-width));
-    grid-template-rows: repeat(7, var(--button-height));
-    -moz-column-gap: var(--column-gap);
-    column-gap: var(--column-gap);
-    row-gap: var(--row-gap);
-    }
-  
-  .menu-button {
-    background-size: contain;
-  }
-}
+
+
 
 /* Отключаем эффекты при блокировке */
 .button-win-container.disabled .button-win {
@@ -2288,13 +2131,7 @@ const getButtonStyle = (btn) => {
   z-index: 3;
 }
 
-@media (max-width: 480px) {
-  .group-image {
-    top: -160%;
-    left: -10%;
-    transform: scale(0.8);
-  }
-}
+
 
 .main-bg-container {
   transform-origin: top center;
@@ -2906,7 +2743,103 @@ position: absolute;
             drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
   }
 }
+/* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
+
 @media (max-width: 768px) {
+
+    .bet-counter-container {
+    top: 29%;
+    width: 24%;
+    height: 30%;
+     margin-top: 98%; /* Позиционирование по вертикали */
+    left: 37%;
+  }
+  
+  
+  .x2-button-container {
+  position: absolute;
+  width: 47px;
+  height: 28px;
+  left: 12%;
+  top: 442%; /* Позиция под кнопками ставок */
+  z-index: 9;
+ 
+   border: 1px solid rgb(36, 223, 15) !important; 
+}
+    /* Адаптация для мобильных */
+@media (max-width: 768px) {
+   .menu-buttons-container {
+    width: 200px;
+    height: 175px;
+    grid-gap: 2px;
+    top: 230%; /* Корректировка позиции */
+    left: 55%;
+     /* Разделяем горизонтальное и вертикальное расстояние */
+  --column-gap: 4px; /* Горизонтальное расстояние */
+  --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+   
+  /* Рассчитываем размер контейнера */
+  width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+  height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+  
+  display: grid;
+  grid-template-columns: repeat(7, var(--button-width));
+  grid-template-rows: repeat(7, var(--button-height));
+  
+  /* Разделяем горизонтальное и вертикальное расстояние */
+  column-gap: var(--column-gap);
+  row-gap: var(--row-gap);
+  }
+  .group-164-button {
+    width: 113px;
+    top: 43%;
+    left: 48.5%;
+    
+    border: 1px solid rgb(255, 0, 0) !important;
+  }
+
+  .reset-button {
+    width: 48px;
+    height: 24px;
+    top: 488%;
+    left: 0%;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid red !important; 
+  }
+
+  .otmena-button {
+    width: 25px;
+    height: 25px;
+    left: 0%;
+  }
+  .bug-button-hovered {
+    transform: scale(1.1);
+    filter: 
+      drop-shadow(0 0 5px rgba(255, 255, 0, 0.7))
+      drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  
+  @keyframes bug-click {
+    0% { transform: scale(1.1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1.1); }
+  }
+
+  .history-bets.inside-center {
+    top: -162%;
+    right: -5%;
+    transform: scale(0.9);
+  }
+  
+  .history-bets.outside-center {
+    top: 50%;
+    left: 40%;
+  }
+}
+  .bug-image {
+    width: 70%;
+  }
+
   .labirint-bg {
     background-size: contain;
     background-position: top center;
@@ -2923,8 +2856,9 @@ position: absolute;
     margin-bottom: 15px;
   }
 }
-
-  /* Адаптация для маленьких экранов */
+/* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
+  
+/* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
 @media (max-width: 480px) {
   .win-menu-center {
     width: 95%;
@@ -2989,7 +2923,7 @@ position: absolute;
     transform: translateX(-50%) scale(0.9);
   }
    .bet-counter-container {
-    top: 26%;
+    top: 27%;
     width: 20%;
     height: 32%;
      margin-top: 98%; /* Позиционирование по вертикали */
@@ -3011,10 +2945,13 @@ position: absolute;
     width: 100%;
     height: 85%;
     transform: scale(1.1);
-    margin-top: -3%;
+    margin-top: 0%;
   }
   .main-bg {
-    /* Адаптация фонового контейнера */
+    width: 100%;
+    max-width: 390px;
+    min-height: 100%;
+    background-size: cover;
   }
   
   .labirint-bg {
@@ -3160,7 +3097,9 @@ position: absolute;
   }
   .reset-button {
    top: 488%;
-   left: -2%;
+   width: 12%;
+   height: 25%;
+   left: -3%;
   }
   
   .x2-button {
@@ -3173,7 +3112,7 @@ position: absolute;
   .group-164-button {
     width: 26%;
     height: 64%;
-    top: 46%;
+    top: 48%;
     left: 43%;
   }
   .bet-button.minus {
@@ -3227,7 +3166,30 @@ position: absolute;
   .podium-results {
     /* Адаптация результатов подиума */
   }
+   .menu-buttons-container {
+    top: 90%;
+    left: 53%;
+    --column-gap: 6px;
+    --row-gap: 7px;
+    --button-width: 36px;
+    --button-height: 30px;
+    width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
+    height: calc((var(--button-height) * 7) + (var(--row-gap) * 6));
+    display: grid;
+    grid-template-columns: repeat(7, var(--button-width));
+    grid-template-rows: repeat(7, var(--button-height));
+    -moz-column-gap: var(--column-gap);
+    column-gap: var(--column-gap);
+    row-gap: var(--row-gap);
+    }
+  
+  .menu-button {
+    background-size: contain;
+  }
 }
+/* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
+
+/* ////////////////////////////////////////медиа@media (max-width: 390px)////////////////////////////////////////*/
 @media (max-width: 390px) {
   /* Основные контейнеры */
   .main-bg {
@@ -3378,16 +3340,20 @@ position: absolute;
     height: 24px;
   }
   
-  .otmena-button {
-    top: 480%;
-    left: 4%;
-  }
-  
+
   .reset-button {
-    top: 480%;
-    left: -1%;
+    width: 41px;
+    height: 21px;
+    top: 382%;
+    left: 8%;
+    
   }
-  
+  .otmena-button {
+    width: 24px;
+    height: 24px;
+    left: -35.4%;
+    top: 382%;
+  }
   .x2-button-container {
     left: 15%;
     top: 432%;
@@ -3398,7 +3364,7 @@ position: absolute;
     top: 45%;
   }
 }
-
+/* ////////////////////////////////////////медиа@media (max-width: 390px)////////////////////////////////////////*/
 /* Для очень маленьких экранов */
 @media (max-width: 360px) {
   @media (max-width: 360px) {

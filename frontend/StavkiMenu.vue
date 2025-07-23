@@ -130,13 +130,11 @@ defineEmits([
 }
 
 .group-164-button:hover {
-  transform: translateX(-50%) scale(1.05);
+  
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
-.group-164-button:active {
-  transform: translateX(-50%) scale(0.95);
-}
+
 
 /* Стили для изображения stavki */
 .stavki-image {
@@ -430,5 +428,11 @@ defineEmits([
   }
   
   
+}
+@media (max-width: 768px) {
+  .menu-stavki{
+    margin-left: -35px;
+    top: -35px;
+  }
 }
 </style>

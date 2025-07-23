@@ -354,69 +354,78 @@ defineEmits([
 @media (max-width: 480px) {
   .bet-display {
     width: 70px;
-    height: 20px;
-    font-size: 12px;
-    
-    
+    height: 22px;
+    font-size: 16px;
+    text-align: center;
     
   }
 
+  .menu-image, .stavki-image{
+    margin-left: 10%;
+  }
+  .group-164-button {
+    width: 27%;
+    top: 41%;
+    height: 69px;
+    transform: scale(1.0) translateX(37%);
+    
+    margin-top: -20%;
+    left: -15%;
+  }
   .bet-counter-container {
-    top: 49%;
+    top: 48%;
+    height: 30%;
+    width: 23%;
     border: 1px solid rgb(36, 223, 15) !important;
     margin-top: 0%;
-    left: 35%;
+    left: 43%;
   }
   .bet-button {
-    width: 20px;
-    height: 20px;
+    width: 31px;
+    height: 23px;
     margin-top: 0%;
     
   }
   
   .stavki-buttons-container {
     top: 10%;
-    width: 75%;
+    width: 70%;
     height: 30%;
-    left: -19%;
-    gap: 7px;
+    left: -7%;
+    gap: 10px;
     border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .stavki-button {
-    width: 42px;
-    height: 20px;
+    width: 50px;
+    height: 100%;
     
   }
   
   .x2-button {
-    width: 45px;
-    height: 32px;
-    left: 30%;
-    top: 10%;
+    width: 46px;
+    height: 22px;
+    left: 32%;
+    top: 6%;
     border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .otmena-button {
     width: 24px;
     height: 24px;
-    left: 1%;
+    left: 11%;
     top: 382%;
     border: 1px solid rgb(36, 223, 15) !important;
   }
   
   .reset-button {
-    width: 42px;
-    height: 21px;
-    margin-top: -11.5%;
-    left: 1.5%;
+    width: 48px;
+    height: 25px;
+    margin-top: -10.6%;
+    left: 8.7%;
     border: 1px solid rgb(36, 223, 15) !important;
   }
   
-  .group-164-button {
-    width: 30%;
-    top: 41%;
-    height: 58px;
-  }
+  
 }
 </style>

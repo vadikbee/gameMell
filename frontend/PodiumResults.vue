@@ -1,4 +1,5 @@
 <template>
+  <div class="outer-container">
   <div class="podium-container">
     <div class="podium-title">{{ t('last_games') }}</div>
     
@@ -51,6 +52,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -82,9 +84,18 @@ const podiums = computed(() => {
 </script>
 
 <style scoped>
+.outer-container {
+  
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 10px; /* Добавляет отступы по бокам */
+  box-sizing: border-box;
+}
 .podium-container {
   position: relative;
   width: 100%;
+  max-width: 400px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -93,6 +104,7 @@ const podiums = computed(() => {
   background: linear-gradient(180deg, rgba(30, 3, 30, 0.4) 0%, rgba(30, 3, 30, 0.4) 100%);
   border-radius: 8px;
 }
+
 
 .podium-title {
   font-family: 'Bahnschrift', sans-serif;
@@ -200,5 +212,27 @@ const podiums = computed(() => {
 .bug-color.empty {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 480px) {
+  
+  
+  .podium-container{
+    
+    border: 1px solid rgb(243, 93, 0) !important;
+  }
+  .outer-container {
+  
+  display:  flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin-top: 10%;
+  margin-left: 35%;
+  padding: 0 0px; /* Добавляет отступы по бокам */
+  box-sizing: border-box;
+  border: 1px solid rgb(243, 93, 0) !important;
+}
+
 }
 </style>

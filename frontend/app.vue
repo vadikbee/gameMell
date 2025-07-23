@@ -5,7 +5,7 @@
     <!-- Контейнер для масштабирования фона -->
     <div 
       class="main-bg-container" 
-      :style="{ transform: `scale(${scaleFactor})` }"
+      
     ></div>
  
     <!-- Основной игровой контейнер -->
@@ -1442,8 +1442,19 @@ const updateScale = () => {
   const baseHeight = 844;
   const widthRatio = window.innerWidth / baseWidth;
   const heightRatio = window.innerHeight / baseHeight;
-  scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
+  
+  // Учитываем портретную и ландшафтную ориентацию
+  const isPortrait = window.innerHeight > window.innerWidth;
+  
+  if (isPortrait) {
+    // Для портретной ориентации
+    scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
+  } else {
+    // Для ландшафтной ориентации
+    scaleFactor.value = Math.min(heightRatio, widthRatio * 0.8, 0.8);
+  }
 };
+  
 
 onMounted(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -1641,14 +1652,7 @@ const getButtonStyle = (btn) => {
   border: 1px solid red !important;
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .win-menu-center .menu-stavki,
-  .bottom-menu {
-    transform: translateX(-50%) scale(0.9);
-    margin-bottom: 15px;
-  }
-}
+
 /* Добавляем стили для изображений */
 .bug-image {
   position: absolute;
@@ -1778,13 +1782,7 @@ const getButtonStyle = (btn) => {
   object-fit: contain;
 }
 
-/* Адаптация для маленьких экранов */
-@media (max-width: 480px) {
-  .win-menu-center {
-    width: 95%;
-    max-width: 320px;
-  }
-}
+
 /* Желтая центральная подсветка */
 .bug-button-hovered::before {
   content: '';
@@ -1833,20 +1831,8 @@ const getButtonStyle = (btn) => {
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .win-menu-center {
-    width: 300px;
-    height: 180px;
-  }
-}
 
-@media (max-width: 480px) {
-  .win-menu-center {
-    width: 260px;
-    height: 160px;
-  }
-}
+
 
 /* Добавляем новые стили для позиционирования */
 /* Позиция внутри центрального меню history-bets (в главном меню)*/
@@ -2925,12 +2911,41 @@ position: absolute;
     background-size: contain;
     background-position: top center;
   }
+  
+  .win-menu-center {
+    width: 300px;
+    height: 180px;
+  }
+
+  .win-menu-center .menu-stavki,
+  .bottom-menu {
+    transform: translateX(-50%) scale(0.9);
+    margin-bottom: 15px;
+  }
 }
+
+  /* Адаптация для маленьких экранов */
 @media (max-width: 480px) {
+  .win-menu-center {
+    width: 95%;
+    max-width: 320px;
+  
+}
+
+.podium-container, .group-imagener {
+  
+  width: 100%;
+  height: 200%;
+  margin-left: 10%;
+  top: 10%;
+  border-radius: 8px;
+}
+
   .main-color {
     /* Адаптация основного контейнера */
     
   }
+  
   .center-menu {
     bottom: calc(350%); /* Дополнительная корректировка */
     margin-top: 0%;
@@ -2974,9 +2989,9 @@ position: absolute;
     transform: translateX(-50%) scale(0.9);
   }
    .bet-counter-container {
-    top: 29%;
+    top: 26%;
     width: 20%;
-    height: 30%;
+    height: 32%;
      margin-top: 98%; /* Позиционирование по вертикали */
     left: 37%;
   }
@@ -2995,6 +3010,7 @@ position: absolute;
     /* Адаптация кнопок +/- */
     width: 100%;
     height: 85%;
+    transform: scale(1.1);
     margin-top: -3%;
   }
   .main-bg {
@@ -3121,30 +3137,19 @@ position: absolute;
     height: var(--button-height);
   }
   
-  .menu-stavki {
-    /* Адаптация меню ставок */
-    margin-left: -7.5%;
-  }
-  
- 
-
-  
    .x2-button-container {
     left: 14%;
-    top: 439%;
-    height: 27.5%;
+    top: 440%;
+    height: 24%;
    /* border: 1px solid red !important;*/
   }
   .bet-button {
     /* Адаптация кнопок +/- */
     width: 100%;
     height: 85%;
+    
   }
   
- 
-  
-  
-
   .stavki-button {
     width: 45px;
     height: 28px;
@@ -3160,14 +3165,15 @@ position: absolute;
   
   .x2-button {
     left: 20%;
-    width: 110% ;
-    height: 120%;
+    width: 100% ;
+    margin-top: 0%;
+    height: 100%;
   }
   
   .group-164-button {
-    width: 25%;
-    height: 60%;
-    top: 50%;
+    width: 26%;
+    height: 64%;
+    top: 46%;
     left: 43%;
   }
   .bet-button.minus {
@@ -3177,9 +3183,7 @@ position: absolute;
 .bet-button.plus {
   margin-left: 0px; /* Отступ слева для плюса */
 }
-  .win-menu-center {
-    /* Адаптация центрального меню победы */
-  }
+  
   
   .menu-container {
     /* Адаптация контейнера меню */
@@ -3197,7 +3201,15 @@ position: absolute;
     margin-top: 15%;
     margin-left: -2%;
   }
-  
+  .history-bets.inside-center {
+  position: absolute;
+  top: -225%;
+  left:-3%;
+  width: 240px;
+  height: 150px;
+  z-index: 10;
+  transform: none !important;
+}
   .last-game-menu {
     /* Адаптация меню последних игр */
   }
@@ -3205,7 +3217,13 @@ position: absolute;
   .group-image {
     /* Адаптация изображения группы */
   }
-  
+  .stavki-buttons-container {
+    top: 405%;
+    width: 59%;
+    left: 3%;
+    gap: 8px;
+    border: 1px solid rgb(243, 93, 0) !important;
+  }
   .podium-results {
     /* Адаптация результатов подиума */
   }
@@ -3351,6 +3369,8 @@ position: absolute;
   
   .stavki-buttons-container {
     top: 395%;
+    
+    border: 1px solid rgb(243, 93, 0) !important;
   }
   
   .stavki-button {
@@ -3381,10 +3401,16 @@ position: absolute;
 
 /* Для очень маленьких экранов */
 @media (max-width: 360px) {
-  .button-2 {
-    right: 85px;
-    width: 140px;
+  @media (max-width: 360px) {
+  .main-bg {
+    transform: scale(0.85);
   }
+}
+
+/* Исправление позиционирования для мобильных */
+.button-1, .button-2, .button-3 {
+  transform: scale(0.9);
+}
   
   .button-win-container {
     transform: scale(0.8);
@@ -3397,7 +3423,7 @@ position: absolute;
   .button-win-5 { right: 192px; }
   .button-win-6 { right: 242px; }
   .button-win-7 { right: 292px; }
-  
+
   .labirint-bg {
     transform: scale(0.8);
     margin-top: -4%;

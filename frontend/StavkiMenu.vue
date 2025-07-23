@@ -200,19 +200,20 @@ defineEmits([
 
 .x2-button {
   position: relative;
-  width: 56px;
-  height: 40px;
+  width: 48px;
+  height: 30px;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
   margin-top: -13.5%;
-  left: 26.4%;
+  left: 26%;
   z-index: 9;
   flex-grow: 0;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid rgb(243, 93, 0) !important;
 }
 
 .x2-button:hover {
@@ -341,7 +342,9 @@ defineEmits([
   }
    .x2-button {
     
-    left: 30%;
+    left: 29.5%;
+    width: 52px;
+    height: 28px;
     
   }
   .group-164-button {

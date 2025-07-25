@@ -2371,7 +2371,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   /* Фиксированные размеры контейнера */
   width: 390px;
   min-height: 844px;
-  height: 100vh;
+  height: 100%;
   max-height: 844px;
   position: relative;
   overflow: hidden;
@@ -3244,13 +3244,52 @@ position: absolute;
     transform: scale(0.85);
   }
 }
-
+/* ...................../..360 ......................................*/
 /* Дополнительные стили для очень маленьких экранов */
 @media (max-width: 360px) {
-  .button-win-container {
-    transform: scale(0.65);
+  /* Общие корректировки */
+  .main-bg {
+    width: 100%;
+    height: 100%;
+    max-height: 640px;
+  }
+  .panel-up {
+    top: 104%;
+    left: -2%;
+  }
+  /* Панель управления */
+  .panel-layer {
+    height: 13%;
   }
   
+  /* Кнопки управления */
+  .button-1, .button-2, .button-3 {
+    transform: scale(0.9);
+    top: 10px;
+    
+  }
+  .button-1 {
+    left: 2%;
+    top: 146%;
+    width: 26%;
+  }
+  .button-2 {
+    top: 95%;
+    left: 24%;
+    width: 48%;
+  }
+  .button-3 {
+    left: auto;
+    top: 43%;
+    left: -4%;
+    width: 26%;
+  }
+
+  /* Кнопки победы */
+  .button-win-container {
+    transform: scale(0.8);
+    top: 75% !important;
+  }
   .button-win-1 { right: -5px; }
   .button-win-2 { right: 35px; }
   .button-win-3 { right: 75px; }
@@ -3258,9 +3297,82 @@ position: absolute;
   .button-win-5 { right: 155px; }
   .button-win-6 { right: 195px; }
   .button-win-7 { right: 235px; }
-  
+
+  /* Центральное меню */
   .center-menu {
     transform: translateX(-50%) scale(0.75);
+    bottom: 480%;
+  }
+  
+  /* Меню ставок */
+  .menu-stavki {
+    transform: scale(0.9);
+  }
+  .bet-counter-container {
+    left: 35%;
+    margin-top: 105%;
+  }
+  .stavki-buttons-container {
+    gap: 5px;
+    top: 410%;
+  }
+  .stavki-button {
+    width: 40px;
+    height: 24px;
+  }
+  .x2-button-container {
+    top: 435%;
+    left: 14%;
+  }
+  .button-win-container {
+    margin-top: 14%;
+    
+  }
+  /* Тараканы и лабиринт */
+  @media (max-width: 360px) {
+  .tarakan {
+    transform: translate(-50%, -50%) scale(1.2) !important;
+    width: 20px !important;
+    height: 25px !important;
+    background-size: contain !important;
+    background-position: center !important;
+  }
+  
+  .explosion {
+    transform: translate(-50%, -50%) scale(0.9) !important;
+    background-size: contain !important;
+    background-position: center !important;
+  }
+}
+  .labirint-bg {
+    top: 8%;
+  }
+  
+  /* Центральное меню победы */
+  .win-menu-center {
+    transform: translate(-50%, -50%) scale(0.9);
+    
+  }
+  
+  /* История ставок */
+  .history-bets.inside-center {
+    top: -200%;
+    transform: scale(0.8);
+  }
+  
+  
+  /* Языковой переключатель */
+  .language-switcher {
+    right: 310px;
+  }
+  
+  /* Текст на кнопках */
+  html[lang="ru"] .bth-1-text,
+  html[lang="ru"] .bth-2-text {
+    font-size: 11px;
+  }
+  .button-2 .button-text {
+    font-size: 18px;
   }
 }
 
@@ -3273,12 +3385,6 @@ html[lang="ru"] .bth-2-text {
 /* ////////////////////////////////////////медиа@media (max-width: 390px)////////////////////////////////////////*/
 /* Для очень маленьких экранов */
 @media (max-width: 360px) {
-  
-  .main-bg {
-    transform: scale(0.85);
-  }
-
-
 /* Исправление позиционирования для мобильных */
 .button-1, .button-2, .button-3 {
   transform: scale(0.9);
@@ -3296,11 +3402,7 @@ html[lang="ru"] .bth-2-text {
   .button-win-6 { right: 242px; }
   .button-win-7 { right: 292px; }
 
-  .labirint-bg {
-    transform: scale(0.8);
-    margin-top: -4%;
-    z-index: 10;
-  }
+  
 }
 /* //////////////////////////// 390-400 ///////////////////////// */
 /* Адаптация лабиринта для 390-400px */

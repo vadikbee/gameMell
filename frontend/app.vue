@@ -3290,129 +3290,118 @@ html[lang="ru"] .bth-2-text {
 
 /* ...................../..360 ......................................*//* ...................../..360 ......................................*/
 @media (max-width: 360px) {
+  /* Основные изменения для фона */
   .main-bg {
-    height: 843px;
+    background-size: 100% auto; /* Гарантируем полное покрытие по ширине */
+    background-position: top center; /* Фиксируем позицию сверху */
+    min-height: 100vh; /* Занимаем всю высоту экрана */
+    max-height: none; /* Снимаем ограничение по высоте */
+    transform: none; /* Убираем трансформацию */
+    margin: 0 auto; /* Центрируем */
+    padding-top: 20px; /* Добавляем отступ сверху */
+    overflow: hidden; /* Скрываем выходящие за границы элементы */
+  }
+  
+  /* Уменьшаем общий масштаб интерфейса */
+  .main-bg-container {
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+  
+  /* Корректируем позицию лабиринта */
+  .labirint-bg {
+    top: 9%;
+    height: 660px;
+  }
+  
+  /* Адаптируем панели */
+  .panel-up {
+    top: -72%;
     width: 100%;
-    max-width: 390px;
-    min-height: 100%;
-    background-size: cover;
-    transform: scale(1);
+    left: 0%;
   }
   
+  .panel-layer {
+    top: 77%;
+    height: 12%;
+  }
+  
+  /* Корректируем кнопки управления */
   .button-1 {
-    margin-left: -3%;
-    transform: scale(1.0);
-    
-  }
-  
-  .button-3 {
-    margin-left: 3%;
-    top: -85%;
-    transform: scale(1.0);
+    left: 0.5%;
+    top: 12%;
+    width: 27%;
   }
   
   .button-2 {
-    width: 49%;
+    left: 28%;
     top: -33%;
-    left: 25%;
-    
+    width: 44%;
   }
   
-  .labirint-bg {
-    transform: scale(1.0);
-    z-index: 4;
+  .button-3 {
+    left: 72%;
+    top: -84%;
+    width: 27%;
   }
   
+  /* Кнопки победы */
+  .button-win-container {
+    transform: scale(0.9);
+    margin-top: -29%;
+    margin-right: -11%;
+    width: 14.5%;
+  }
+  
+  .button-win-1 { right: 39px; }
+  .button-win-2 { right: 86px; }
+  .button-win-3 { right: 134px; }
+  .button-win-4 { right: 183px; }
+  .button-win-5 { right: 231px; }
+  .button-win-6 { right: 280px; }
+  .button-win-7 { right: 330px; }
+  
+  /* Центральное меню */
   .center-menu {
-    transform: translateX(-50%) scale(0.75);
-    bottom: 480%;
+    transform: translateX(-50%) scale(0.8);
+    bottom: 470%;
   }
-  .panel-layer {
-    left: -0.5%;
-    width: 100%;
-    
+  
+  /* Уменьшаем элементы управления */
+  .bet-counter-container {
+    margin-top: 105%;
   }
-  .history-bets.inside-center {
-    top: -225%;
-    left: -3%;
+  
+  .bet-display {
+    font-size: 15px;
   }
   
   .stavki-buttons-container {
-    top: 405%;
-    width: 59%;
-    left: 3%;
-    gap: 8px;
+    gap: 6px;
   }
   
-  .group-164-button {
-    width: 26%;
-    height: 64%;
-    top: 48%;
-    left: 43%;
+  .stavki-button {
+    width: 40px;
+    height: 22px;
   }
-  
-  .menu-buttons-container {
-    top: 90%;
-    left: 53%;
-    --column-gap: 6px;
-    --row-gap: 7px;
-    --button-width: 36px;
-    --button-height: 30px;
-  }
-  .button-win-container {
-    
-    margin-right: -2%;
-    top: 76%;
-  }
+  .language-switcher {
+  left: 1%;
+}
 }
 
-/* Оптимизация для русского языка */
+/* Для русского языка делаем шрифты немного меньше */
 html[lang="ru"] .bth-1-text,
 html[lang="ru"] .bth-2-text {
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-@media (max-width: 360px) {
-  html[lang="ru"] .bth-1-text,
-  html[lang="ru"] .bth-2-text {
-    font-size: 11px;
-  }
-  
-  .button-2 .button-text {
-    font-size: 18px;
-  }
-}
-
-/* ////////////////////////////////////////медиа@media (max-width: 360px)////////////////////////////////////////*/
-/* Для очень маленьких экранов */
-@media (max-width: 360px) {
-/* Исправление позиционирования для мобильных */
-
-  
-  .button-win-container {
-    transform: scale(0.95);
-    margin-top: 13.5%;
-  }
-  
-  .button-win-1 { right: -12px; }
-  .button-win-2 { right: 42px; }
-  .button-win-3 { right: 97px; }
-  .button-win-4 { right: 152px; }
-  .button-win-5 { right: 208px; }
-  .button-win-6 { right: 262px; }
-  .button-win-7 { right: 317px; }
-
-  
+  font-size: 11px;
 }
 /* //////////////////////////// 390-400 ///////////////////////// */
 /* Адаптация лабиринта для 390-400px */
-@media (min-width: 390px) and (max-width: 400px) {
+@media (min-width: 390px) and (max-width: 399px) {
   .labirint-bg {
     height: 689px;
     top: 8.8%; /* Точная подстройка позиции */
     width: 100%; /* Занимает всю доступную ширину */
-    z-index: 6;
+    
     max-width: 100%; /* Не превышает ширину экрана */
     left: 0; /* Выравнивание по левому краю */
     transform: none; /* Сбрасываем трансформации */
@@ -3421,7 +3410,7 @@ html[lang="ru"] .bth-2-text {
   
   .main-bg {
     z-index: 1;
-    top: -20px;
+    
     
     height: 800px;
     width: 100%; /* Ширина на весь экран */
@@ -3436,13 +3425,13 @@ html[lang="ru"] .bth-2-text {
   }
  
   /* Корректировка позиций кнопок победы */
-  .button-win-1 { right: 3px; }
-  .button-win-2 { right: 15%; }
-  .button-win-3 { right: 110px; }
-  .button-win-4 { right: 163px; }
-  .button-win-5 { right: 218px; }
-  .button-win-6 { right: 271px; }
-  .button-win-7 { right: 326px; }
+  .button-win-1 { right: 5px; }
+  .button-win-2 { right: 60px; }
+  .button-win-3 { right: 114px; }
+  .button-win-4 { right: 168px; }
+  .button-win-5 { right: 222px; }
+  .button-win-6 { right: 276px; }
+  .button-win-7 { right: 331px; }
   .button-win-1,.button-win-2 ,.button-win-3 ,.button-win-4 ,.button-win-5 ,.button-win-6 ,.button-win-7 {
     margin-top: 6%;
     transform: scaleX(0.95);
@@ -3456,7 +3445,17 @@ html[lang="ru"] .bth-2-text {
     z-index: 20 !important; /* Выше панели */
     cursor: pointer;
     pointer-events: none;
+    top: 80.5%;
+    width: 13%;
+    
+    
   }
+ .button-win {
+  cursor: default !important;
+  pointer-events: none;
+  border: 1px solid rgb(36, 0, 238) !important;
+  z-index: 7;
+ }
   /* Дополнительные корректировки */
   .panel-layer,
   .panel-up {
@@ -3466,22 +3465,28 @@ html[lang="ru"] .bth-2-text {
     box-sizing: border-box; /* Учитываем padding в ширине */
   }
   .panel-up {
-    top: 43%;
+    top: 5%;
     
   }
+  .panel-layer {
+    top: 88%;
+    height: 12%;
+    border: 1px solid rgb(255, 0, 0) !important;
+  }
   .button-3 {
-    top: 50%;
-    transform: scale(0.9);
+    top: 16%;
+    
     left: 74%;
   }
     .button-2 {
-      top: 50%;
+      top: 17%;
       left: 28%;
-    transform: scale(0.95);
+      width: 44%;
+    
     }
   .button-1 {
-    top: 50%;
-    transform: scale(0.9);
+    top: 17%;
+    
     
   }
   .history-bets {
@@ -3498,14 +3503,21 @@ html[lang="ru"] .bth-2-text {
 
 @media (min-width: 400px) and (max-width: 405px) {
   /* Центральное меню */
-  .main-color {
+  .button-1, .button-2, .button-3 {
+    top: 10%;
     
   }
+  .button-2 {
+    left: 28%;
+  }
+  .button-3 {
+    left: 74%;
+  }
   .labirint-bg {
-    top: 8.3%;
+    top: 7.5%;
     max-width: 100%;
     margin: 0 auto;
-    z-index: 10;
+    z-index: 1;
   }
   .main-bg {
   background-position: center top;
@@ -3521,16 +3533,17 @@ html[lang="ru"] .bth-2-text {
   margin: 0 auto;
   z-index: 1;
 }
+
 .button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5,.button-win-6,.button-win-7 {
    
-    margin-top: -1%;
-    transform: translateX(5%)
+    margin-top: -2.9%;
+    transform: translateX(8%) scaleX(95%)
     
   }
+  .button-win {
+    z-index: 10;
+  }
 }
-
-
-
 
 /*  стили для языка */
 html[lang="ru"] .bth-1-text {

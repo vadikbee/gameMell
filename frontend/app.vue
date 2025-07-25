@@ -3254,12 +3254,15 @@ position: absolute;
     max-height: 640px;
   }
   .panel-up {
-    top: 104%;
-    left: -2%;
+    top: -30%;
+    left: -0.9%;
   }
   /* Панель управления */
   .panel-layer {
-    height: 13%;
+    height: 9.5%;
+    top: 100%;
+    left: -1%;
+    border: 1px solid rgb(75, 225, 10) !important;
   }
   
   /* Кнопки управления */
@@ -3269,34 +3272,23 @@ position: absolute;
     
   }
   .button-1 {
-    left: 2%;
-    top: 146%;
+    left: 2.5%;
+    top: 21%;
     width: 26%;
   }
   .button-2 {
-    top: 95%;
-    left: 24%;
+    top: -51%;
+    left: 25%;
     width: 48%;
   }
   .button-3 {
     left: auto;
-    top: 43%;
-    left: -4%;
+    top: -120%;
+    left: -3%;
     width: 26%;
   }
 
-  /* Кнопки победы */
-  .button-win-container {
-    transform: scale(0.8);
-    top: 75% !important;
-  }
-  .button-win-1 { right: -5px; }
-  .button-win-2 { right: 35px; }
-  .button-win-3 { right: 75px; }
-  .button-win-4 { right: 115px; }
-  .button-win-5 { right: 155px; }
-  .button-win-6 { right: 195px; }
-  .button-win-7 { right: 235px; }
+
 
   /* Центральное меню */
   .center-menu {
@@ -3391,16 +3383,17 @@ html[lang="ru"] .bth-2-text {
 }
   
   .button-win-container {
-    transform: scale(0.8);
+    transform: scale(0.85);
+    margin-top: 13.5%;
   }
   
-  .button-win-1 { right: -8px; }
-  .button-win-2 { right: 42px; }
-  .button-win-3 { right: 92px; }
-  .button-win-4 { right: 142px; }
-  .button-win-5 { right: 192px; }
-  .button-win-6 { right: 242px; }
-  .button-win-7 { right: 292px; }
+  .button-win-1 { right: -1px; }
+  .button-win-2 { right: 48px; }
+  .button-win-3 { right: 97px; }
+  .button-win-4 { right: 146px; }
+  .button-win-5 { right: 194px; }
+  .button-win-6 { right: 243px; }
+  .button-win-7 { right: 291px; }
 
   
 }

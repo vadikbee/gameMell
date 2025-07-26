@@ -427,12 +427,83 @@ defineEmits([
     border: 1px solid rgb(36, 223, 15) !important;
   }
   
-  
+ 
 }
 @media (max-width: 768px) {
   .menu-stavki{
     margin-left: -35px;
     top: -35px;
+  }
+}
+/* Адаптация для 360px */
+@media (max-width: 360px) {
+  .menu-stavki {
+    transform: scale(0.9);
+    transform-origin: top center;
+    margin-top: 11%;
+  }
+
+  
+  .bet-counter-container {
+    top: 46%;
+    left: 43%;
+    width: 23%;
+    height: 32%;
+  }
+
+  .bet-button {
+    width: 20px;
+    height: 25px;
+  }
+  .bet-button.minus,.bet-button.plus {
+    width: 50%;
+  }
+
+  .bet-display {
+    width: 100%;
+    font-size: 15px;   
+  }
+ 
+  .stavki-buttons-container {
+    top: 10px;
+    left: -7%;
+    gap: 15px;
+    width: 70%;
+  }
+
+  .stavki-button {
+    width: 44px;
+    height: 22px;
+  }
+
+  .x2-button {
+    width: 46px;
+    height: 25px;
+    left: 31.5%;
+    top: 5%;
+  }
+  
+  
+  .otmena-button {
+    width: 24px;
+    height: 24px;
+    left: 10.5%;
+    margin-top: -10.2%;
+  }
+
+  .reset-button {
+    width: 49px;
+    height: 24px;
+    margin-top: -10.5%;
+    left: 8.4%;
+  }
+
+  .group-164-button {
+    width: 27%;
+    height: 72px;
+    top: 43%;
+    left: -5%;
+    transform: translateX(0);
   }
 }
 </style>

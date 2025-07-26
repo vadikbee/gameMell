@@ -1680,13 +1680,7 @@ const getButtonStyle = (btn) => {
 
 
 /* Контейнер для меню с относительным позиционированием */
-.menu-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  height: 100%;
-   border: 1px solid red !important;
-}
+
 
 /* Контейнер для кнопок тараканов */
 .bug-buttons-container {
@@ -1835,7 +1829,6 @@ const getButtonStyle = (btn) => {
   left: 43.5%;
   z-index: 10;
 }
-
 
 
 
@@ -3292,7 +3285,8 @@ html[lang="ru"] .bth-2-text {
 @media (max-width: 360px) {
   /* Основные изменения для фона */
   .main-bg {
-    background-size: 100% auto; /* Гарантируем полное покрытие по ширине */
+    
+    background-size: 100% 100%; /* Гарантируем полное покрытие по ширине */
     background-position: top center; /* Фиксируем позицию сверху */
     min-height: 100vh; /* Занимаем всю высоту экрана */
     max-height: none; /* Снимаем ограничение по высоте */
@@ -3301,7 +3295,29 @@ html[lang="ru"] .bth-2-text {
     padding-top: 20px; /* Добавляем отступ сверху */
     overflow: hidden; /* Скрываем выходящие за границы элементы */
   }
+  .menuWin-image-center {
+    transform: scale(0.8) ;
+  }
+ 
+ 
   
+  .bug-button-hovered {
+  transform: scale(1.15);
+  position: relative;
+
+  filter: 
+    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
+    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+  z-index: 12; /* Поднимаем над остальными при наведении */
+}
+  /* Уменьшаем горизонтальные отступы между тараканами */
+  .bug-button:nth-child(1) { left: 3% !important; }
+  .bug-button:nth-child(2) { left: 14% !important; }
+  .bug-button:nth-child(3) { left: 25% !important; }
+  .bug-button:nth-child(4) { left: 36% !important; }
+  .bug-button:nth-child(5) { left: 47% !important; }
+  .bug-button:nth-child(6) { left: 58% !important; }
+  .bug-button:nth-child(7) { left: 68% !important; }
   /* Уменьшаем общий масштаб интерфейса */
   .main-bg-container {
     transform: scale(0.92);
@@ -3313,43 +3329,107 @@ html[lang="ru"] .bth-2-text {
     top: 9%;
     height: 660px;
   }
-  
+ 
   /* Адаптируем панели */
   .panel-up {
-    top: -72%;
+    top: -165%;
     width: 100%;
     left: 0%;
   }
   
   .panel-layer {
-    top: 77%;
+    top: 89%;
     height: 12%;
   }
   
   /* Корректируем кнопки управления */
   .button-1 {
-    left: 0.5%;
-    top: 12%;
+    transform: scale(0.85) scaleY(115%) scaleX(96%);
+    left: 0%;
+    top: 20%;
     width: 27%;
   }
   
   .button-2 {
+    transform: scale(0.85) scaleY(140%) scaleX(117%);
     left: 28%;
-    top: -33%;
+    top: -25%;
     width: 44%;
   }
+  /* Анимации для всех кнопок */
+.button-1, .button-2, .button-3 {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.button-1:active, .button-2:active, .button-3:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+/* Специальные настройки для 360px */
+@media (max-width: 360px) {
   
-  .button-3 {
-    left: 72%;
-    top: -84%;
-    width: 27%;
+  
+  /* Уменьшение размера текста для лучшей читаемости */
+  .button-text {
+    font-size: 11px;
+    transition: font-size 0.1s ease;
   }
   
+  .button-2 .button-text {
+    font-size: 13px;
+  }
+  
+  .button-1:active, 
+.button-2:active,
+.button-3:active {
+  /* Удаляем изменение размера */
+  transform: none !important;
+  /* Отключаем изменение яркости */
+  filter: none !important;
+}
+
+/* Убираем анимацию нажатия */
+.button-1:active .button-text,
+.button-2:active .button-text,
+.button-3:active .button-text {
+  font-size: inherit;
+}
+
+/* Для кнопки 2 оставляем только hover-эффект без изменения размера */
+.button-2:hover {
+  filter: 
+    brightness(1.1) 
+    drop-shadow(6 6 8px rgba(178, 56, 58, 0.8));
+}
+
+/* Отключаем изменение размера в медиа-запросах */
+@media (max-width: 360px) {
+  .button-1:active, 
+  .button-2:active, 
+  .button-3:active {
+    transform: none !important;
+    filter: none !important;
+  }
+}
+  .button-2:active .button-text {
+    font-size: 12.5px;
+  }
+}
+  .button-3 {
+    transform: scale(0.85) scaleY(115%) scaleX(96%);
+    left: 72%;
+    top: -75%;
+    width: 28%;
+    height: 50%;
+  }
+ 
   /* Кнопки победы */
   .button-win-container {
     transform: scale(0.9);
-    margin-top: -29%;
+    margin-top: -1%;
     margin-right: -11%;
+    height: 8.2%;
     width: 14.5%;
   }
   
@@ -3370,10 +3450,32 @@ html[lang="ru"] .bth-2-text {
   /* Уменьшаем элементы управления */
   .bet-counter-container {
     margin-top: 105%;
+    
   }
   
   .bet-display {
     font-size: 15px;
+    border: 1px solid rgb(170, 9, 245) !important;
+  }
+  .win-menu-center {
+    top: 71%;
+    border: 1px solid #cbeb29 !important;
+  }
+ 
+  .menu-container {
+    top: 10%;
+    border: 1px solid rgb(15, 187, 255) !important;
+  }
+  .bug-button {
+    transform: scale(0.8);
+    margin-top: 1%;
+    margin-left: 2%;
+    
+  }
+   .bug-buttons-container {
+   margin-top: 4%;
+    margin-left: 10%;
+    height: 57%;
   }
   
   .stavki-buttons-container {
@@ -3382,7 +3484,6 @@ html[lang="ru"] .bth-2-text {
   
   .stavki-button {
     width: 40px;
-    height: 22px;
   }
   .language-switcher {
   left: 1%;

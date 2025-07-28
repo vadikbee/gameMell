@@ -3416,6 +3416,7 @@ html[lang="ru"] .bth-2-text {
     font-size: 12.5px;
   }
 }
+  
   .button-3 {
     transform: scale(0.85) scaleY(115%) scaleX(96%);
     left: 72%;
@@ -3431,7 +3432,9 @@ html[lang="ru"] .bth-2-text {
     margin-right: -11%;
     height: 8.2%;
     width: 14.5%;
+    
   }
+ 
   
   .button-win-1 { right: 39px; }
   .button-win-2 { right: 86px; }
@@ -3452,7 +3455,10 @@ html[lang="ru"] .bth-2-text {
     margin-top: 105%;
     
   }
-  
+   /*.main-bg {
+    z-index: 90;
+  background-image: url('/images/test/maze-359.png');
+   }*/
   .bet-display {
     font-size: 15px;
     border: 1px solid rgb(170, 9, 245) !important;
@@ -3477,7 +3483,24 @@ html[lang="ru"] .bth-2-text {
     margin-left: 10%;
     height: 57%;
   }
+  .button-win-container {
+    z-index: 10 !important; /* Повышаем z-index */
+    pointer-events: auto !important; /* Гарантируем кликабельность */
+  }
   
+  .button-win {
+    z-index: 11 !important; /* Дополнительное повышение */
+    pointer-events: auto !important; /* Разрешаем взаимодействие */
+  }
+  
+  /* Дополнительно: убедимся что другие элементы не перекрывают кнопки */
+  .panel-layer {
+    z-index: 5; /* Ниже кнопок */
+  }
+  
+  .tarakan, .explosion {
+    z-index: 3; /* Ниже кнопок */
+  }
   .stavki-buttons-container {
     gap: 6px;
   }

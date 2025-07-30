@@ -57,9 +57,10 @@
 
 <script setup>
 import { computed } from 'vue';
-import i18n from './i18n.js'
-const { t } = i18n.global
-const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
+import { useI18n } from 'vue-i18n'; // Измененный импорт
+
+const { t } = useI18n(); // Получаем функцию t через хук
+
 const props = defineProps({
   games: Array
 });

@@ -1,5 +1,3 @@
-//frontend\nuxt.config.ts
-
 import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
@@ -8,7 +6,13 @@ export default defineNuxtConfig({
     host: 'localhost'
   },
   
-  // ИСПРАВЛЕННАЯ КОНФИГУРАЦИЯ ПРОКСИ
+  // Переносим runtimeConfig на верхний уровень
+  runtimeConfig: {
+    public: {
+      apiBase: '/api'
+    }
+  },
+  
   nitro: {
     devProxy: {
       '/api': {
@@ -42,11 +46,5 @@ export default defineNuxtConfig({
   
   modules: [
     '@nuxt/devtools'
-  ],
-  
-  runtimeConfig: {
-    public: {
-      apiBase: '/api'
-    }
-  }
+  ]
 })

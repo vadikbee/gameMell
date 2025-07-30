@@ -59,6 +59,7 @@
 </template>
 
 <script setup>
+
 defineProps({
   currentBet: Number,
   stavkiButtons: Array

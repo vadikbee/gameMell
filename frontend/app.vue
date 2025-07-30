@@ -367,31 +367,49 @@ import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
 import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту строку
 import PodiumResults from './PodiumResults.vue';
+import i18n from './plugins/i18n.js' // Добавить эту строку
+import { useI18n } from 'vue-i18n'
 // Исправляем работу со звуком
+const { t, locale } = useI18n();
 const dizzySoundElement = ref(null);
 const soundVolume = ref(0.5);
+
 // Добавьте новый импорт i18n
-import i18n from './i18n.js'
-const { t } = i18n.global
-const currentLanguage = ref(i18n.global.locale.value.toUpperCase());
-// Получаем локаль из URL
-const urlParams = new URLSearchParams(window.location.search)
-const langParam = urlParams.get('lang')
-if (langParam && i18n.global.availableLocales.includes(langParam)) {
-  i18n.global.locale.value = langParam
-}
+
+const currentLanguage = computed(() => locale.value.toUpperCase());
+
+
+
+
+
+const screenWidth = ref(window.innerWidth);
+// Функция определения размера экрана
+const updateScreenSize = () => {
+  screenWidth.value = window.innerWidth;
+};
 
 const switchLanguage = () => {
-  const newLang = i18n.global.locale.value === 'en' ? 'ru' : 'en';
-  i18n.global.locale.value = newLang;
-  currentLanguage.value = newLang.toUpperCase();
-  document.documentElement.lang = newLang; // Добавлено
+  const newLang = locale.value === 'en' ? 'ru' : 'en';
   
-  // Обновляем URL с новым параметром языка
+  // Обновляем локаль через Vue I18n
+  locale.value = newLang;
+  
+  // Обновляем UI
+  currentLanguage.value = newLang.toUpperCase();
+  document.documentElement.lang = newLang;
+  
+  // Сохраняем выбор в URL
   const url = new URL(window.location);
   url.searchParams.set('lang', newLang);
   window.history.replaceState(null, '', url);
-};
+  
+  // Принудительно обновляем компоненты
+  key.value++; // Добавляем реактивность
+}
+
+// Добавляем реактивный ключ
+const key = ref(0);
+
 // Добавляем переменные для звука
 
 const dizzySound = ref(null);
@@ -2496,6 +2514,13 @@ position: absolute;
   object-fit: contain;
   border: 1px solid red !important;
 }
+#Button-1 .button-text {
+  white-space: pre-line;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
 .stavki-image {
   width: 95%; /* Ширина относительно основного изображения */
@@ -3511,6 +3536,43 @@ html[lang="ru"] .bth-2-text {
   .language-switcher {
   left: 1%;
 }
+.menu-buttons-container{
+left: 12%;
+top: 55%;
+border: 1px solid #cbeb29 !important;
+width: 85%;
+--column-gap: 5.5px; /* Горизонтальное расстояние */
+--row-gap: 7.5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+   
+}
+.group-164-button {
+  top: 31%;
+  transform: scale(0.9) scaleY(0.9);
+  left: 29%;
+}
+.stavki-buttons-container {
+  top: 323%;
+  left: 5.5%;
+  gap: 5px;
+  width: 55%;
+  height: 25%;
+}
+.stavki-button {
+  width: 22%;
+  height: 80%;
+}
+.x2-button-container {
+  border: 1px solid #cbeb29 !important;
+  top: 347%;
+  transform: scale(0.8);
+  left: 13%;
+}
+.otmena-button {
+  top: 383.5%;
+  left: -2%;
+  transform: scale(0.8);
+  border: 1px solid #cbeb29 !important;
+}
 }
 
 /* Для русского языка делаем шрифты немного меньше */
@@ -3670,13 +3732,20 @@ html[lang="ru"] .bth-2-text {
 }
 
 /*  стили для языка */
-html[lang="ru"] .bth-1-text {
-  font-size: 13px; /* Уменьшаем размер шрифта */
-  letter-spacing: -0.3px; /* Опционально: сжимаем межбуквенный интервал */
+/* Добавим адаптивные стили для русского языка */
+html[lang="ru"] .bth-1-text,
+html[lang="ru"] .bth-3-text {
+  font-size: 11px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  padding: 0 5px;
+  
 }
+
 html[lang="ru"] .bth-2-text {
-  font-size: 20px; /* Уменьшаем размер шрифта */
-  letter-spacing: 1px; /* Опционально: сжимаем межбуквенный интервал */
+  font-size: 15px;
+  letter-spacing: -0.5px;
+  padding: 0 8px;
 }
 /* стили для языка*/
 

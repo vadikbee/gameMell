@@ -453,3 +453,5 @@ function generatePixelPreview($debug, $cols, $rows, $cellSize) {
     
     return $html;
 }
+
+//php generate_grid_344.php

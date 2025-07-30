@@ -507,4 +507,14 @@ defineEmits([
     transform: translateX(0);
   }
 }
+
+
+@media (min-width: 359px) and (max-width: 361px) {
+ .menu-stavki {
+    transform: scale(0.9);
+    margin-left: -17%;
+    
+  }
+  
+}
 </style>

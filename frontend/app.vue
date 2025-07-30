@@ -2339,7 +2339,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   border: 1px solid red !important;
 }
 
-
 /* Анимация выделения */
 .menu-button.selected {
   filter: 
@@ -2410,7 +2409,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   top: 22px;
   right: 110px; /* Исправленное позиционирование */
   border: 1px solid red !important; 
-  
 }
 
 .button-3 {
@@ -2506,7 +2504,6 @@ position: absolute;
   
 }
 
-
 .menu-image {
   width: 100%;
   max-width: 390px; /* Максимальная ширина основного изображения */
@@ -2551,9 +2548,6 @@ position: absolute;
   }
 }
 
-
-  
-
 .menu-button.button-visible {
   visibility: visible;
   pointer-events: auto;
@@ -2596,10 +2590,6 @@ position: absolute;
   transform: scale(0.98);
   filter: brightness(0.95);
 }
-/* Гарантируем, что контент будет поверх панели */
-/* Адаптивность для маленьких экранов */
-/* Адаптация для мобильных */
-
 
 .menu-image {
   max-width: 80vw;
@@ -2608,12 +2598,11 @@ position: absolute;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   transition: opacity 0.2s ease;
 }
+
 .button-win-disabled {
   opacity: 1;
   filter: grayscale(70%);
 }
-
-
 
 /* Стили для контейнера вкладок */
 .menu-tabs {
@@ -3382,19 +3371,12 @@ html[lang="ru"] .bth-2-text {
     top: -25%;
     width: 44%;
   }
-  /* Анимации для всех кнопок */
-.button-1, .button-2, .button-3 {
-  transition: transform 0.15s ease, filter 0.15s ease;
-}
 
-.button-1:active, .button-2:active, .button-3:active {
-  transform: scale(0.95);
-  filter: brightness(0.9);
-}
+
+
 
 /* Специальные настройки для 360px */
 @media (max-width: 360px) {
-  
   
   /* Уменьшение размера текста для лучшей читаемости */
   .button-text {
@@ -3406,21 +3388,6 @@ html[lang="ru"] .bth-2-text {
     font-size: 13px;
   }
   
-  .button-1:active, 
-.button-2:active,
-.button-3:active {
-  /* Удаляем изменение размера */
-  transform: none !important;
-  /* Отключаем изменение яркости */
-  filter: none !important;
-}
-
-/* Убираем анимацию нажатия */
-.button-1:active .button-text,
-.button-2:active .button-text,
-.button-3:active .button-text {
-  font-size: inherit;
-}
 
 /* Для кнопки 2 оставляем только hover-эффект без изменения размера */
 .button-2:hover {
@@ -3429,15 +3396,7 @@ html[lang="ru"] .bth-2-text {
     drop-shadow(6 6 8px rgba(178, 56, 58, 0.8));
 }
 
-/* Отключаем изменение размера в медиа-запросах */
-@media (max-width: 360px) {
-  .button-1:active, 
-  .button-2:active, 
-  .button-3:active {
-    transform: none !important;
-    filter: none !important;
-  }
-}
+
   .button-2:active .button-text {
     font-size: 12.5px;
   }
@@ -3488,6 +3447,7 @@ html[lang="ru"] .bth-2-text {
   .bet-display {
     font-size: 15px;
     border: 1px solid rgb(170, 9, 245) !important;
+    
   }
   .win-menu-center {
     top: 71%;
@@ -3842,6 +3802,50 @@ width:55%;
 .history-bets.inside-center{
 top: -330%;
 }
+@media (min-width: 359px) and (max-width: 361px) {
+.button-1 {
+top: 20%;
+left: -1%;
+width: 28%;
+}
+.reset-button {
+  top: 385%;
+  transform: scale(0.85);
+  width: 13%;
+  height: 21%;
+}
+
+.button-2 {
+top: -29%;
+left: 25%;
+transform: scale(0.9) scaleY(1.1);
+width: 49%;
+
+}
+.history-bets.inside-center {
+  top: -200%;
+  
+}
+.bet-counter-container {
+  top: -3%;
+  transform: scale(0.85);
+  width: 25%;
+  left: 24%;
+  height: 28%;
+}
+.bug-buttons-container {
+  top: 32.5%;
+  transform: scale(1);
+}
+
+.button-3 {
+  top: -75%;
+left: 71.5%;
+transform: scale(0.9) scaleY(1.1) scaleX(0.9);
+
+}
+
+}
 @media (min-width: 392px) and (max-width: 394px) {
   .button-win-container {
   top: 80.3%;
@@ -3921,5 +3925,7 @@ left: 6%;
 gap: 3%;
 width:55%;
 }
+
 }
+
 </style>

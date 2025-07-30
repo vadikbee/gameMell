@@ -150,4 +150,20 @@ const bets = [
     
   }
 }
+
+@media (max-width: 768px) {
+  .history-bets{
+    transform: translate(10%) scale(0.9) translateY(50%);
+    
+    
+  }
+}
+
+@media (max-width: 480px) {
+  .history-bets{
+    transform: translate(5%) scale(0.9) translateY(9%);
+    
+    
+  }
+}
 </style>

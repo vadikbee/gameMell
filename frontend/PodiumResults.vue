@@ -219,7 +219,8 @@ const podiums = computed(() => {
   
   
   .podium-container{
-    
+    transform: scale(1.5);
+    top: -30%;
     border: 1px solid rgb(243, 93, 0) !important;
   }
   .outer-container {
@@ -228,6 +229,7 @@ const podiums = computed(() => {
   justify-content: center;
   width: 100%;
   height: 100%;
+  
   margin-top: 10%;
   margin-left: 35%;
   padding: 0 0px; /* Добавляет отступы по бокам */

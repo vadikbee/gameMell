@@ -2846,6 +2846,7 @@ position: absolute;
   .bottom-menu {
     transform: translateX(-50%) scale(0.9);
     margin-bottom: 15px;
+    left: 62.5%;
   }
 }
 /* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
@@ -2867,10 +2868,7 @@ position: absolute;
   border-radius: 8px;
 }
 
-  .main-color {
-    /* Адаптация основного контейнера */
-    
-  }
+  
   
   .center-menu {
     bottom: calc(350%); /* Дополнительная корректировка */
@@ -2966,9 +2964,7 @@ position: absolute;
   .result-tab {
     border-radius: 0 40px 40px 0; /* Уменьшаем скругление */
   }
-  .explosion {
-    /* Адаптация анимации взрыва */
-  }
+ 
   
   .menu-image, .stavki-image {
     max-width: 100%;
@@ -2976,9 +2972,7 @@ position: absolute;
     margin-left: 0;
   }
   
-  .menu-image {
-    /* Адаптация изображений меню */
-  }
+  
   
   .menu-tabs {
     width: 90%;
@@ -3048,9 +3042,9 @@ position: absolute;
   }
   .reset-button {
    top: 488%;
-   width: 12%;
+   width: 11%;
    height: 25%;
-   left: -3%;
+   left: -2%;
   }
   
   .x2-button {
@@ -3090,13 +3084,7 @@ position: absolute;
   z-index: 10;
   transform: none !important;
 }
-  .last-game-menu {
-    /* Адаптация меню последних игр */
-  }
-  
-  .group-image {
-    /* Адаптация изображения группы */
-  }
+
   .stavki-buttons-container {
     top: 405%;
     width: 59%;
@@ -3104,9 +3092,7 @@ position: absolute;
     gap: 8px;
     border: 1px solid rgb(243, 93, 0) !important;
   }
-  .podium-results {
-    /* Адаптация результатов подиума */
-  }
+  
    .menu-buttons-container {
     top: 90%;
     left: 53%;
@@ -3127,6 +3113,14 @@ position: absolute;
   .menu-button {
     background-size: contain;
   }
+  .menuWin-image-center {
+    transform: scale(0.9);
+  }
+  .bug-buttons-container {
+    transform: scale(0.9) translateY(20%) translateX(0%);
+    
+  }
+  
 }
 /* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
 
@@ -3690,8 +3684,13 @@ html[lang="ru"] .bth-2-text {
 @media (min-width: 400px) and (max-width: 405px) {
   /* Центральное меню */
   .button-1, .button-2, .button-3 {
-    top: 10%;
+    top: 17%;
     
+  }
+  .reset-button {
+    transform: scale(1);
+    top: 485%;
+    left: -2%;
   }
   .button-2 {
     left: 28%;
@@ -3748,5 +3747,12 @@ html[lang="ru"] .bth-2-text {
   padding: 0 8px;
 }
 /* стили для языка*/
-
+@media (min-width: 400px) and (max-width: 403px) {
+  .button-1, 
+  .button-2, 
+  .button-3 
+  {
+    margin-top: -1%;
+  }
+}
 </style>

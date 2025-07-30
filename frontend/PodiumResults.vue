@@ -238,4 +238,10 @@ const podiums = computed(() => {
 }
 
 }
+
+@media (min-width: 389px) and (max-width: 391px) {
+  .podium-container {
+    top: -80%;
+  }
+}
 </style>

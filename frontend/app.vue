@@ -3591,7 +3591,7 @@ html[lang="ru"] .bth-2-text {
   .main-bg {
     z-index: 1;
     
-    
+    margin-top: -20%;
     height: 800px;
     width: 100%; /* Ширина на весь экран */
     max-width: 100%; /* Не больше ширины экрана */
@@ -3606,26 +3606,26 @@ html[lang="ru"] .bth-2-text {
  
   /* Корректировка позиций кнопок победы */
   .button-win-1 { right: 5px; }
-  .button-win-2 { right: 60px; }
-  .button-win-3 { right: 114px; }
-  .button-win-4 { right: 168px; }
-  .button-win-5 { right: 222px; }
-  .button-win-6 { right: 276px; }
-  .button-win-7 { right: 331px; }
+  .button-win-2 { right: 59px; }
+  .button-win-3 { right: 113px; }
+  .button-win-4 { right: 167px; }
+  .button-win-5 { right: 221px; }
+  .button-win-6 { right: 275px; }
+  .button-win-7 { right: 330px; }
   .button-win-1,.button-win-2 ,.button-win-3 ,.button-win-4 ,.button-win-5 ,.button-win-6 ,.button-win-7 {
     margin-top: 6%;
-    transform: scaleX(0.95);
+    transform: scaleX(1);
     cursor: pointer;
     pointer-events: none;
     
-    z-index: 6;
+    
   }
   .button-win-container {
     border: 1px solid rgb(80, 238, 0) !important;
-    z-index: 20 !important; /* Выше панели */
+    
     cursor: pointer;
     pointer-events: none;
-    top: 80.5%;
+    top: 81%;
     width: 13%;
     
     
@@ -3645,12 +3645,13 @@ html[lang="ru"] .bth-2-text {
     box-sizing: border-box; /* Учитываем padding в ширине */
   }
   .panel-up {
-    top: 5%;
+    top: 46%;
+    left: 0.1%;
     
   }
   .panel-layer {
-    top: 88%;
-    height: 12%;
+    top: 92%;
+    height: 8%;
     border: 1px solid rgb(255, 0, 0) !important;
   }
   .button-3 {
@@ -3666,8 +3667,9 @@ html[lang="ru"] .bth-2-text {
     }
   .button-1 {
     top: 17%;
-    
-    
+  }
+  .button-1,.button-2,.button-3 {
+    top: 35%;
   }
   .history-bets {
     margin-left: -1%;
@@ -3758,5 +3760,79 @@ html[lang="ru"] .bth-2-text {
   {
     margin-top: -1%;
   }
+}
+
+@media (min-width: 389px) and (max-width: 391px) {
+  .main-bg {
+    z-index: 1;
+  }
+  .labirint-bg {
+    z-index: 1;
+    top: 8%;
+  }
+.button-win-container {
+  top: 79.7%;
+  height: 8%;
+  width: 13.1%;
+  
+}
+.group-164-button {
+  transform: scale(1);
+  top: 64%;
+  height: 100%;
+  left: 30%;
+}
+.otmena-button{
+  top: 692%;
+}
+.x2-button-container {
+  height: 35%;
+  width: 11%;
+  top: 630%;
+}
+.bet-counter-container {
+  top: 40%;
+  height: 42%;
+}
+.reset-button {
+  top: 692%;
+  height: 35%;
+}
+.stavki-buttons-container {
+top: 575%;
+height: 50%;
+left: 6%;
+gap: 3%;
+width:55%;
+}
+.menu-buttons-container{
+  width: 85%;
+  border: 2px dashed rgba(213, 28, 142, 0.508);
+  transform: scale(0.9);
+  left: 12%;
+  top: 105%;
+   --column-gap: 8.5px; /* Горизонтальное расстояние */
+  --row-gap: 9px;
+}
+.button-win-1 { right: 5px; }
+.button-win-2 { right: 57px; }
+.button-win-3 { right: 111px; }
+.button-win-4 { right: 164px; }
+.button-win-5 { right: 217px; }
+.button-win-6 { right: 270px; }
+.button-win-7 { right: 322px; }
+}
+.button-1,.button-2,.button-3 {
+  top: 6%;
+  
+}
+.button-1 {
+  left: 1.2%;
+}
+.language-switcher {
+  left: 1%;
+}
+.history-bets.inside-center{
+top: -330%;
 }
 </style>

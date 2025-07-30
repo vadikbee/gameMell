@@ -215,6 +215,12 @@ const loadGameHistory = async () => {
   left: -2.5%;
  }
 }
+@media (min-width: 392px) and (max-width: 394px) {
+.last-game-menu {
+  top: -535%;
+  left: -2%;
+ }
+}
 
 }
 </style>

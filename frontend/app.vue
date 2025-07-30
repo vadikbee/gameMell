@@ -2686,7 +2686,10 @@ position: absolute;
   background: rgba(0, 0, 0, 0.4);
   margin-right: 1px;
 }
-
+.button-1,.button-2,.button-3 {
+ margin-top: 4%;
+  
+}
 /* Стиль для вкладки Overtaking */
 .overtaking-tab {
   background: linear-gradient(180deg, rgba(127, 0, 254, 0.7) 0%, rgba(102, 0, 143, 0.7) 98.9%);
@@ -2741,7 +2744,10 @@ position: absolute;
 /* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
 
 @media (max-width: 768px) {
-
+.button-1,.button-2,.button-3 {
+  margin-top: 4%;
+  
+}
     .bet-counter-container {
     top: 29%;
     width: 24%;
@@ -2807,6 +2813,7 @@ position: absolute;
     height: 25px;
     left: 0%;
   }
+
   .bug-button-hovered {
     transform: scale(1.1);
     filter: 
@@ -3581,7 +3588,7 @@ html[lang="ru"] .bth-2-text {
     height: 689px;
     top: 8.8%; /* Точная подстройка позиции */
     width: 100%; /* Занимает всю доступную ширину */
-    
+    z-index: 4;
     max-width: 100%; /* Не превышает ширину экрана */
     left: 0; /* Выравнивание по левому краю */
     transform: none; /* Сбрасываем трансформации */
@@ -3834,5 +3841,85 @@ width:55%;
 }
 .history-bets.inside-center{
 top: -330%;
+}
+@media (min-width: 392px) and (max-width: 394px) {
+  .button-win-container {
+  top: 80.3%;
+  height: 8%;
+  width: 13.1%;
+  z-index: 4;
+  border: 2px dashed rgba(45, 7, 219, 0.508);
+  .button-win {
+        pointer-events: auto; /* Разрешаем события */
+    }
+}
+.button-win {
+  z-index: 10;
+}
+.bug-buttons-container {
+  z-index: 1;
+}
+
+.button-win-1 { right: 4px; }
+.button-win-2 { right: 58px; }
+.button-win-3 { right: 111px; }
+.button-win-4 { right: 164px; }
+.button-win-5 { right: 217px; }
+.button-win-6 { right: 270px; }
+.button-win-7 { right: 323px; }
+.button-1, .button-2,.button-3 {
+  top: -5%;
+}
+.button-1 {
+  left: 1.4%;
+}
+.group-164-button {
+  transform: scale(1);
+  top: 64%;
+  height: 100%;
+  left: 30%;
+}
+.labirint-bg {
+  top: 8.2%;
+  z-index: 1;
+}
+.group-164-button {
+  transform: scale(1);
+  top: 64%;
+  height: 100%;
+  left: 30%;
+}
+.otmena-button{
+  top: 695%;
+}
+.menu-buttons-container{
+  width: 85%;
+  border: 2px dashed rgba(213, 28, 142, 0.508);
+  transform: scale(0.9);
+  left: 12%;
+  top: 105%;
+   --column-gap: 8.9px; /* Горизонтальное расстояние */
+  --row-gap: 9px;
+}
+.x2-button-container {
+  height: 35%;
+  width: 11%;
+  top: 630%;
+}
+.reset-button {
+  top: 699%;
+  height: 35%;
+}
+.bet-counter-container {
+  top: 40%;
+  height: 42%;
+}
+.stavki-buttons-container {
+top: 575%;
+height: 50%;
+left: 6%;
+gap: 3%;
+width:55%;
+}
 }
 </style>

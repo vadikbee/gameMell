@@ -3704,6 +3704,10 @@ html[lang="ru"] .bth-2-text {
     margin: 0 auto;
     z-index: 1;
   }
+  .button-win-container {
+    width: 14%;
+    top: 82%;
+  }
   .main-bg {
   background-position: center top;
   background-repeat: no-repeat;

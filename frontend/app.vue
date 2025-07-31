@@ -303,7 +303,11 @@
               src="/images/buttons/x2.png" 
               alt="x2"
               class="x2-button"
+              :class="{ 'x2-clicked': isX2Clicked }"
               @click="handleX2ButtonClick"
+              @mousedown="isX2Clicked = true"
+              @mouseup="isX2Clicked = false"
+              @mouseleave="isX2Clicked = false"
             >
             </div>
           </div> 
@@ -1537,7 +1541,26 @@ const getButtonStyle = (btn) => {
 };
 </script>
 <style scoped>
+.x2-button {
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.x2-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1) drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+.x2-button:active {
+  transform: scale(0.95);
+}
+.x2-clicked {
+  animation: button-click 0.3s ease;
+}
 
+@keyframes button-click {
+  0% { transform: scale(1.05); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1.05); }
+}
 .language-switcher {
   position: absolute;
   top: 7px;
@@ -2392,8 +2415,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   height: 50px;
   cursor: pointer;
   z-index: 3;
-  top: 22px;
-  left: 8px;
   border: 1px solid red !important;
 }
 /* Корректируем позиционирование кнопки */
@@ -2677,7 +2698,11 @@ position: absolute;
 }
 .button-1,.button-2,.button-3 {
  margin-top: 4%;
+ 
   
+}
+.button-1 {
+  margin-left: 1%;
 }
 /* Стиль для вкладки Overtaking */
 .overtaking-tab {
@@ -3359,14 +3384,14 @@ html[lang="ru"] .bth-2-text {
   
   /* Корректируем кнопки управления */
   .button-1 {
-    transform: scale(0.85) scaleY(115%) scaleX(96%);
+    
     left: 0%;
     top: 20%;
     width: 27%;
   }
   
   .button-2 {
-    transform: scale(0.85) scaleY(140%) scaleX(117%);
+    
     left: 28%;
     top: -25%;
     width: 44%;
@@ -3403,7 +3428,7 @@ html[lang="ru"] .bth-2-text {
 }
   
   .button-3 {
-    transform: scale(0.85) scaleY(115%) scaleX(96%);
+    
     left: 72%;
     top: -75%;
     width: 28%;
@@ -3507,9 +3532,10 @@ width: 85%;
    
 }
 .group-164-button {
-  top: 31%;
-  transform: scale(0.9) scaleY(0.9);
-  left: 29%;
+  top: 37%;
+  width: 26%;
+  left: 43.5%;
+  height: 54%;
 }
 .stavki-buttons-container {
   top: 323%;
@@ -3529,9 +3555,10 @@ width: 85%;
   left: 13%;
 }
 .otmena-button {
-  top: 383.5%;
-  left: -2%;
-  transform: scale(0.8);
+  top: 386%;
+  left: 2%;
+  width: 6%;
+  height: 19%;
   border: 1px solid #cbeb29 !important;
 }
 }
@@ -3804,9 +3831,14 @@ top: -330%;
 }
 @media (min-width: 359px) and (max-width: 361px) {
 .button-1 {
-top: 20%;
-left: -1%;
-width: 28%;
+top: 23%;
+left: 2%;
+width: 23%;
+
+}
+.button-1,.button-2,.button-3 {
+  transform: scale(1) scaleY(1.1);
+  
 }
 .reset-button {
   top: 385%;
@@ -3816,10 +3848,16 @@ width: 28%;
 }
 
 .button-2 {
-top: -29%;
-left: 25%;
-transform: scale(0.9) scaleY(1.1);
-width: 49%;
+top: -26%;
+left: 28%;
+width: 43%;
+
+
+}
+.button-3 {
+  top: -73%;
+left: 74%;
+width: 23%;
 
 }
 .history-bets.inside-center {
@@ -3838,12 +3876,7 @@ width: 49%;
   transform: scale(1);
 }
 
-.button-3 {
-  top: -75%;
-left: 71.5%;
-transform: scale(0.9) scaleY(1.1) scaleX(0.9);
 
-}
 
 }
 @media (min-width: 392px) and (max-width: 394px) {
@@ -3887,12 +3920,7 @@ transform: scale(0.9) scaleY(1.1) scaleX(0.9);
   top: 8.2%;
   z-index: 1;
 }
-.group-164-button {
-  transform: scale(1);
-  top: 64%;
-  height: 100%;
-  left: 30%;
-}
+
 .otmena-button{
   top: 695%;
 }

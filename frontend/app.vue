@@ -856,7 +856,7 @@ else if (bug.phase === 'to_blue_point') {
     const dx = targetX - bug.position[0];
     const dy = targetY - bug.position[1];
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const speed = 200; // пикселей в секунду
+    const speed = 100; // пикселей в секунду
     
     // Рассчитываем шаг на основе времени
     const step = Math.min(distance, speed * (deltaTime / 1000));
@@ -1353,6 +1353,7 @@ const handleGenerateClick = async () => {
         finishTime: null,
         explodeFrame: undefined,
         exploded: false
+        
         
     };
 }).filter(bug => bug !== null); // Фильтруем невалидных тараканов

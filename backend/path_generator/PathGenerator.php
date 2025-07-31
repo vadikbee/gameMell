@@ -20,7 +20,17 @@ class PathGenerator {
             }
         }
     }
-
+// PathGenerator.php
+private function createDirectPath(array $start, array $end, int $numPoints): array {
+    $path = [];
+    for ($i = 0; $i < $numPoints; $i++) {
+        $t = $i / max(1, $numPoints - 1);
+        $x = $start[0] + $t * ($end[0] - $start[0]);
+        $y = $start[1] + $t * ($end[1] - $start[1]);
+        $path[] = [$x, $y];
+    }
+    return $path;
+}
     public function generatePaths(int $bugCount, int $duration, int $maxMoves): array {
     $paths = [];
     $results = [];
@@ -36,14 +46,22 @@ class PathGenerator {
         $startIndex++;
         
         // Случайный финиш
-        $finish = $finishPoints[array_rand($finishPoints)];
+        $validFinishes = array_filter($finishPoints, function($f) {
+            return $this->isValidPoint([$f['x'], $f['y']]);
+        });
+        if (empty($validFinishes)) {
+            $validFinishes = $finishPoints; // fallback
+        }
+        $finish = $validFinishes[array_rand($validFinishes)];
         
         // Генерация основной траектории
         $mainPath = $this->findPath(
             [$start['x'], $start['y']],
             [$finish['x'], $finish['y']]
         );
-        
+        // Гарантируем валидность финишной точки
+        $lastPoint = $this->ensureFinishPointValid(end($mainPath), $finish);
+        $mainPath[count($mainPath)-1] = $lastPoint;
         // Добавляем 1-2 случайные промежуточные точки
         $waypoints = [];
         for ($w = 0; $w < mt_rand(1, 2); $w++) {
@@ -80,7 +98,22 @@ class PathGenerator {
             'finish_time' => $duration * mt_rand(80, 100) / 100
         ];
     }
-
+    // После сглаживания пути
+    $totalPoints = count($smoothPath);
+    if ($totalPoints > 10) {
+        $cutIndex = (int)($totalPoints * 0.8);
+        if ($cutIndex < $totalPoints - 1) {
+            $directPath = $this->createDirectPath(
+                $smoothPath[$cutIndex],
+                $smoothPath[$totalPoints-1],
+                $totalPoints - $cutIndex
+            );
+            $smoothPath = array_merge(
+                array_slice($smoothPath, 0, $cutIndex),
+                $directPath
+            );
+        }
+    }
     // Конвертация в пиксели
     foreach ($paths as &$bugPath) {
         foreach ($bugPath as &$point) {
@@ -188,8 +221,7 @@ private function getRandomWaypoint(array $mainPath): array {
     
     return [];
 }
-    private function isValidPoint(array $point): bool {
-    // Всегда используем округление до ближайшей целой клетки
+private function isValidPoint(array $point): bool {
     $x = (int)round($point[0]);
     $y = (int)round($point[1]);
     
@@ -198,31 +230,26 @@ private function getRandomWaypoint(array $mainPath): array {
         return false;
     }
     
-    // Усиленная проверка для финишных зон
+    // Усиленная проверка стен для финишных зон
     if ($this->isNearFinish($point)) {
-        // Проверяем саму точку и всех соседей
+        // Проверяем все 8 соседних клеток
         for ($dx = -1; $dx <= 1; $dx++) {
             for ($dy = -1; $dy <= 1; $dy++) {
                 $nx = $x + $dx;
                 $ny = $y + $dy;
                 
-                if ($nx >= 0 && $nx < $this->width && 
-                    $ny >= 0 && $ny < $this->height &&
-                    $this->wallsGrid[$ny][$nx]) {
-                    return false;
+                if ($nx >= 0 && $nx < $this->width && $ny >= 0 && $ny < $this->height) {
+                    if ($this->wallsGrid[$ny][$nx]) {
+                        return false;
+                    }
                 }
             }
         }
         return true;
     }
     
-    // Стандартная проверка
     return !$this->wallsGrid[$y][$x];
 }
-
-    // Остальные методы без изменений (getStartPoints, getFinishPoints, convertGridToPixels, 
-    // findPath, addRandomDeviations, interpolatePath, distance, smoothPath) 
-
 
     private function getStartPoints(): array {
         $points = [];
@@ -353,23 +380,32 @@ private function distance(array $a, array $b): float {
     return sqrt(pow($a[0] - $b[0], 2) + pow($a[1] - $b[1], 2));
 }
 // Новый метод для гарантии валидности финиша
-private function ensureFinishPointValid(array $point): array {
-    $finishPoints = $this->getFinishPoints();
-    $closestValid = $point;
-    $minDistance = PHP_FLOAT_MAX;
-    
-    // Ищем ближайшую валидную точку
-    foreach ($finishPoints as $finish) {
-        $finishPoint = [$finish['x'], $finish['y']];
-        $distance = $this->distance($point, $finishPoint);
-        
-        if ($distance < $minDistance && $this->isValidPoint($finishPoint)) {
-            $minDistance = $distance;
-            $closestValid = $finishPoint;
-        }
+private function ensureFinishPointValid(array $point, array $targetFinish): array {
+    if ($this->isValidPoint($point)) {
+        return $point;
     }
     
-    return $closestValid;
+    // Поиск ближайшей валидной точки в целевой финишной зоне
+    $validPoints = array_filter(
+        $this->getFinishPoints(),
+        fn($f) => $f['id'] === $targetFinish['id'] && $this->isValidPoint([$f['x'], $f['y']])
+    );
+    
+    if (!empty($validPoints)) {
+        $closest = $validPoints[0];
+        $minDistance = INF;
+        
+        foreach ($validPoints as $fp) {
+            $d = hypot($point[0]-$fp['x'], $point[1]-$fp['y']);
+            if ($d < $minDistance) {
+                $minDistance = $d;
+                $closest = $fp;
+            }
+        }
+        return [$closest['x'], $closest['y']];
+    }
+    
+    return $point; // fallback
 }
 private function smoothPath(array $path): array {
     $windowSize = 3;

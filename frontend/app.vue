@@ -525,16 +525,18 @@ const setActiveTab = (tab) => {
 };
 // Функция для взрыва всех тараканов
 const explodeAllBugs = () => {
-  if (!isTabActive.value) return; // Не взрываем если вкладка неактивна
+  if (!isTabActive.value) return;
   if (bugs.value.length === 0) return;
   
-  // Помечаем всех тараканов для взрыва
   bugs.value.forEach(bug => {
-    if (!bug.finished) {
+    // Добавлено условие проверки фазы движения
+    if (!bug.finished && bug.phase !== 'to_blue_point') {
       bug.explodeFrame = 0;
       bug.exploded = false;
     }
   });
+  
+  startExplosionAnimation();
   
 
 // При монтировании проверяем параметр lang в URL
@@ -856,8 +858,8 @@ else if (bug.phase === 'to_blue_point') {
     const dx = targetX - bug.position[0];
     const dy = targetY - bug.position[1];
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const speed = 200; // пикселей в секунду
-    
+    const speed = 200;
+
     // Рассчитываем шаг на основе времени
     const step = Math.min(distance, speed * (deltaTime / 1000));
     
@@ -865,15 +867,17 @@ else if (bug.phase === 'to_blue_point') {
       // Обновляем позицию
       bug.position[0] += (dx / distance) * step;
       bug.position[1] += (dy / distance) * step;
-      // Обновляем угол
-      bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
+      
+      // Обновляем угол только если расстояние > 1px
+      if (distance > 1) {
+        bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
+      }
     }
-    
-    // Если осталось мало до цели, считаем финиш
-    if (distance <= 5) {
+
+    if (distance <= 1) {
       bug.finished = true;
       button.occupied = true;
-      button.finishedBugId = bug.id;  // Сохраняем ID таракана
+      button.finishedBugId = bug.id;
     }
   }
 }
@@ -1425,18 +1429,18 @@ const updateProgress = () => {
 
 // Обновленная функция анимации взрыва
 const startExplosionAnimation = () => {
-    if (!isTabActive.value) return; // Не запускаем анимацию если вкладка неактивна
+  if (!isTabActive.value) return;
   if (explosionActive.value) return;
-  explosionActive.value = true;
   
+  explosionActive.value = true;
   const explosionStartTime = performance.now();
   
   const animateExplosion = (timestamp) => {
     const elapsed = timestamp - explosionStartTime;
     
-   // Обновляем кадры взрыва только для не финишировавших
     bugs.value.forEach(bug => {
-      if (bug.explodeFrame !== undefined && !bug.finished) {
+      // Добавлено условие проверки фазы движения
+      if (bug.explodeFrame !== undefined && !bug.finished && bug.phase !== 'to_blue_point') {
         const frame = Math.min(5, Math.floor(elapsed / 100));
         bug.explodeFrame = frame;
       }
@@ -1445,6 +1449,10 @@ const startExplosionAnimation = () => {
     if (elapsed < 600) {
       animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
     } else {
+      // Фильтруем только не финишировавших и не в фазе движения
+      bugs.value = bugs.value.filter(bug => 
+        bug.finished || bug.phase === 'to_blue_point'
+      );
       // Удаляем только взорванных тараканов, финишировавших оставляем
       bugs.value = bugs.value.filter(bug => bug.finished);
        // Сбрасываем занятость кнопок для не финишировавших

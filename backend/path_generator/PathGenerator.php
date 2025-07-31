@@ -177,7 +177,7 @@ private function getRandomWaypoint(array $mainPath): array {
     }
     private function isNearFinish(array $point): bool {
     $finishPoints = $this->getFinishPoints();
-    $threshold = 1.5; // Расстояние в клетках для проверки
+    $threshold = 3; // Увеличено с 1.5 до 3 клеток
     
     foreach ($finishPoints as $finish) {
         $distance = sqrt(pow($point[0] - $finish['x'], 2) + pow($point[1] - $finish['y'], 2));
@@ -230,22 +230,9 @@ private function isValidPoint(array $point): bool {
         return false;
     }
     
-    // Усиленная проверка стен для финишных зон
+    // УПРОЩЕННАЯ ПРОВЕРКА СТЕН ДЛЯ ФИНИШНЫХ ЗОН
     if ($this->isNearFinish($point)) {
-        // Проверяем все 8 соседних клеток
-        for ($dx = -1; $dx <= 1; $dx++) {
-            for ($dy = -1; $dy <= 1; $dy++) {
-                $nx = $x + $dx;
-                $ny = $y + $dy;
-                
-                if ($nx >= 0 && $nx < $this->width && $ny >= 0 && $ny < $this->height) {
-                    if ($this->wallsGrid[$ny][$nx]) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        return !$this->wallsGrid[$y][$x]; // Проверяем только текущую клетку
     }
     
     return !$this->wallsGrid[$y][$x];

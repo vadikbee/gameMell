@@ -1449,10 +1449,23 @@ const startExplosionAnimation = () => {
      if (elapsed < 600) {
       animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
     } else {
-      // Исправлено: оставляем финишировавших ИЛИ находящихся в движении к точке
-      bugs.value = bugs.value.filter(bug => 
-        bug.finished || bug.phase === 'to_blue_point'
-      );
+      // Телепортируем оставшихся тараканов к их финишным точкам
+      bugs.value.forEach(bug => {
+        if (!bug.finished && bug.targetButtonId) {
+          const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+          if (button) {
+            bug.position = [...button.bluePoint];
+            bug.finished = true;
+            button.occupied = true;
+            button.finishedBugId = bug.id;
+            
+            // Добавляем в кнопку если есть место
+            if (button.bugs.length < 2) {
+              button.bugs.push(bug.id);
+            }
+          }
+        }
+      });
       
       // Сбрасываем занятость кнопок только для не финишировавших
       winButtons.value.forEach(btn => {

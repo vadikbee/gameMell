@@ -31,6 +31,28 @@ private function createDirectPath(array $start, array $end, int $numPoints): arr
     }
     return $path;
 }
+ // Новый метод для телепортации точек к финишу
+    private function teleportToFinish(array $point, array $targetFinish): array {
+        // Если точка уже валидна - возвращаем как есть
+        if ($this->isValidPoint($point)) {
+            return $point;
+        }
+        
+        // Ищем ближайшую валидную точку в целевой финишной зоне
+        $validPoints = [];
+        foreach ($this->getFinishPoints() as $finish) {
+            if ($finish['id'] === $targetFinish['id'] && $this->isValidPoint([$finish['x'], $finish['y']])) {
+                $validPoints[] = [$finish['x'], $finish['y']];
+            }
+        }
+        
+        if (empty($validPoints)) {
+            return $point; // fallback
+        }
+        
+        // Выбираем первую валидную точку
+        return $validPoints[0];
+    }
     public function generatePaths(int $bugCount, int $duration, int $maxMoves): array {
     $paths = [];
     $results = [];
@@ -99,21 +121,28 @@ private function createDirectPath(array $start, array $end, int $numPoints): arr
         ];
     }
     // После сглаживания пути
-    $totalPoints = count($smoothPath);
-    if ($totalPoints > 10) {
-        $cutIndex = (int)($totalPoints * 0.8);
-        if ($cutIndex < $totalPoints - 1) {
-            $directPath = $this->createDirectPath(
-                $smoothPath[$cutIndex],
-                $smoothPath[$totalPoints-1],
-                $totalPoints - $cutIndex
-            );
-            $smoothPath = array_merge(
-                array_slice($smoothPath, 0, $cutIndex),
-                $directPath
-            );
+        $totalPoints = count($smoothPath);
+        if ($totalPoints > 10) {
+            $cutIndex = (int)($totalPoints * 0.8);
+            if ($cutIndex < $totalPoints - 1) {
+                $directPath = $this->createDirectPath(
+                    $smoothPath[$cutIndex],
+                    $smoothPath[$totalPoints-1],
+                    $totalPoints - $cutIndex
+                );
+                
+                // Телепортируем конечные точки
+                $teleportedPath = [];
+                foreach ($directPath as $point) {
+                    $teleportedPath[] = $this->teleportToFinish($point, $finish);
+                }
+                
+                $smoothPath = array_merge(
+                    array_slice($smoothPath, 0, $cutIndex),
+                    $teleportedPath
+                );
+            }
         }
-    }
     // Конвертация в пиксели
     foreach ($paths as &$bugPath) {
         foreach ($bugPath as &$point) {
@@ -225,7 +254,7 @@ private function isValidPoint(array $point): bool {
     $x = (int)round($point[0]);
     $y = (int)round($point[1]);
     
-    
+
     // Проверка границ
     if ($x < 0 || $x >= $this->width || $y < 0 || $y >= $this->height) {
         return false;

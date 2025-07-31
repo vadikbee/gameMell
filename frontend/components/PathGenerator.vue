@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits } from 'vue';
+import { defineEmits, onMounted } from 'vue';
 
 const emit = defineEmits(['paths-generated']);
 

@@ -73,7 +73,7 @@
       :key="'btn-'+btn.id"
       class="button-win-container"
       :class="{
-        
+        'initial-animation': initialAnimationActive,
         [`button-win-${index + 1}`]: true
       }"
     >
@@ -154,6 +154,7 @@
       <div 
           class="button-1" 
           id="Button-1" 
+          :class="{ 'initial-animation': initialAnimationActive }"
           @click="!centerWinMenuVisible && toggleLastGameMenu()"
         >
           <span class="button-text bth-1-text">{{ t('last_games') }}</span>
@@ -167,6 +168,7 @@
         <div 
           class="button-2" 
           id="Button-2" 
+          :class="{ 'initial-animation': initialAnimationActive }"
           @click="!centerWinMenuVisible && toggleCenterMenu()"
         >
           <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
@@ -174,6 +176,7 @@
         <div 
           class="button-3" 
           id="Button-3" 
+          :class="{ 'initial-animation': initialAnimationActive }"
           @click="!centerWinMenuVisible && toggleHistoryBets()"
         >
           <span class="button-text">{{ t('history_bets') }}</span>
@@ -375,7 +378,8 @@ import { useI18n } from 'vue-i18n'
 const { t, locale } = useI18n();
 const dizzySoundElement = ref(null);
 const soundVolume = ref(0.5);
-
+// Добавляем новое состояние для управления анимацией
+const initialAnimationActive = ref(true);
 // Добавьте новый импорт i18n
 
 const currentLanguage = computed(() => locale.value.toUpperCase());
@@ -1529,6 +1533,10 @@ onMounted(() => {
   window.addEventListener('wheel', (e) => {
     if (e.ctrlKey) updateZoomFactor();
   });
+// Отключаем анимацию через 4.5 секунды (3 цикла по 1.5 сек)
+  setTimeout(() => {
+    initialAnimationActive.value = false;
+  }, 4500);
 });
 
 onUnmounted(() => {
@@ -1567,6 +1575,87 @@ const getButtonStyle = (btn) => {
 };
 </script>
 <style scoped>
+/* Обновленная анимация для серебристых линий */
+@keyframes lineAnimationTop {
+  0% {
+    transform: translate(-100%, -100%) rotate(-26.1deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100%, 100%) rotate(-26.1deg);
+    opacity: 0;
+  }
+}
+
+@keyframes lineAnimationBottom {
+  0% {
+    transform: translate(100%, 100%) rotate(-26.1deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-100%, -100%) rotate(-26.1deg);
+    opacity: 0;
+  }
+}
+
+/* Класс для анимации */
+.initial-animation {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.initial-animation::before,
+.initial-animation::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  transform: rotate(-26.1deg);
+  transform-origin: center;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  top: 50%;
+  left: 50%;
+}
+
+.initial-animation::before {
+  animation: lineAnimationTop 0.6s ease-in-out 0s 3;
+}
+
+.initial-animation::after {
+  animation: lineAnimationBottom 0.6s ease-in-out 0.6s 3; /* Задержка = длительность первой анимации */
+}
+
+/* Для кнопок победы */
+.button-win-container.initial-animation::before,
+.button-win-container.initial-animation::after {
+  height: 6px;
+}
+
+/* Для маленьких кнопок */
+.button-1.initial-animation::before,
+.button-1.initial-animation::after,
+.button-2.initial-animation::before,
+.button-2.initial-animation::after,
+.button-3.initial-animation::before,
+.button-3.initial-animation::after {
+  height: 3px;
+}
 
 /* Обновите стили для кнопок победы */
 .button-win-container .button-win {

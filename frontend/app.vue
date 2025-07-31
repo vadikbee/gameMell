@@ -17,10 +17,8 @@
       class="outside-center"
     />
       <!-- Центральное фиксированное меню -->
-      <div 
-        v-if="centerWinMenuVisible" 
-        class="win-menu-center"
-      >
+      <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100">
+        
         <StavkiMenu
           :currentBet="currentBet"
           :stavkiButtons="stavkiButtons"
@@ -71,14 +69,14 @@
       
       <!-- Контейнеры для кнопок победы -->
       <div 
-        v-for="(btn, index) in winButtons" 
-        :key="'btn-'+btn.id"
-        class="button-win-container"
-        :class="{
-          'disabled': !isBettingPhase, 
-          [`button-win-${index + 1}`]: true
-        }"
-      >
+      v-for="(btn, index) in winButtons" 
+      :key="'btn-'+btn.id"
+      class="button-win-container"
+      :class="{
+        
+        [`button-win-${index + 1}`]: true
+      }"
+    >
          <!-- Контейнер для цветных индикаторов (обновлено) -->
   <div class="color-indicators" v-if="btn.bugs.length > 0">
   <div 
@@ -111,7 +109,7 @@
             backgroundImage: btn.selected 
               ? `url('/images/buttons/knopka-win.png')` 
               : `url('/images/buttons/Property 1=Default.png')`,
-            cursor: isRaceStarted ? 'default' : 'pointer'
+            cursor: 'pointer'
           }"
         ></div>
           
@@ -429,7 +427,7 @@ const activeTab = ref('result');
 const isLoading = ref(false);
 const scaleFactor = ref(1);
 const isRaceStarted = ref(false);
-const areWinButtonsDisabled = ref(false);
+
 const centerMenuVisible = ref(false);
 const isBettingPhase = ref(true);
 // ===1. Обновим состояния для управления паузой===
@@ -1186,33 +1184,29 @@ const toggleMenuButton = (btn) => {
 
 
 // Измененный метод для переключения центрального меню
+// Разрешаем показ меню победы во время гонки
 const toggleCenterMenu = () => {
   const wasOpen = centerMenuVisible.value;
   centerMenuVisible.value = !wasOpen;
-
-  // Добавьте вотчер для сброса состояния кнопок
-  watch(centerWinMenuVisible, (isVisible) => {
-    if (!isVisible) {
-      // Сбрасываем выделение у всех кнопок победы
-      winButtons.value.forEach(btn => {
-        btn.selected = false;
-      });
-    }
-  });
   
-  // Закрываем меню победы при открытии нижнего меню
-  if (!wasOpen) {
+  // Разрешаем показ меню победы при открытом нижнем меню
+  if (!wasOpen && centerWinMenuVisible.value) {
     centerWinMenuVisible.value = false;
   }
-  if (centerMenuVisible.value && historyBetsVisible.value) {
-    historyBetsVisible.value = false;
-  }
 };
 
-// Обновите метод закрытия меню
+// Добавляем обработчик для закрытия меню победы
 const closeWinMenu = () => {
+  winButtons.value.forEach(btn => btn.selected = false);
   centerWinMenuVisible.value = false;
 };
+
+// Убедимся что все методы определены
+watch(centerMenuVisible, (newVal) => {
+  if (newVal) {
+    centerWinMenuVisible.value = false;
+  }
+});
 
 // Добавьте вотчер для автоматического закрытия меню победы
 watch(centerMenuVisible, (newVal) => {
@@ -1221,31 +1215,35 @@ watch(centerMenuVisible, (newVal) => {
   }
 });
 
-// Обработчики кликов по кнопкам
-// Обработчик кликов по кнопкам победы (УПРОЩЕН)
+// Добавляем обработчик для кнопки Group 164
+const handleGroup164Click = () => {
+  console.log('Group 164 clicked');
+  // Здесь будет логика подтверждения ставки
+};
+
+// Добавляем отсутствующую переменную для анимации x2
+const isX2Clicked = ref(false);
+
+
+
+// ОБНОВЛЕННЫЙ ОБРАБОТЧИК КЛИКА ПО КНОПКЕ ПОБЕДЫ
 const handleButtonClick = (btn) => {
-   if (!isBettingPhase.value) return;
-  
+  // Закрываем меню если оно открыто и кликнули на ту же кнопку
   if (btn.selected) {
     btn.selected = false;
     centerWinMenuVisible.value = false;
     return;
   }
   
+  // Снимаем выделение со всех кнопок
   winButtons.value.forEach(b => b.selected = false);
-  btn.selected = true;
   
-  // Активируем новое центральное меню
+  // Выделяем текущую кнопку и открываем меню
+  btn.selected = true;
   centerWinMenuVisible.value = true;
   activeWinMenuId.value = btn.id;
 };
 
-// Закрываем центральное меню при начале гонки
-watch(isRaceStarted, (newVal) => {
-  if (newVal) {
-    centerWinMenuVisible.value = false;
-  }
-});
 
 // ==============================
 // ЛОГИКА ИГРЫ
@@ -1283,7 +1281,7 @@ const handleGenerateClick = async () => {
   explosionActive.value = false;
   bugs.value = [];
   try {
-    areWinButtonsDisabled.value = false;
+    
     isRaceStarted.value = false;
     isLoading.value = true;
     bugs.value = []; // Важно: очищаем предыдущих тараканов
@@ -1401,8 +1399,8 @@ const updateProgress = () => {
     if (raceActualStartTime.value) {
       const raceElapsed = now - raceActualStartTime.value;
       progress.value = Math.min(100, (raceElapsed / raceInterval.value) * 100);
-      centerWinMenuVisible.value = false; // Скрываем меню при начале гонки
-      isBettingPhase.value = false;
+      
+      
 
       if (raceElapsed >= raceInterval.value) {
         // Завершение гонки
@@ -1569,6 +1567,13 @@ const getButtonStyle = (btn) => {
 };
 </script>
 <style scoped>
+
+/* Обновите стили для кнопок победы */
+.button-win-container .button-win {
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 1; /* Убедитесь что прозрачность нормальная */
+}
 .x2-button {
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
@@ -1658,13 +1663,7 @@ const getButtonStyle = (btn) => {
   box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
   filter: brightness(1.2);
 }
-/* Добавим стиль для заблокированных кнопок */
-.button-win-container.disabled .button-win {
-  cursor: not-allowed !important;
-  pointer-events: none;
-  opacity: 1;
-  
-}
+
 /* Существующие стили прогресс-бара */
 .progress-container {
   position: absolute;
@@ -2180,11 +2179,7 @@ const getButtonStyle = (btn) => {
 
 
 
-/* Отключаем эффекты при блокировке */
-.button-win-container.disabled .button-win {
-  cursor: default !important;
-  pointer-events: none;
-}
+
 .group-image {
   position: absolute;
   top: -165%;
@@ -2648,10 +2643,7 @@ position: absolute;
   transition: opacity 0.2s ease;
 }
 
-.button-win-disabled {
-  opacity: 1;
-  filter: grayscale(70%);
-}
+
 
 /* Стили для контейнера вкладок */
 .menu-tabs {
@@ -3908,6 +3900,16 @@ width: 23%;
 
 }
 @media (min-width: 392px) and (max-width: 394px) {
+  .main-color {
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+    
+  }
+  .main-bg {
+   background-position: center top;
+   left: 2%;
+  }
   .button-win-container {
   top: 80.3%;
   height: 8%;

@@ -1439,19 +1439,26 @@ const startExplosionAnimation = () => {
     const elapsed = timestamp - explosionStartTime;
     
     bugs.value.forEach(bug => {
-      // Добавлено условие проверки фазы движения
       if (bug.explodeFrame !== undefined && !bug.finished && bug.phase !== 'to_blue_point') {
         const frame = Math.min(5, Math.floor(elapsed / 100));
         bug.explodeFrame = frame;
       }
     });
     
-     if (elapsed < 600) {
+    if (elapsed < 600) {
       animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
     } else {
-      // Телепортируем оставшихся тараканов к их финишным точкам
+      // Обработка после завершения анимации взрыва
       bugs.value.forEach(bug => {
-        if (!bug.finished && bug.targetButtonId) {
+        // Сбрасываем кадр анимации
+        bug.explodeFrame = undefined;
+
+        // Если таракан был взорван - помечаем его как взорванного и удаляем
+        if (!bug.finished && bug.phase !== 'to_blue_point') {
+          bug.exploded = true;
+        } 
+        // Если таракан успел начать движение к финишу до взрыва - перемещаем его
+        else if (!bug.finished && bug.targetButtonId) {
           const button = winButtons.value.find(b => b.id === bug.targetButtonId);
           if (button) {
             bug.position = [...button.bluePoint];
@@ -1459,7 +1466,6 @@ const startExplosionAnimation = () => {
             button.occupied = true;
             button.finishedBugId = bug.id;
             
-            // Добавляем в кнопку если есть место
             if (button.bugs.length < 2) {
               button.bugs.push(bug.id);
             }
@@ -1467,9 +1473,9 @@ const startExplosionAnimation = () => {
         }
       });
       
-      // Сбрасываем занятость кнопок только для не финишировавших
+      // Сбрасываем занятость кнопок для не финишировавших тараканов
       winButtons.value.forEach(btn => {
-        if (!bugs.value.some(bug => bug.targetButtonId === btn.id)) {
+        if (!bugs.value.some(bug => bug.targetButtonId === btn.id && bug.finished)) {
           btn.occupied = false;
         }
       });

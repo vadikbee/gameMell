@@ -529,7 +529,7 @@ const explodeAllBugs = () => {
   if (bugs.value.length === 0) return;
   
   bugs.value.forEach(bug => {
-    // Добавлено условие проверки фазы движения
+    // Исправлено: не взрываем финишировавших или движущихся к точке
     if (!bug.finished && bug.phase !== 'to_blue_point') {
       bug.explodeFrame = 0;
       bug.exploded = false;
@@ -1446,21 +1446,21 @@ const startExplosionAnimation = () => {
       }
     });
     
-    if (elapsed < 600) {
+     if (elapsed < 600) {
       animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
     } else {
-      // Фильтруем только не финишировавших и не в фазе движения
+      // Исправлено: оставляем финишировавших ИЛИ находящихся в движении к точке
       bugs.value = bugs.value.filter(bug => 
         bug.finished || bug.phase === 'to_blue_point'
       );
-      // Удаляем только взорванных тараканов, финишировавших оставляем
-      bugs.value = bugs.value.filter(bug => bug.finished);
-       // Сбрасываем занятость кнопок для не финишировавших
+      
+      // Сбрасываем занятость кнопок только для не финишировавших
       winButtons.value.forEach(btn => {
         if (!bugs.value.some(bug => bug.targetButtonId === btn.id)) {
           btn.occupied = false;
         }
       });
+      
       explosionActive.value = false;
       animationExplodeFrame.value = null;
     }

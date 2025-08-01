@@ -33,6 +33,9 @@
     />
     
     <div class="menu-container">
+       <div v-if="raceInProgress" class="next-race-notice">
+      {{ t('bet_next_race_notice') }}
+    </div>
       <img 
         :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
         alt="Menu" 
@@ -476,7 +479,10 @@ const selectTrap = (trapId) => {
   selectedTrap.value = trapId;
   selectedBugs.value = bugSelections.value[trapId] || [];
 };
+const nextRaceBets = ref([]);
 // Состояния для уведомлений
+// Добавляем новый массив для ставок текущей гонки
+const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
@@ -523,7 +529,7 @@ const placeSectionBet = () => {
     return;
   }
 
-  // Проверка минимальной ставки
+ // Проверка минимальной ставки
   const minBet = 10;
   if (currentBet.value < minBet) {
     alert(`Минимальная ставка: ${minBet}₽`);
@@ -539,35 +545,39 @@ const placeSectionBet = () => {
   // Списание средств
   balance.value -= currentBet.value;
 
-  // Добавление в историю ставок
-  betHistory.value.push({
+ // Создаем объект ставки
+  const bet = {
     type: 'section',
     trapId: selectedTrap.value,
     bugs: [...selectedBugs.value],
     amount: currentBet.value,
     timestamp: new Date().toISOString(),
-    result: 'pending' // 'win', 'lose' или 'pending'
-  });
+    result: 'pending'
+  };
+
+  // Всегда добавляем ставку в nextRaceBets
+  nextRaceBets.value.push(bet);
+  
+  // Всегда показываем уведомление о ставке на следующую гонку
+  showNotification(t('bet_placed_next_race'), false);
   
   // Сбрасываем текущий выбор
   resetBugSelections();
   
   // Закрываем меню
   centerWinMenuVisible.value = false;
-  
-  // Для отладки
-  console.log(`Ставка на ловушку ${selectedTrap.value}:`, selectedBugs.value);
 };
 
-// Проверить результаты ставок после гонки
+// ОБНОВЛЕННАЯ функция проверки результатов ставок
 const checkBetsResults = () => {
-  betHistory.value.forEach(bet => {
+  // Проверяем ТОЛЬКО ставки текущей гонки
+  currentRaceBets.value.forEach(bet => {
     if (bet.result !== 'pending') return;
     
     const button = winButtons.value.find(b => b.id === bet.trapId);
     if (!button) return;
     
-    // Проверяем, есть ли хотя бы один выбранный таракан в победителях
+    // Проверяем, есть ли выбранные тараканы в победителях
     const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
     
     // Обновляем статус ставки
@@ -576,13 +586,17 @@ const checkBetsResults = () => {
     // Показываем уведомление
     const amount = bet.amount;
     if (isWin) {
-      const winAmount = amount * 2; // Коэффициент выплаты
+      const winAmount = amount * 2;
       balance.value += winAmount;
       showNotification(`Ваша ставка выиграла! +${winAmount}₽`, true);
     } else {
       showNotification(`Ставка проиграла`, false);
     }
   });
+
+  // Переносим обработанные ставки в историю
+  betHistory.value.push(...currentRaceBets.value);
+  currentRaceBets.value = [];
 };
 
 // Очистить выбор тараканов после гонки
@@ -1495,12 +1509,21 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+  // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
+  if (nextRaceBets.value.length > 0) {
+    currentRaceBets.value = [...nextRaceBets.value];
+    nextRaceBets.value = [];
+  }
 
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;
   }
-  
+  // ПЕРЕМЕЩАЕМ ставки на следующую игру в активные ПЕРЕД началом новой гонки
+  if (nextRaceBets.value.length > 0) {
+    betHistory.value = [...betHistory.value, ...nextRaceBets.value];
+    nextRaceBets.value = [];
+  }
   explosionActive.value = false;
   bugs.value = [];
   try {
@@ -2404,6 +2427,26 @@ const getButtonStyle = (btn) => {
   
 }
 
+
+.next-race-notice {
+  position: absolute;
+  top: -70px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  z-index: 15;
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
 .reset-button:hover {
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }

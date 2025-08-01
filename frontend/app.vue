@@ -22,14 +22,15 @@
         <StavkiMenu
           :currentBet="currentBet"
           :stavkiButtons="stavkiButtons"
-          @otmena-click="handleOtmenaButtonClick"
-          @reset-click="handleResetClick"
-          @group164-click="handleGroup164Click"
+          @otmena-click="undoLastBet"
+          @reset-click="resetAllBets"
+          @group164-click="placeBet"
           @decrement-start="startDecrement"
           @increment-start="startIncrement"
           @stop-action="stopAction"
           @add-bet="addToBet"
-          @x2-click="handleX2ButtonClick"
+          @x2-click="multiplyBet"
+          
         />
         <div class="menu-container">
           <img 
@@ -262,7 +263,7 @@
                 src="/images/menus/Group 164.png" 
                 alt="Group 164" 
                 class="group-164-button"
-                @click="handleGroup164Click"
+                @click="placeBet"
               >
             </div>
             <!-- Новый блок счетчика ставок.... -->
@@ -469,79 +470,84 @@ const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
 const historyBetsInsideCenter = ref(false);
 
-// Добавляем состояния для управления ставками
-const maxBet = ref(10000); // Максимально допустимая ставка
-const balance = ref(999999); // Начальный баланс
-const currentBet = ref(0); // Текущая сумма ставки
+// Состояния для управления ставками
+const currentBet = ref(0);
+const balance = ref(10000); // Начальный баланс
 const betHistory = ref([]); // История ставок
-const activeBets = ref([]); // Активные ставки
-const betHistoryStack = ref([]); // Стек для отмены ставок
+const undoStack = ref([]); // Стек для отмены операций
+const betHistoryStack = ref([]); // Добавляем новую переменную
+const stavkiButtons = ref([
+  { id: '25', amount: 25, src: '/images/buttons/25.png', alt: '25' },
+  { id: '50', amount: 50, src: '/images/buttons/50.png', alt: '50' },
+  { id: '100', amount: 100, src: '/images/buttons/100.png', alt: '100' },
+  { id: '500', amount: 500, src: '/images/buttons/500.png', alt: '500' },
+]);
 
-// Функция добавления ставки
+// Добавление ставки
+// Обновленная функция добавления ставки
 const addToBet = (amount) => {
-  // Рассчитываем новую ставку с ограничением максимум 10000
-  const newBet = Math.min(currentBet.value + amount, 10000);
+  const maxAllowed = Math.min(balance.value, 10000);
+  const newBet = Math.min(currentBet.value + amount, maxAllowed);
   
-  if (newBet <= balance.value) {
-    betHistoryStack.value.push(currentBet.value);
-    currentBet.value = newBet;
-    activeBets.value.push({
-      amount: amount,
-      timestamp: new Date().toISOString()
+  if (newBet > currentBet.value) {
+    undoStack.value.push({
+      type: 'add',
+      amount: newBet - currentBet.value,
+      prevBet: currentBet.value
     });
-  } else {
-    console.warn("Недостаточно средств на балансе");
-  }
-};
-
-
-// Отмена всех ставок
-const resetAllBets = () => {
-  betHistoryStack.value.push(currentBet.value);
-  currentBet.value = 0;
-  activeBets.value = [];
-};
-
-// Удвоение ставки
-const multiplyBet = () => {
-  if (currentBet.value > 0) {
-    betHistoryStack.value.push(currentBet.value);
-    currentBet.value *= 2;
-    activeBets.value = activeBets.value.map(bet => ({
-      ...bet,
-      amount: bet.amount * 2
-    }));
+    currentBet.value = newBet;
   }
 };
 
 // Отмена последней ставки
 const undoLastBet = () => {
-  if (betHistoryStack.value.length > 0) {
-    const prevValue = betHistoryStack.value.pop();
-    currentBet.value = prevValue;
+  if (undoStack.value.length > 0) {
+    const lastAction = undoStack.value.pop();
+    currentBet.value = lastAction.prevBet;
+  }
+};
+
+// Сброс всех ставок
+const resetAllBets = () => {
+  undoStack.value.push({
+    type: 'reset',
+    prevBet: currentBet.value
+  });
+  currentBet.value = 0;
+};
+
+// Удвоение ставки
+
+const multiplyBet = () => {
+  if (currentBet.value > 0) {
+    const maxAllowed = Math.min(balance.value, 10000);
+    const newBet = Math.min(currentBet.value * 2, maxAllowed);
     
-    if (activeBets.value.length > 0) {
-      activeBets.value.pop();
+    if (newBet > currentBet.value) {
+      undoStack.value.push({
+        type: 'multiply',
+        prevBet: currentBet.value
+      });
+      currentBet.value = newBet;
     }
   }
 };
 
-// Фиксация ставки
+
+// Фиксация ставки и списание средств
 const placeBet = () => {
-  if (currentBet.value > 0) {
+  if (currentBet.value > 0 && currentBet.value <= balance.value) {
     // Списание средств
     balance.value -= currentBet.value;
     
-    // Сохранение ставки в историю
+    // Сохранение в историю
     betHistory.value.push({
       amount: currentBet.value,
-      timestamp: new Date().toISOString(),
-      bets: [...activeBets.value]
+      timestamp: new Date().toISOString()
     });
     
-    // Сброс текущей ставки
+    // Сброс ставки
     resetAllBets();
-    betHistoryStack.value = [];
   }
 };
 // Добавлено: переменные для управления зажатием кнопок
@@ -562,7 +568,9 @@ const animationFrame = ref(null);
 const makeBetsText = computed(() => t('make_bets'));
 // Выносим из метода explodeAllBugs в область setup
 // Обновленная функция для получения изображения цвета
-
+const minBet = 0;
+const maxBet = 10000;
+const betStep = 25; // Шаг изменения ставки
 
 const getColorImage = (color, bugCount) => {
   // Убрана зависимость от количества тараканов - всегда используем полное изображение
@@ -1092,28 +1100,21 @@ const handleResetClick = () => {
 };
 
 // Функция для удвоения ставки
+// Обновим метод handleX2ButtonClick
 const handleX2ButtonClick = () => {
   if (currentBet.value > 0) {
-    // Удваиваем ставку с ограничением максимум 10000
-    const newBet = Math.min(currentBet.value * 2, 10000);
+    // Используем undoStack вместо betHistoryStack
+    undoStack.value.push({
+      type: 'multiply',
+      prevBet: currentBet.value
+    });
     
-    if (newBet <= balance.value) {
-      betHistoryStack.value.push(currentBet.value);
-      currentBet.value = newBet;
-      activeBets.value = activeBets.value.map(bet => ({
-        ...bet,
-        amount: bet.amount * 2
-      }));
-    } else {
-      console.warn("Недостаточно средств для удвоения");
-    }
+    // Удваиваем ставку
+    currentBet.value = Math.min(currentBet.value * 2, 10000);
     
     // Анимация кнопки
-    const x2Btn = document.querySelector('.x2-button');
-    if (x2Btn) {
-      x2Btn.classList.add('x2-clicked');
-      setTimeout(() => x2Btn.classList.remove('x2-clicked'), 300);
-    }
+    isX2Clicked.value = true;
+    setTimeout(() => isX2Clicked.value = false, 300);
   }
 };
 
@@ -1135,20 +1136,20 @@ const handleResetBetClick = () => {
 
 // Обновленные функции изменения ставки с сохранением состояния
 const incrementBet = () => {
-  // Сохраняем только при первом вызове
   if (!actionInterval.value && !actionTimeout.value) {
     saveCurrentBet();
   }
-  currentBet.value = Math.min(currentBet.value + betStep, maxBet);
-};
+  const newBet = currentBet.value + betStep;
+  currentBet.value = Math.min(newBet, maxBet, balance.value);
+}
 
 const decrementBet = () => {
-  // Сохраняем только при первом вызове
   if (!actionInterval.value && !actionTimeout.value) {
     saveCurrentBet();
   }
-  currentBet.value = Math.max(currentBet.value - betStep, minBet);
-};
+  const newBet = currentBet.value - betStep;
+  currentBet.value = Math.max(newBet, minBet);
+}
 
 // Функция для сброса ставки к нулю
 const handleOtmenaButtonClick = () => {
@@ -1205,13 +1206,7 @@ const stopAction = () => {
 // ==============================
 // ОБНОВЛЕНИЕ КНОПОК СТАВОК
 // ==============================
-// Изменено: добавлены суммы для кнопок
-const stavkiButtons = ref([
-  { id: '25', amount: 25, src: '/images/buttons/25.png', alt: '25' },
-  { id: '50', amount: 50, src: '/images/buttons/50.png', alt: '50' },
-  { id: '100', amount: 100, src: '/images/buttons/100.png', alt: '100' },
-  { id: '500', amount: 500, src: '/images/buttons/500.png', alt: '500' },
-]);
+
 
 const menuButtons = ref(
   Array.from({ length: 49 }, (_, index) => ({

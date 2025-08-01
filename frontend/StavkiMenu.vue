@@ -39,7 +39,7 @@
         @mouseleave="$emit('stop-action')"
       ></div>
     </div>
-     <div class="stavki-buttons-container">
+    <div class="stavki-buttons-container">
     <img 
       v-for="button in stavkiButtons"
       :key="button.id"
@@ -48,18 +48,17 @@
       class="stavki-button"
       @click="$emit('add-bet', button.amount)"
     >
-      <img 
-        src="/images/buttons/x2.png" 
-        alt="x2"
-        class="x2-button"
-        @click="$emit('x2-click')"
-      >
-    </div>
+    <img 
+      src="/images/buttons/x2.png" 
+      alt="x2"
+      class="x2-button"
+      @click="$emit('x2-click')"
+    >
   </div>
+</div>
 </template>
 
 <script setup>
-
 defineProps({
   currentBet: Number,
   stavkiButtons: Array

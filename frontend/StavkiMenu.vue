@@ -39,15 +39,15 @@
         @mouseleave="$emit('stop-action')"
       ></div>
     </div>
-    <div class="stavki-buttons-container">
-      <img 
-        v-for="button in stavkiButtons"
-        :key="button.id"
-        :src="button.src"
-        :alt="button.alt"
-        class="stavki-button"
-        @click="$emit('add-bet', button.amount)"
-      >
+     <div class="stavki-buttons-container">
+    <img 
+      v-for="button in stavkiButtons"
+      :key="button.id"
+      :src="button.src"
+      :alt="button.alt"
+      class="stavki-button"
+      @click="$emit('add-bet', button.amount)"
+    >
       <img 
         src="/images/buttons/x2.png" 
         alt="x2"

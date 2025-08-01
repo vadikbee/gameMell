@@ -7,17 +7,19 @@
     </div>
     
     <!-- Список ставок -->
-    <div class="bets-list">
-      <div v-for="(bet, index) in bets" :key="index" class="bet-item">
-        <div class="bet-color-indicator" :style="{ background: bet.color }"></div>
-        <div class="bet-info">
-          <div class="bet-description">{{ bet.description }}</div>
-          <div class="bet-amount">{{ bet.amount }}</div>
-        </div>
-        <div class="bet-time">{{ bet.time }}</div>
+      <div class="bets-list">
+    <div v-for="(bet, index) in bets" :key="index" class="bet-item">
+      <div class="bet-color-indicator"></div>
+      <div class="bet-info">
+        <div class="bet-description">Ставка #{{ index + 1 }}</div>
+        <div class="bet-amount">-{{ bet.amount }}₽</div>
+      </div>
+      <div class="bet-time">
+        {{ new Date(bet.timestamp).toLocaleTimeString() }}
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -25,6 +27,7 @@ import { computed,defineProps  } from 'vue';
 
 
 const props = defineProps({
+  bets: Array,
   isCenterMenuOpen: Boolean,
   insideCenter: Boolean, // Добавляем новый пропс
   title: String

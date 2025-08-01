@@ -336,9 +336,10 @@
           <div class="language-switcher" @click="switchLanguage">
          {{ currentLanguage }}
         </div>
+           <!-- Обновленный контейнер баланса -->
           <div class="balance-container">
             <div class="balance-text">{{ t('balance') }}</div>
-            <div class="button-balans">228</div>
+            <div class="button-balans">{{ balance }}</div>
           </div>
           <div class="icon-button">
             <div class="icon-1"></div>
@@ -468,12 +469,81 @@ const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
 const historyBetsInsideCenter = ref(false);
 
-const betHistory = ref([]); // ИСТОРИЯ СТАВОК
-const currentBet = ref(0);
-const minBet = 0;
-const maxBet = 10000;
-const betStep = 1;
-const tabInactiveTime = ref(0);
+// Добавляем состояния для управления ставками
+const maxBet = ref(10000); // Максимально допустимая ставка
+const balance = ref(999999); // Начальный баланс
+const currentBet = ref(0); // Текущая сумма ставки
+const betHistory = ref([]); // История ставок
+const activeBets = ref([]); // Активные ставки
+const betHistoryStack = ref([]); // Стек для отмены ставок
+
+// Функция добавления ставки
+const addToBet = (amount) => {
+  // Рассчитываем новую ставку с ограничением максимум 10000
+  const newBet = Math.min(currentBet.value + amount, 10000);
+  
+  if (newBet <= balance.value) {
+    betHistoryStack.value.push(currentBet.value);
+    currentBet.value = newBet;
+    activeBets.value.push({
+      amount: amount,
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    console.warn("Недостаточно средств на балансе");
+  }
+};
+
+
+// Отмена всех ставок
+const resetAllBets = () => {
+  betHistoryStack.value.push(currentBet.value);
+  currentBet.value = 0;
+  activeBets.value = [];
+};
+
+// Удвоение ставки
+const multiplyBet = () => {
+  if (currentBet.value > 0) {
+    betHistoryStack.value.push(currentBet.value);
+    currentBet.value *= 2;
+    activeBets.value = activeBets.value.map(bet => ({
+      ...bet,
+      amount: bet.amount * 2
+    }));
+  }
+};
+
+// Отмена последней ставки
+const undoLastBet = () => {
+  if (betHistoryStack.value.length > 0) {
+    const prevValue = betHistoryStack.value.pop();
+    currentBet.value = prevValue;
+    
+    if (activeBets.value.length > 0) {
+      activeBets.value.pop();
+    }
+  }
+};
+
+// Фиксация ставки
+const placeBet = () => {
+  if (currentBet.value > 0) {
+    // Списание средств
+    balance.value -= currentBet.value;
+    
+    // Сохранение ставки в историю
+    betHistory.value.push({
+      amount: currentBet.value,
+      timestamp: new Date().toISOString(),
+      bets: [...activeBets.value]
+    });
+    
+    // Сброс текущей ставки
+    resetAllBets();
+    betHistoryStack.value = [];
+  }
+};
 // Добавлено: переменные для управления зажатием кнопок
 const actionInterval = ref(null);
 const actionTimeout = ref(null);
@@ -492,6 +562,8 @@ const animationFrame = ref(null);
 const makeBetsText = computed(() => t('make_bets'));
 // Выносим из метода explodeAllBugs в область setup
 // Обновленная функция для получения изображения цвета
+
+
 const getColorImage = (color, bugCount) => {
   // Убрана зависимость от количества тараканов - всегда используем полное изображение
   const colorMap = {
@@ -1021,15 +1093,27 @@ const handleResetClick = () => {
 
 // Функция для удвоения ставки
 const handleX2ButtonClick = () => {
-  saveCurrentBet();
-  const newBet = currentBet.value * 2;
-  currentBet.value = newBet > maxBet ? maxBet : newBet;
-  
-  // Анимация кнопки
-  const x2Btn = document.querySelector('.x2-button');
-  if (x2Btn) {
-    x2Btn.classList.add('x2-clicked');
-    setTimeout(() => x2Btn.classList.remove('x2-clicked'), 300);
+  if (currentBet.value > 0) {
+    // Удваиваем ставку с ограничением максимум 10000
+    const newBet = Math.min(currentBet.value * 2, 10000);
+    
+    if (newBet <= balance.value) {
+      betHistoryStack.value.push(currentBet.value);
+      currentBet.value = newBet;
+      activeBets.value = activeBets.value.map(bet => ({
+        ...bet,
+        amount: bet.amount * 2
+      }));
+    } else {
+      console.warn("Недостаточно средств для удвоения");
+    }
+    
+    // Анимация кнопки
+    const x2Btn = document.querySelector('.x2-button');
+    if (x2Btn) {
+      x2Btn.classList.add('x2-clicked');
+      setTimeout(() => x2Btn.classList.remove('x2-clicked'), 300);
+    }
   }
 };
 
@@ -1048,11 +1132,6 @@ const handleResetBetClick = () => {
   }
 };
 
-// Добавлено: функция для добавления фиксированных сумм
-const addToBet = (amount) => {
-  saveCurrentBet();
-  currentBet.value = Math.min(currentBet.value + amount, maxBet);
-};
 
 // Обновленные функции изменения ставки с сохранением состояния
 const incrementBet = () => {

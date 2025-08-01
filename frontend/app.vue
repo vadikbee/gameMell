@@ -42,25 +42,26 @@
           <!-- Контейнер для интерактивных тараканов -->
           <div class="bug-buttons-container">
             <div 
-              v-for="(bug, index) in menuBugs"
-              :key="index"
-              class="bug-button"
-              :class="{
-                'bug-button-hovered': hoveredBugIndex === index,
-                'bug-button-clicked': clickedBugIndex === index
-              }"
-              @mouseenter="hoverBug(index)"
-              @mouseleave="unhoverBug"
-              @mousedown="clickBug(index)"
-              @touchstart="clickBug(index)"
-              :style="getBugStyle(index)"
-            >
-              <img 
-                :src="`/images/tarakani/t-${bug.id}.png`" 
-                :alt="`Таракан ${bug.id}`"
-                class="bug-image"
-              />
-            </div>
+            v-for="(bug, index) in menuBugs"
+            :key="index"
+            class="bug-button"
+            :class="{
+              'bug-button-hovered': hoveredBugIndex === index,
+              'bug-button-clicked': clickedBugIndex === index,
+              'selected': selectedBugIds.includes(bug.id)
+            }"
+            @mouseenter="hoverBug(index)"
+            @mouseleave="unhoverBug"
+            @mousedown="clickBug(index)"
+            @touchstart="clickBug(index)"
+            :style="getBugStyle(index)"
+          >
+            <img 
+              :src="`/images/tarakani/t-${bug.id}.png`" 
+              :alt="`Таракан ${bug.id}`"
+              class="bug-image"
+            />
+          </div>
           </div>
         </div>
       </div>
@@ -389,7 +390,8 @@ const currentLanguage = computed(() => locale.value.toUpperCase());
 
 
 
-
+// Добавляем состояние для выбранных тараканов
+const selectedBugIds = ref([]);
 const screenWidth = ref(window.innerWidth);
 // Функция определения размера экрана
 const updateScreenSize = () => {
@@ -993,8 +995,17 @@ const unhoverBug = () => {
   hoveredBugIndex.value = null;
 };
 
+// Обновленный обработчик клика
 const clickBug = (index) => {
-  clickedBugIndex.value = index;
+  const bugId = menuBugs.value[index].id;
+  
+  if (selectedBugIds.value.includes(bugId)) {
+    // Удаляем если уже выбран
+    selectedBugIds.value = selectedBugIds.value.filter(id => id !== bugId);
+  } else {
+    // Добавляем если не выбран
+    selectedBugIds.value = [...selectedBugIds.value, bugId];
+  }
   
   // Сбрасываем состояние клика через 300 мс
   setTimeout(() => {
@@ -1935,7 +1946,7 @@ const getButtonStyle = (btn) => {
 
 /* Эффекты при наведении */
 .bug-button-hovered {
-  transform: scale(1.15);
+  transform: scale(1.1);
   position: relative;
 
   filter: 
@@ -2405,7 +2416,23 @@ const getButtonStyle = (btn) => {
   gap: 10px; /* Расстояние между элементами */
   
 }
+/* Стиль для выбранного таракана */
+.bug-button.selected {
+  border: 2px solid #FFD700 !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  transform: scale(1.1);
+  z-index: 15;
+}
 
+/* Усиленная анимация для выбранного состояния */
+.bug-button.selected .bug-image {
+  animation: selected-pulse 1s infinite alternate;
+}
+
+@keyframes selected-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1.15); }
+}
 .main-color {
   background-color: #1E031E;
   min-height: 100vh;

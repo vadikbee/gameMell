@@ -483,12 +483,28 @@ const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
 const handleButtonClick = (button) => {
-  // Open the win menu for this button
-  activeWinMenuId.value = button.id;
-  centerWinMenuVisible.value = true;
-  
-  // Set the selected trap for bug selection
-  selectTrap(button.id);
+  // Если меню уже открыто для этой кнопки - закрываем его
+  if (centerWinMenuVisible.value && activeWinMenuId.value === button.id) {
+    centerWinMenuVisible.value = false;
+    activeWinMenuId.value = null;
+    selectedTrap.value = null;
+    selectedBugs.value = [];
+  } 
+  // Если открыто другое меню - закрываем его и открываем новое
+  else if (centerWinMenuVisible.value) {
+    centerWinMenuVisible.value = false;
+    setTimeout(() => {
+      activeWinMenuId.value = button.id;
+      centerWinMenuVisible.value = true;
+      selectTrap(button.id);
+    }, 50);
+  }
+  // Если меню закрыто - открываем его
+  else {
+    activeWinMenuId.value = button.id;
+    centerWinMenuVisible.value = true;
+    selectTrap(button.id);
+  }
 };
 // Показать уведомление
 const showNotification = (message, isWin) => {

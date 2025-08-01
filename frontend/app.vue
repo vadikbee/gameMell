@@ -18,53 +18,53 @@
     />
       <!-- Центральное фиксированное меню -->
       <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100">
-        
-        <StavkiMenu
-          :currentBet="currentBet"
-          :stavkiButtons="stavkiButtons"
-          @otmena-click="undoLastBet"
-          @reset-click="resetAllBets"
-          @group164-click="placeBet"
-          @decrement-start="startDecrement"
-          @increment-start="startIncrement"
-          @stop-action="stopAction"
-          @add-bet="addToBet"
-          @x2-click="multiplyBet"
-          
-        />
-        <div class="menu-container">
+    <StavkiMenu
+      :currentBet="currentBet"
+      :stavkiButtons="stavkiButtons"
+      context="win"
+      @win-bet-click="placeSectionBet"
+      @otmena-click="undoLastBet"
+      @reset-click="resetAllBets"
+      @decrement-start="startDecrement"
+      @increment-start="startIncrement"
+      @stop-action="stopAction"
+      @add-bet="addToBet"
+      @x2-click="multiplyBet"
+    />
+    
+    <div class="menu-container">
+      <img 
+        :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
+        alt="Menu" 
+        class="menuWin-image-center"
+      />
+      
+      <!-- Обновленный контейнер для тараканов с обработчиком выбора -->
+      <div class="bug-buttons-container">
+        <div 
+          v-for="(bug, index) in menuBugs"
+          :key="index"
+          class="bug-button"
+          :class="{
+            'bug-button-hovered': hoveredBugIndex === index,
+            'bug-button-clicked': clickedBugIndex === index,
+            'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId
+          }"
+          @mouseenter="hoverBug(index)"
+          @mouseleave="unhoverBug"
+          @click="toggleBugSelection(bug.id)"
+          :style="getBugStyle(index)"
+        >
           <img 
-            :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
-            alt="Menu" 
-            class="menuWin-image-center"
+            :src="`/images/tarakani/t-${bug.id}.png`" 
+            :alt="`Таракан ${bug.id}`"
+            class="bug-image"
           />
-          
-          <!-- Контейнер для интерактивных тараканов -->
-          <div class="bug-buttons-container">
-            <div 
-            v-for="(bug, index) in menuBugs"
-            :key="index"
-            class="bug-button"
-            :class="{
-              'bug-button-hovered': hoveredBugIndex === index,
-              'bug-button-clicked': clickedBugIndex === index,
-              'selected': selectedBugIds.includes(bug.id)
-            }"
-            @mouseenter="hoverBug(index)"
-            @mouseleave="unhoverBug"
-            @mousedown="clickBug(index)"
-            @touchstart="clickBug(index)"
-            :style="getBugStyle(index)"
-          >
-            <img 
-              :src="`/images/tarakani/t-${bug.id}.png`" 
-              :alt="`Таракан ${bug.id}`"
-              class="bug-image"
-            />
-          </div>
-          </div>
         </div>
       </div>
+    </div>
+  </div>\
+
       
       <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
@@ -364,6 +364,9 @@
     </div>
   </div>
   <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
+  <div v-if="notificationVisible" class="notification" :class="notificationClass">
+    {{ notificationMessage }}
+  </div>
 </template>
 
 
@@ -466,6 +469,122 @@ let raceTimer = null;
 // Новые состояния для взаимодействия с тараканами в меню
 const hoveredBugIndex = ref(null);
 const clickedBugIndex = ref(null);
+const selectedTrap = ref(null);
+const selectedBugs = ref([]);
+const bugSelections = ref({}); // { trapId: [bugIds] }
+
+// Обработчик выбора ловушки
+const selectTrap = (trapId) => {
+  selectedTrap.value = trapId;
+  selectedBugs.value = bugSelections.value[trapId] || [];
+};
+// Состояния для уведомлений
+const notificationVisible = ref(false);
+const notificationMessage = ref('');
+const notificationClass = ref('');
+const handleButtonClick = (button) => {
+  // Open the win menu for this button
+  activeWinMenuId.value = button.id;
+  centerWinMenuVisible.value = true;
+  
+  // Set the selected trap for bug selection
+  selectTrap(button.id);
+};
+// Показать уведомление
+const showNotification = (message, isWin) => {
+  notificationMessage.value = message;
+  notificationClass.value = isWin ? 'win' : 'lose';
+  notificationVisible.value = true;
+  
+  // Автоматическое скрытие через 3 секунды
+  setTimeout(() => {
+    notificationVisible.value = false;
+  }, 3000);
+};
+
+// Обработчик ставки на секцию
+const placeSectionBet = () => {
+  if (!selectedTrap.value || selectedBugs.value.length === 0) {
+    alert('Выберите тараканов для ставки');
+    return;
+  }
+
+  // Проверка минимальной ставки
+  const minBet = 10;
+  if (currentBet.value < minBet) {
+    alert(`Минимальная ставка: ${minBet}₽`);
+    return;
+  }
+
+  // Проверка достаточности средств
+  if (currentBet.value > balance.value) {
+    alert('Недостаточно средств на балансе');
+    return;
+  }
+
+  // Списание средств
+  balance.value -= currentBet.value;
+
+  // Добавление в историю ставок
+  betHistory.value.push({
+    type: 'section',
+    trapId: selectedTrap.value,
+    bugs: [...selectedBugs.value],
+    amount: currentBet.value,
+    timestamp: new Date().toISOString(),
+    result: 'pending' // 'win', 'lose' или 'pending'
+  });
+  
+  // Сбрасываем текущий выбор
+  resetBugSelections();
+  
+  // Закрываем меню
+  centerWinMenuVisible.value = false;
+  
+  // Для отладки
+  console.log(`Ставка на ловушку ${selectedTrap.value}:`, selectedBugs.value);
+};
+
+// Проверить результаты ставок после гонки
+const checkBetsResults = () => {
+  betHistory.value.forEach(bet => {
+    if (bet.result !== 'pending') return;
+    
+    const button = winButtons.value.find(b => b.id === bet.trapId);
+    if (!button) return;
+    
+    // Проверяем, есть ли хотя бы один выбранный таракан в победителях
+    const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
+    
+    // Обновляем статус ставки
+    bet.result = isWin ? 'win' : 'lose';
+    
+    // Показываем уведомление
+    const amount = bet.amount;
+    if (isWin) {
+      const winAmount = amount * 2; // Коэффициент выплаты
+      balance.value += winAmount;
+      showNotification(`Ваша ставка выиграла! +${winAmount}₽`, true);
+    } else {
+      showNotification(`Ставка проиграла`, false);
+    }
+  });
+};
+
+// Очистить выбор тараканов после гонки
+const resetBugSelections = () => {
+  // Сбросить все выборы
+  selectedBugs.value = [];
+  selectedTrap.value = null;
+  bugSelections.value = {};
+  
+  // Сбросить состояние кнопок
+  winButtons.value.forEach(btn => {
+    btn.selected = false;
+    btn.bugs = [];
+  });
+};
+
 
 // Новое состояние для центрального меню
 const centerWinMenuVisible = ref(false);
@@ -637,6 +756,25 @@ const explodeAllBugs = (raceEndTime) => {
 
   startExplosionAnimation();
 };
+// Add this method after the selectTrap function
+const toggleBugSelection = (bugId) => {
+  if (!selectedTrap.value) return;
+  
+  const currentSelections = [...(bugSelections.value[selectedTrap.value] || [])];
+  
+  if (currentSelections.includes(bugId)) {
+    // Remove selection
+    bugSelections.value[selectedTrap.value] = currentSelections.filter(id => id !== bugId);
+  } else {
+    // Add selection (max 2 bugs)
+    if (currentSelections.length < 2) {
+      bugSelections.value[selectedTrap.value] = [...currentSelections, bugId];
+    }
+  }
+  
+  // Update current selection
+  selectedBugs.value = bugSelections.value[selectedTrap.value] || [];
+};
 // Вычисляемое свойство для LastGameMenu
 const processedGames = computed(() => {
   return (props.games || []).map(game => ({
@@ -785,6 +923,17 @@ const saveGameResults = async () => {
     } catch (error) {
         console.error('Error saving game results:', error);
     }
+    
+
+// Проверяем результаты ставок
+  setTimeout(() => {
+    checkBetsResults();
+  }, 1000);
+    // Проверяем результаты ставок
+  checkBetsResults();
+  
+  // Сбрасываем выбор тараканов
+  resetBugSelections();
 };
 
 // Добавляем состояние для анимации взрыва
@@ -1303,23 +1452,7 @@ const isX2Clicked = ref(false);
 
 
 
-// ОБНОВЛЕННЫЙ ОБРАБОТЧИК КЛИКА ПО КНОПКЕ ПОБЕДЫ
-const handleButtonClick = (btn) => {
-  // Закрываем меню если оно открыто и кликнули на ту же кнопку
-  if (btn.selected) {
-    btn.selected = false;
-    centerWinMenuVisible.value = false;
-    return;
-  }
-  
-  // Снимаем выделение со всех кнопок
-  winButtons.value.forEach(b => b.selected = false);
-  
-  // Выделяем текущую кнопку и открываем меню
-  btn.selected = true;
-  centerWinMenuVisible.value = true;
-  activeWinMenuId.value = btn.id;
-};
+
 
 
 // ==============================
@@ -1783,7 +1916,37 @@ const getButtonStyle = (btn) => {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+.notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 30px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 1000;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  animation: fadeInOut 3s ease-in-out;
+}
 
+.notification.win {
+  border: 2px solid #4CAF50;
+  background-color: rgba(76, 175, 80, 0.15);
+}
+
+.notification.lose {
+  border: 2px solid #F44336;
+  background-color: rgba(244, 67, 54, 0.15);
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; transform: translate(-50%, -40%); }
+  10%, 90% { opacity: 1; transform: translate(-50%, -50%); }
+}
 .language-switcher:hover {
   transform: scale(1.05);
   filter: brightness(1.2);

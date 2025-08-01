@@ -18,11 +18,11 @@
       >
       
       <img 
-        src="/images/menus/Group 164.png" 
-        alt="Group 164" 
-        class="group-164-button"
-        @click="$emit('group164-click')"
-      >
+      src="/images/menus/Group 164.png" 
+      alt="Group 164" 
+      class="group-164-button"
+      @click="$emit(context === 'win' ? 'win-bet-click' : 'group164-click')"
+    >
     </div>
     <div class="bet-counter-container">
       <div 
@@ -61,7 +61,11 @@
 <script setup>
 defineProps({
   currentBet: Number,
-  stavkiButtons: Array
+  stavkiButtons: Array,
+  context: {
+    type: String,
+    default: 'center' // 'center' или 'win'
+  }
 });
 
 defineEmits([
@@ -72,7 +76,8 @@ defineEmits([
   'increment-start',
   'stop-action',
   'add-bet',
-  'x2-click'
+  'x2-click',
+  'win-bet-click' // Новое событие для ставок на секцию
 ]);
 </script>
 

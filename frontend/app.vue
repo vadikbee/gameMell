@@ -342,7 +342,7 @@
            <!-- Обновленный контейнер баланса -->
           <div class="balance-container">
             <div class="balance-text">{{ t('balance') }}</div>
-            <div class="button-balans">{{ balance }}</div>
+            <div class="button-balans">{{ formattedBalance }}</div>
           </div>
           <div class="icon-button">
             <div class="icon-1"></div>
@@ -512,6 +512,9 @@ const handleButtonClick = (button) => {
 };
 // Показать уведомление
 const showNotification = (message, isWin) => {
+  notificationMessage.value = isWin 
+    ? message.replace('{0}', `${amount} ${t('currency')}`)
+    : message;
   notificationMessage.value = message;
   notificationClass.value = isWin ? 'win' : 'lose';
   notificationVisible.value = true;
@@ -682,7 +685,10 @@ const multiplyBet = () => {
   }
 };
 
-
+// Добавьте вычисляемое свойство
+const formattedBalance = computed(() => {
+  return `${balance.value} ${t('currency')}`;
+});
 // Фиксация ставки и списание средств
 const placeBet = () => {
   if (currentBet.value > 0 && currentBet.value <= balance.value) {

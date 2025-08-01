@@ -6,74 +6,59 @@
     
     <div class="games-container">
       <div 
-    v-for="(game, index) in gamesList" 
-    :key="game.id"  
-    class="game-item"
-  >
-    <div class="game-id">#{{ index + 1 }}</div>
-    <div class="results-container">
-      <!-- Сортируем результаты по позициям -->
-      <div 
-        v-for="result in sortedResults(game.results)" 
-        :key="result.color"
-        class="result-item"
+        v-for="(game, index) in gamesList" 
+        :key="game.id"  
+        class="game-item"
       >
-        <div class="position">
-          {{ result.position || '-' }}
+        <div class="game-id">#{{ index + 1 }}</div>
+        <div class="results-container">
+          <!-- Отображаем результаты в фиксированном порядке -->
+          <div 
+            v-for="position in 7" 
+            :key="position"
+            class="result-item"
+          >
+            <div class="position">
+              {{ getPositionText(game.results, position) }}
+            </div>
+            <div 
+              class="bug-color" 
+              :class="{ empty: !getPositionColor(game.results, position) }"
+              :style="{ background: getPositionColor(game.results, position) || 'transparent' }"
+            ></div>
+          </div>
         </div>
-        <div 
-          class="bug-color" 
-          :class="{ empty: result.position === null }"
-          :style="{ background: result.position !== null ? result.color : 'transparent' }"
-        ></div>
       </div>
-    </div>
-  </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
-import { useI18n } from 'vue-i18n'; // Измененный импорт
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n(); // Получаем функцию t через хук
-
+const { t } = useI18n();
 const props = defineProps({
   isCenterMenuOpen: Boolean,
   games: Array
 });
 
 const gamesList = computed(() => props.games || []);
+const positionClass = computed(() => 
+  props.isCenterMenuOpen ? 'top-left' : 'bottom-left'
+);
 
-const positionClass = computed(() => {
-  return props.isCenterMenuOpen ? 'top-left' : 'bottom-left';
-});
-// Добавляем computed для сортировки результатов
-const sortedResults = (results) => {
-    // Сначала фильтруем завершивших гонку
-    const finished = results.filter(r => r.position !== null);
-    
-    // Сортируем по позициям (1, 2, 3...)
-    finished.sort((a, b) => a.position - b.position);
-    
-    // Добавляем не завершивших
-    const unfinished = results.filter(r => r.position === null);
-    
-    return [...finished, ...unfinished];
+// Функция для получения текста позиции
+const getPositionText = (results, position) => {
+  const result = results.find(r => r.position === position);
+  return result ? result.position : '-';
 };
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
-// Замените текущий метод loadGameHistory
-const loadGameHistory = async () => {
-  try {
-    const gameCode = 'your-game-code'; // Получать из контекста приложения
-    const response = await fetch(`/api/v1/gameplay/games/sessions/${gameCode}/last`);
-    lastGames.value = await response.json();
-  } catch (error) {
-    console.error('Error loading game history:', error);
-  }
+
+// Функция для получения цвета таракана
+const getPositionColor = (results, position) => {
+  const result = results.find(r => r.position === position);
+  return result ? result.color : null;
 };
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
 </script>
 <style scoped>
 /* Добавьте этот стиль */

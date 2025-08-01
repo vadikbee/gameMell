@@ -687,32 +687,30 @@ const handleVisibilityChange = () => {
     }
   }
 };
-// В методе saveGameResults
 const saveGameResults = async () => {
-    // Фильтруем только финишировавших тараканов и сортируем по времени финиша
+    // Собираем только финишировавших тараканов и сортируем по времени финиша
     const finishedBugs = bugs.value
-        .filter(bug => bug.finishTime !== null) // Только с фиксированным временем
-        .sort((a, b) => a.finishTime - b.finishTime); // Сортировка по времени финиша
+        .filter(bug => bug.finished)
+        .sort((a, b) => a.finishTime - b.finishTime);
+    
+    // Создаем массив результатов с позициями
     const results = bugs.value.map((bug) => {
-        // Находим позицию в отсортированном массиве финишировавших
-        const positionIndex = finishedBugs.findIndex(fBug => fBug.id === bug.id);
-        const position = positionIndex >= 0 ? positionIndex + 1 : null;
-
+        // Находим индекс финишировавшего таракана
+        const finishIndex = finishedBugs.findIndex(b => b.id === bug.id);
         return {
-            position: position,
+            position: finishIndex !== -1 ? finishIndex + 1 : null,
             color: bugColors.value[bug.id]
         };
     });
-
+    
     try {
         const response = await fetch('/api/game-history/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ results })
         });
-        
         if (!response.ok) throw new Error('Save failed');
-        loadGameHistory();
+        loadGameHistory(); // Перезагружаем историю после сохранения
     } catch (error) {
         console.error('Error saving game results:', error);
     }
@@ -880,6 +878,7 @@ else if (bug.phase === 'to_blue_point') {
       bug.finished = true;
       button.occupied = true;
       button.finishedBugId = bug.id;
+      bug.finishTime = now; // Сохраняем время финиша
     }
   }
 }
@@ -1417,16 +1416,20 @@ const updateProgress = () => {
       cancelAnimationFrame(animationFrame.value);
       animationFrame.value = null;
     }
+    saveGameResults(); // Сохраняем результаты гонки
         explodeAllBugs();
       }
     } else {
       // Если гонка официально началась, но тараканы еще не готовы
       // Показываем 0% прогресса до их появления
       progress.value = 0;
+      
     }
+    
   }
   
   animationFrameId.value = requestAnimationFrame(updateProgress);
+  
 };
 
 // Обновленная функция анимации взрыва
@@ -1971,7 +1974,7 @@ const getButtonStyle = (btn) => {
 /* Позиция внутри центрального меню history-bets (в главном меню)*/
 .history-bets.inside-center {
   position: absolute;
-  top: -163%;
+  margin-top: 40%;
   margin-left: 38%;
   width: 240px;
   height: 150px;
@@ -3970,7 +3973,7 @@ width: 23%;
 
 }
 .history-bets.inside-center {
-  top: -200%;
+  top: -284%;
   
 }
 .bet-counter-container {
@@ -3994,6 +3997,9 @@ width: 23%;
   background-repeat: no-repeat;
   background-size: 100% auto;
     
+  }
+  .history-bets.inside-center {
+    top: -480%;
   }
   .main-bg {
    background-position: center top;

@@ -14,84 +14,73 @@ class GameHistoryController extends Controller
    // GameHistoryController.php
 public function getLastGames()
 {
-  try {
-    $filePath = $this->getFilePath();
-    
-    if (!file_exists($filePath)) {
-      return response()->json([]);
-    }
-
-    $content = file_get_contents($filePath);
-    $history = json_decode($content, true) ?? [];
-
-    // Возвращаем последние 5 игр
-    return response()->json(array_slice($history, 0, 5));
-  } catch (\Exception $e) {
-    Log::error('Error loading history: '.$e->getMessage());
-    return response()->json([]);
-  }
-}
-///////////////////////////////////////ЭНДПОИНТ (lastGame)/////...//////////////////////////////////
-public function getLastGamesForSession($code)
-{
     try {
         $filePath = $this->getFilePath();
+        if (!file_exists($filePath)) return response()->json([]);
+
+        $history = json_decode(file_get_contents($filePath), true) ?? [];
         
-        if (!file_exists($filePath)) {
-            return response()->json([]);
+        $processedGames = [];
+        foreach (array_slice($history, 0, self::MAX_GAMES) as $game) {
+            // Сортируем результаты по позициям
+            $sortedResults = collect($game['results'])
+                ->sortBy('position', SORT_NATURAL) // Сортировка по позициям
+                ->values()
+                ->toArray();
+                
+            $processedGames[] = [
+                'id' => $game['id'],
+                'timestamp' => $game['timestamp'],
+                'results' => $sortedResults
+            ];
         }
-
-        $content = file_get_contents($filePath);
-        $history = json_decode($content, true) ?? [];
-
-        return response()->json(array_slice($history, 0, self::MAX_GAMES));
+        
+        return response()->json($processedGames);
     } catch (\Exception $e) {
-        Log::error('Error loading session history: '.$e->getMessage());
+        Log::error('Error loading history: '.$e->getMessage());
         return response()->json([]);
     }
 }
+///////////////////////////////////////ЭНДПОИНТ (lastGame)/////...//////////////////////////////////
+
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
-    public function saveGameResult(Request $request)
-    {
-        try {
+   public function saveGameResult(Request $request)
+{
+    try {
         $validated = $request->validate([
-             'results' => 'required|array',
+            'results' => 'required|array',
             'results.*.position' => 'nullable|integer|min:1',
             'results.*.color' => 'required|string',
         ]);
 
-            $results = $validated['results'];
-            $history = [];
-            $filePath = $this->getFilePath();
+        $results = $validated['results'];
+        $filePath = $this->getFilePath();
+        $history = [];
 
-            // Создаем директорию если не существует
-            $directory = dirname($filePath);
-            if (!is_dir($directory)) {
-                mkdir($directory, 0777, true);
-            }
-
-            if (file_exists($filePath)) {
-                $content = file_get_contents($filePath);
-                $history = json_decode($content, true) ?? [];
-            }
-
-            array_unshift($history, [
-                'id' => uniqid(),
-                'timestamp' => now()->toDateTimeString(),
-                'results' => $results
-            ]);
-
-            file_put_contents(
-                $filePath, 
-                json_encode(array_slice($history, 0, self::MAX_GAMES))
-            );
-
-            return response()->json(['status' => 'success']);
-        } catch (\Exception $e) {
-            Log::error('Error saving history: '.$e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        if (file_exists($filePath)) {
+            $history = json_decode(file_get_contents($filePath), true) ?? [];
         }
+
+        // Убрано дополнение до 7 элементов - теперь принимаем данные как есть
+        array_unshift($history, [
+            'id' => uniqid(),
+            'timestamp' => now()->toDateTimeString(),
+            'results' => $results
+        ]);
+
+        // Сохраняем только последние MAX_GAMES игр
+        file_put_contents(
+            $filePath, 
+            json_encode(array_slice($history, 0, self::MAX_GAMES))
+        );
+
+        return response()->json(['status' => 'success']);
+    } catch (\Exception $e) {
+        Log::error('Error saving history: '.$e->getMessage());
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
+}
+    
 
     private function getFilePath()
     {

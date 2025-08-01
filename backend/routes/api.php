@@ -204,4 +204,12 @@ Route::options('/game-history/save', function () {
 });
 
 Route::post('/game-history/save', [GameHistoryController::class, 'saveGameResult']);
+// Добавьте в конец файла
+Route::options('/game-history/last', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
 Route::get('/game-history/last', [GameHistoryController::class, 'getLastGames']);

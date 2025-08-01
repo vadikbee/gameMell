@@ -525,45 +525,34 @@ const setActiveTab = (tab) => {
   // Здесь можно добавить логику для отображения соответствующего контента
   console.log(`Active tab changed to: ${tab}`);
 };
-// Функция для взрыва всех тараканов
-const explodeAllBugs = () => {
-  if (!isTabActive.value) return;
-  if (bugs.value.length === 0) return;
-  
+const explodeAllBugs = (raceEndTime) => {
+  if (!isTabActive.value || bugs.value.length === 0) return;
+
   bugs.value.forEach(bug => {
-    // Исправлено: не взрываем финишировавших или движущихся к точке
-    if (!bug.finished && bug.phase !== 'to_blue_point') {
+    if (bug.finished) return;
+
+    // Финишируем всех, кто уже начал движение к точке
+    if (bug.phase === 'to_blue_point') {
+      const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+      if (button) {
+        bug.position = [...button.bluePoint];
+        bug.finished = true;
+        bug.finishTime = raceEndTime; // Важно: время окончания гонки
+        
+        button.occupied = true;
+        button.finishedBugId = bug.id;
+        
+        if (button.bugs.length < 2) {
+          button.bugs.push(bug.id);
+        }
+      }
+    } else {
+      // Для остальных запускаем анимацию взрыва
       bug.explodeFrame = 0;
       bug.exploded = false;
     }
   });
-  
-  startExplosionAnimation();
-  
 
-// При монтировании проверяем параметр lang в URL
-onMounted(() => {
-  
-  dizzySound.value = new Audio('/sounds/star.mp3');
-  dizzySound.value.volume = soundVolume.value;
-  
-  // Предзагрузка звука
-  dizzySound.value.load();
-  const urlParams = new URLSearchParams(window.location.search);
-  const langParam = urlParams.get('lang');
-  if (langParam && (langParam === 'en' || langParam === 'ru')) {
-    i18n.global.locale.value = langParam;
-    currentLanguage.value = langParam.toUpperCase();
-  }
-});
-// Функция для регулировки громкости
-const setVolume = (volume) => {
-  soundVolume.value = volume;
-  if (dizzySound.value) {
-    dizzySound.value.volume = volume;
-  }
-};
-// Запускаем анимацию взрыва
   startExplosionAnimation();
 };
 // Вычисляемое свойство для LastGameMenu
@@ -1408,15 +1397,18 @@ const updateProgress = () => {
       if (raceElapsed >= raceInterval.value) {
         // Завершение гонки
         raceInProgress.value = false;
+        const raceEndTime = raceActualStartTime.value + raceInterval.value;
         breakInProgress.value = true;
         phaseStartTime.value = now;
         raceActualStartTime.value = null;
+        explodeAllBugs(raceEndTime);
+        saveGameResults();
         // Остановка анимации гонки
     if (animationFrame.value) {
       cancelAnimationFrame(animationFrame.value);
       animationFrame.value = null;
     }
-    saveGameResults(); // Сохраняем результаты гонки
+    
         explodeAllBugs();
       }
     } else {

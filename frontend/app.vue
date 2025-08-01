@@ -80,18 +80,16 @@
       }"
     >
          <!-- Контейнер для цветных индикаторов (обновлено) -->
-  <div class="color-indicators" v-if="btn.bugs.length > 0">
+ 
+<div class="color-indicators" v-if="btn.bugs.length > 0">
   <div 
     v-for="(bugId, bugIndex) in btn.bugs" 
     :key="bugIndex"
     class="color-indicator"
-    :class="{
-      'full': btn.bugs.length === 1,
-      'half': btn.bugs.length === 2
-    }"
     :style="{ 
-      backgroundImage: 'url(' + getColorImage(bugColors[bugId]) + ')',
-      left: btn.bugs.length === 2 && bugIndex === 1 ? '50%' : '0'
+      width: `${100 / btn.bugs.length}%`,
+      left: `${bugIndex * (100 / btn.bugs.length)}%`,
+      backgroundImage: 'url(' + getColorImage(bugColors[bugId]) + ')'
     }"
   ></div>
 </div>
@@ -773,6 +771,7 @@ const explodeAllBugs = (raceEndTime) => {
   startExplosionAnimation();
 };
 // Add this method after the selectTrap function
+// В секции script
 const toggleBugSelection = (bugId) => {
   if (!selectedTrap.value) return;
   
@@ -782,10 +781,8 @@ const toggleBugSelection = (bugId) => {
     // Remove selection
     bugSelections.value[selectedTrap.value] = currentSelections.filter(id => id !== bugId);
   } else {
-    // Add selection (max 2 bugs)
-    if (currentSelections.length < 2) {
-      bugSelections.value[selectedTrap.value] = [...currentSelections, bugId];
-    }
+    // Add selection (без ограничения количества)
+    bugSelections.value[selectedTrap.value] = [...currentSelections, bugId];
   }
   
   // Update current selection
@@ -3049,7 +3046,7 @@ position: absolute;
 }
 
 .color-indicator {
-  position: absolute; /* Абсолютное позиционирование */
+  position: absolute;
   top: 0;
   height: 100%;
   background-size: cover;
@@ -3058,14 +3055,6 @@ position: absolute;
   transition: all 0.3s ease;
 }
 
-.color-indicator.full {
-  width: 100%;
-  left: 0;
-}
-
-.color-indicator.half {
-  width: 50%;
-}
 
 /* Специальные классы для позиционирования */
 .color-indicator.first-half {

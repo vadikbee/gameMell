@@ -34,7 +34,7 @@
     
     <div class="menu-container">
        <div v-if="raceInProgress" class="next-race-notice">
-      {{ t('bet_next_race_notice') }}
+      {{ t('next_round_bet') }}
     </div>
       <img 
         :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
@@ -559,7 +559,7 @@ const placeSectionBet = () => {
   nextRaceBets.value.push(bet);
   
   // Всегда показываем уведомление о ставке на следующую гонку
-  showNotification(t('bet_placed_next_race'), false);
+  showNotification(t('next_round_bet'), false);
   
   // Сбрасываем текущий выбор
   resetBugSelections();
@@ -588,9 +588,9 @@ const checkBetsResults = () => {
     if (isWin) {
       const winAmount = amount * 2;
       balance.value += winAmount;
-      showNotification(`Ваша ставка выиграла! +${winAmount}₽`, true);
+      showNotification(t('bet_won', [winAmount]), true);
     } else {
-      showNotification(`Ставка проиграла`, false);
+      showNotification(t('bet_lost'), false);
     }
   });
 
@@ -2430,13 +2430,13 @@ const getButtonStyle = (btn) => {
 
 .next-race-notice {
   position: absolute;
-  top: -70px;
+  top: -75px;
   left: 0;
   right: 0;
   text-align: center;
   font-family: 'Bahnschrift', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 20px;
   color: #FFD700;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
   z-index: 15;

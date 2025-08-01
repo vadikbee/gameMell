@@ -11,7 +11,7 @@
     <div v-for="(bet, index) in bets" :key="index" class="bet-item">
       <div class="bet-color-indicator"></div>
       <div class="bet-info">
-        <div class="bet-description">Ставка #{{ index + 1 }}</div>
+        <div class="bet-description">{{ t('bet_number', [index + 1]) }}</div>
         <div class="bet-amount">-{{ bet.amount }}₽</div>
       </div>
       <div class="bet-time">
@@ -24,7 +24,8 @@
 
 <script setup>
 import { computed,defineProps  } from 'vue';
-
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const props = defineProps({
   bets: Array,

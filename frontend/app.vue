@@ -344,7 +344,11 @@
             <div class="balance-text">{{ t('balance') }}</div>
             <div class="button-balans">{{ formattedBalance }}</div>
           </div>
-          <div class="icon-button">
+          <div 
+            class="icon-button"
+            @click="openPersonalAccount"
+            :class="{ 'icon-button-clicked': isIconClicked }"
+          >
             <div class="icon-1"></div>
           </div>
            <!-- Добавлен прогресс-бар -->
@@ -658,7 +662,23 @@ const undoLastBet = () => {
     currentBet.value = lastAction.prevBet;
   }
 };
+// Добавляем новое состояние для анимации
+const isIconClicked = ref(false);
 
+// Функция открытия личного кабинета
+const openPersonalAccount = () => {
+  // Временная заглушка
+  showNotification(t('personal_account_coming_soon'), false);
+  
+  // Анимация нажатия
+  isIconClicked.value = true;
+  setTimeout(() => {
+    isIconClicked.value = false;
+  }, 300);
+
+  // Здесь в будущем будет переход в личный кабинет
+  // window.location.href = '/personal-account';
+};
 // Сброс всех ставок
 const resetAllBets = () => {
   undoStack.value.push({
@@ -1830,6 +1850,50 @@ const getButtonStyle = (btn) => {
 };
 </script>
 <style scoped>
+
+.icon-button-clicked {
+  animation: icon-click 0.3s ease;
+}
+
+@keyframes icon-click {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* Эффекты при наведении */
+.icon-button:hover {
+  background-color: #222 !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Существующие стили с небольшими улучшениями */
+.icon-button {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  z-index: 3;
+  width: 30px; 
+  height: 30px;
+  background-color: #000000;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #333 !important;
+}
+
+.icon-1 {
+  background-image: url('/images/icons/Group.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 24px;
+  height: 17px;
+}
 /* Обновленная анимация для серебристых линий */
 @keyframes lineAnimationTop {
   0% {

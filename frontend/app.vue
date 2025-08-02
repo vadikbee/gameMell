@@ -420,6 +420,57 @@
       </button>
     </div>
   </transition>
+  <!-- В секции template после win-notification -->
+<transition name="slide-fade">
+  <div 
+    v-if="loseNotificationVisible && loseData" 
+    class="lose-notification"
+    :class="{ expanded: expandedLoseDetails }"
+    @click="!expandedLoseDetails ? expandedLoseDetails = true : null"
+  >
+    <div class="notification-header">
+      <div class="lose-icon"></div>
+      <div class="title">You Lose</div>
+      <div class="time">
+        {{ loseData.timestamp ? formatTime(loseData.timestamp) : '' }}
+      </div>
+    </div>
+      
+    <div class="notification-body">
+      <div class="lose-amount-label">{{ t('losing_amount') }}:</div>
+      <div class="lose-amount">-{{ loseData.amount }} ₽</div>
+    </div>
+      
+    <div v-if="expandedLoseDetails" class="bets-details">
+      <div class="bet-item" v-for="(bet, index) in loseData.bets" :key="index">
+        <div class="bet-meta">
+          <div class="bug-colors">
+            <div 
+              v-for="(color, i) in bet.bugColors" 
+              :key="i"
+              class="color-dot"
+              :style="{ backgroundColor: color }"
+            ></div>
+          </div>
+          <div class="bet-time">{{ bet.timestamp ? formatTime(bet.timestamp) : '' }}</div>
+        </div>
+        <div class="bet-amount">-{{ bet.loseAmount }} ₽</div>
+      </div>
+    </div>
+      
+    <div v-if="!expandedLoseDetails" class="hint">
+      {{ t('press_for_more') }}
+    </div>
+      
+    <button 
+      v-if="expandedLoseDetails" 
+      class="close-button"
+      @click.stop="loseNotificationVisible = false; expandedLoseDetails = false"
+    >
+      {{ t('close') }}
+    </button>
+  </div>
+</transition>
 </template>
 
 
@@ -525,7 +576,9 @@ const clickedBugIndex = ref(null);
 const selectedTrap = ref(null);
 const selectedBugs = ref([]);
 const bugSelections = ref({}); // { trapId: [bugIds] }
-
+const loseNotificationVisible = ref(false);
+const expandedLoseDetails = ref(false);
+const loseData = ref(null); // { amount: сумма проигрыша, bets: [массив проигрышных ставок] }
 // Обработчик выбора ловушки
 const selectTrap = (trapId) => {
   selectedTrap.value = trapId;
@@ -625,8 +678,10 @@ const placeSectionBet = () => {
 
 // ОБНОВЛЕННАЯ функция проверки результатов ставок
 const checkBetsResults = () => {
-  const winningBets = [];
+const winningBets = [];
+  const losingBets = []; // Новый массив для проигрышных ставок
   let totalWin = 0;
+  let totalLose = 0; // Общая сумма проигрыша
   
   currentRaceBets.value.forEach(bet => {
     if (bet.result !== 'pending') return;
@@ -646,6 +701,15 @@ const checkBetsResults = () => {
         winAmount,
         bugColors: bet.bugs.map(id => bugColors.value[id-1])
       });
+    }else {
+      // Обработка проигрыша
+      bet.result = 'lose';
+      losingBets.push({
+        ...bet,
+        loseAmount: bet.amount, // Сумма проигрыша равна ставке
+        bugColors: bet.bugs.map(id => bugColors.value[id-1])
+      });
+      totalLose += bet.amount;
     }
   });
 
@@ -664,7 +728,23 @@ const checkBetsResults = () => {
       }
     }, 3000);
   }
-
+   // Показываем уведомление о проигрыше
+  if (losingBets.length > 0) {
+    loseData.value = {
+      amount: totalLose,
+      bets: losingBets,
+      timestamp: new Date()
+    };
+    loseNotificationVisible.value = true;
+    
+    // Автоматическое скрытие через 3 секунды
+    setTimeout(() => {
+      if (!expandedLoseDetails.value) {
+        loseNotificationVisible.value = false;
+      }
+    }, 3000);
+  }
+  
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
 };
@@ -2451,7 +2531,49 @@ const getButtonStyle = (btn) => {
   background-repeat: no-repeat;
   background-position: center;
 }
+/* Стили для уведомления о проигрыше */
+.lose-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 372px;
+  background: rgba(255, 220, 220, 0.9); /* Красноватый фон */
+  border: 1px solid #FF6B6B;
+  border-radius: 10px;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
+.lose-notification.expanded {
+  height: auto;
+  max-height: 80vh;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.notification-header {
+  background: rgba(255, 200, 200, 0.7);
+}
+
+.lose-icon {
+  background: linear-gradient(180deg, #FF0000 0%, #8B0000 100%);
+}
+
+.title {
+  background: linear-gradient(180deg, #FF0000 0%, #8B0000 100%);
+}
+
+.lose-amount {
+  color: #FF0000;
+}
+
+.bet-amount {
+  color: #FF0000;
+}
 .bet-button.minus {
   z-index: 9;
   background-image: url('/images/buttons/kryg-pravo.png');

@@ -471,6 +471,21 @@
     </button>
   </div>
 </transition>
+<transition name="slide-fade">
+    <div 
+      v-if="infoNotificationVisible" 
+      class="info-notification"
+    >
+      <div class="notification-header">
+        <div class="info-icon"></div>
+        <div class="title">{{ t('information') }}</div>
+      </div>
+      
+      <div class="notification-body">
+        <div class="info-message">{{ infoMessage }}</div>
+      </div>
+    </div>
+  </transition>
 </template>
 
 
@@ -584,6 +599,10 @@ const selectTrap = (trapId) => {
   selectedTrap.value = trapId;
   selectedBugs.value = bugSelections.value[trapId] || [];
 };
+// Добавьте эти состояния
+const infoNotificationVisible = ref(false);
+const infoMessage = ref('');
+
 const nextRaceBets = ref([]);
 // Состояния для уведомлений
 // Добавляем новый массив для ставок текущей гонки
@@ -808,19 +827,22 @@ const undoLastBet = () => {
 // Добавляем новое состояние для анимации
 const isIconClicked = ref(false);
 
-// Функция открытия личного кабинета
+// Обновите эту функцию
 const openPersonalAccount = () => {
-  // Временная заглушка
-  showNotification(t('personal_account_coming_soon'), false);
+  // Установите текст уведомления
+  infoMessage.value = t('personal_account_coming_soon');
+  infoNotificationVisible.value = true;
   
+  // Автоматическое скрытие через 3 секунды
+  setTimeout(() => {
+    infoNotificationVisible.value = false;
+  }, 3000);
+
   // Анимация нажатия
   isIconClicked.value = true;
   setTimeout(() => {
     isIconClicked.value = false;
   }, 300);
-
-  // Здесь в будущем будет переход в личный кабинет
-  // window.location.href = '/personal-account';
 };
 // Сброс всех ставок
 const resetAllBets = () => {
@@ -2185,6 +2207,7 @@ const getButtonStyle = (btn) => {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .notification {
   position: fixed;
   top: 50%;
@@ -2202,6 +2225,60 @@ const getButtonStyle = (btn) => {
   animation: fadeInOut 3s ease-in-out;
 }
 
+.info-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 372px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #4CAF50;
+  border-radius: 10px;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.info-notification .notification-header {
+  background: rgba(76, 175, 80, 0.2);
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  border-radius: 10px 10px 0 0;
+}
+
+.info-notification .info-icon {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(180deg, #4CAF50 0%, #2E7D32 100%);
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.info-notification .title {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  background: linear-gradient(180deg, #4CAF50 0%, #2E7D32 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-transform: uppercase;
+  flex-grow: 1;
+}
+
+.info-notification .notification-body {
+  padding: 15px;
+}
+
+.info-notification .info-message {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  color: #2E7D32;
+  text-align: center;
+}
 .notification.win {
   border: 2px solid #4CAF50;
   background-color: rgba(76, 175, 80, 0.15);

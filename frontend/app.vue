@@ -2531,14 +2531,13 @@ const getButtonStyle = (btn) => {
   background-repeat: no-repeat;
   background-position: center;
 }
-/* Стили для уведомления о проигрыше */
 .lose-notification {
   position: fixed;
-  top: 20px;
+  top: 20px; /* Позиция сверху */
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%); /* Центрирование по горизонтали */
   width: 372px;
-  background: rgba(255, 220, 220, 0.9); /* Красноватый фон */
+  background: rgba(255, 220, 220, 0.9);
   border: 1px solid #FF6B6B;
   border-radius: 10px;
   z-index: 10000;
@@ -3184,7 +3183,8 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 .menu-button.visible {
   visibility: visible;
   pointer-events: auto;
-}.slide-fade-enter-active {
+}
+.slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
 .slide-fade-leave-active {
@@ -3192,7 +3192,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 }
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateY(-100px);
+  transform: translateX(-50%) translateY(-100px); /* Движение сверху вниз */
   opacity: 0;
 }
 

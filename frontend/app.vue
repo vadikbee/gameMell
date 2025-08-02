@@ -369,9 +369,57 @@
     </div>
   </div>
   <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
-  <div v-if="notificationVisible" class="notification" :class="notificationClass">
-    {{ notificationMessage }}
-  </div>
+   <transition name="slide-fade">
+  <div 
+    v-if="winNotificationVisible && winData" 
+    class="win-notification"
+    :class="{ expanded: expandedWinDetails }"
+    @click="!expandedWinDetails ? expandedWinDetails = true : null"
+  >
+    <div class="notification-header">
+      <div class="win-icon"></div>
+      <div class="title">You Win</div>
+      <div class="time">
+        <!-- Используем computed свойство для времени -->
+        {{ winData.timestamp ? formatTime(winData.timestamp) : '' }}
+      </div>
+    </div>
+      
+      <div class="notification-body">
+        <div class="win-amount-label">{{ t('winning_amount') }}:</div>
+        <div class="win-amount">{{ winData.amount }} ₽</div>
+      </div>
+      
+      <div v-if="expandedWinDetails" class="bets-details">
+        <div class="bet-item" v-for="(bet, index) in winData.bets" :key="index">
+          <div class="bet-meta">
+            <div class="bug-colors">
+              <div 
+                v-for="(color, i) in bet.bugColors" 
+                :key="i"
+                class="color-dot"
+                :style="{ backgroundColor: color }"
+              ></div>
+            </div>
+            <div class="bet-time">{{ bet.timestamp ? formatTime(bet.timestamp) : '' }}</div>
+          </div>
+          <div class="bet-amount">+{{ bet.winAmount }} ₽</div>
+        </div>
+      </div>
+      
+      <div v-if="!expandedWinDetails" class="hint">
+        {{ t('press_for_more') }}
+      </div>
+      
+      <button 
+        v-if="expandedWinDetails" 
+        class="close-button"
+        @click.stop="winNotificationVisible = false; expandedWinDetails = false"
+      >
+        {{ t('close') }}
+      </button>
+    </div>
+  </transition>
 </template>
 
 
@@ -577,31 +625,46 @@ const placeSectionBet = () => {
 
 // ОБНОВЛЕННАЯ функция проверки результатов ставок
 const checkBetsResults = () => {
-  // Проверяем ТОЛЬКО ставки текущей гонки
+  const winningBets = [];
+  let totalWin = 0;
+  
   currentRaceBets.value.forEach(bet => {
     if (bet.result !== 'pending') return;
     
     const button = winButtons.value.find(b => b.id === bet.trapId);
     if (!button) return;
     
-    // Проверяем, есть ли выбранные тараканы в победителях
     const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
-    
-    // Обновляем статус ставки
     bet.result = isWin ? 'win' : 'lose';
     
-    // Показываем уведомление
-    const amount = bet.amount;
     if (isWin) {
-      const winAmount = amount * 2;
+      const winAmount = bet.amount * 2;
+      totalWin += winAmount;
       balance.value += winAmount;
-      showNotification(t('bet_won', [winAmount]), true);
-    } else {
-      showNotification(t('bet_lost'), false);
+      winningBets.push({
+        ...bet,
+        winAmount,
+        bugColors: bet.bugs.map(id => bugColors.value[id-1])
+      });
     }
   });
 
-  // Переносим обработанные ставки в историю
+  if (winningBets.length > 0) {
+    winData.value = {
+      amount: totalWin,
+      bets: winningBets,
+      timestamp: new Date()
+    };
+    winNotificationVisible.value = true;
+    
+    // Автоматическое скрытие через 3 секунды
+    setTimeout(() => {
+      if (!expandedWinDetails.value) {
+        winNotificationVisible.value = false;
+      }
+    }, 3000);
+  }
+
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
 };
@@ -747,6 +810,10 @@ const minBet = 0;
 const maxBet = 10000;
 const betStep = 25; // Шаг изменения ставки
 
+const winNotificationVisible = ref(false);
+const expandedWinDetails = ref(false);
+const winData = ref(null); // { amount: сумма выигрыша, bets: [массив выигрышных ставок] }
+const currentTime = ref('');
 const getColorImage = (color, bugCount) => {
   // Убрана зависимость от количества тараканов - всегда используем полное изображение
   const colorMap = {
@@ -854,6 +921,14 @@ const podiums = computed(() => {
     return places;
   });
 });
+
+function formatTime(date) {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const hours = d.getHours().toString().padStart(2, '0');
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
 // Добавляем обработчик головокружения
 const makeBugDizzy = (index) => {
   // Проверяем что bugs.value существует и index в пределах массива
@@ -866,7 +941,15 @@ const makeBugDizzy = (index) => {
      (bug.explodeFrame !== undefined && !bug.finished)) {
     return;
   }
-  
+
+
+// Обновляем текущее время каждую минуту
+onMounted(() => {
+  currentTime.value = formatTime(new Date());
+  setInterval(() => {
+    currentTime.value = formatTime(new Date());
+  }, 60000);
+});
   // Устанавливаем состояние головокружения
   bug.dizzy = true;
   bug.dizzyUntil = performance.now() + 1000; // 1 секунда
@@ -2979,6 +3062,169 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 .menu-button.visible {
   visibility: visible;
   pointer-events: auto;
+}.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-100px);
+  opacity: 0;
+}
+
+/* Базовые стили уведомления */
+.win-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 372px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.win-notification.expanded {
+  height: auto;
+  max-height: 80vh;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.notification-header {
+  position: relative;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  border-radius: 10px 10px 0 0;
+}
+
+.win-icon {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(180deg, #3C42E3 0%, #FF4300 100%);
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.title {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  background: linear-gradient(180deg, #3C42E3 0%, #FF4300 100%);
+  
+  /* Кросс-браузерная поддержка */
+  background-clip: text; /* Стандартное свойство */
+  -webkit-background-clip: text; /* Для WebKit/Blink браузеров */
+  color: transparent; /* Для Firefox и других браузеров */
+  -webkit-text-fill-color: transparent; /* Для WebKit/Blink */
+  
+  text-transform: uppercase;
+  flex-grow: 1;
+}
+
+.time {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  color: #000;
+}
+
+.notification-body {
+  display: flex;
+  padding: 15px;
+  align-items: center;
+}
+
+.win-amount-label {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  color: #000;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.win-amount {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #000;
+}
+
+.bets-details {
+  padding: 10px 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bet-meta {
+  display: flex;
+  align-items: center;
+}
+
+.bug-colors {
+  display: flex;
+  margin-right: 15px;
+}
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.bet-time {
+  font-family: 'Bahnschrift', sans-serif;
+  font-size: 12px;
+  color: #666;
+}
+
+.bet-amount {
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #28a745;
+}
+
+.hint {
+  padding: 10px 15px;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #000;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.close-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(180deg, #7F00FE 0%, #66008F 98.9%);
+  color: white;
+  border: none;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-transform: uppercase;
 }
 /* Стили для панели */
 .panel-layer {

@@ -84,7 +84,7 @@
     >
          <!-- Контейнер для цветных индикаторов (обновлено) -->
  
- <div class="color-indicators" v-if="btn.bugs.length > 0">
+<div class="color-indicators" v-if="btn.bugs.length > 0">
   <div 
     v-for="(bugId, bugIndex) in btn.bugs" 
     :key="bugIndex"
@@ -92,7 +92,7 @@
     :style="{ 
       width: `${100 / btn.bugs.length}%`,
       left: `${bugIndex * (100 / btn.bugs.length)}%`,
-      backgroundImage: 'url(' + getColorImage(bugColors[bugId]) + ')'
+      backgroundImage: 'url(' + getColorImage(bugColors[bugId], btn.bugs.length) + ')'
     }"
   ></div>
 </div>
@@ -951,18 +951,32 @@ const winNotificationVisible = ref(false);
 const expandedWinDetails = ref(false);
 const winData = ref(null); // { amount: сумма выигрыша, bets: [массив выигрышных ставок] }
 const currentTime = ref('');
-const getColorImage = (color, bugCount) => {
-  // Убрана зависимость от количества тараканов - всегда используем полное изображение
+const getColorImage = (color, count) => {
+  const basePath = '/images/colors';
   const colorMap = {
-    '#FFFF00': '/images/colors/Rectangle-yellow.png',
-    '#FFA500': '/images/colors/Rectangle-orange.png',
-    '#FF0000': '/images/colors/Rectangle-red.png',
-    '#0000FF': '/images/colors/Rectangle-blue.png',
-    '#8B0000': '/images/colors/Rectangle-dark-orange.png',
-    '#800080': '/images/colors/Rectangle-purple.png',
-    '#00FF00': '/images/colors/Rectangle-green.png'
+    '#FFFF00': 'yellow',
+    '#FFA500': 'orange',
+    '#FF0000': 'red',
+    '#0000FF': 'blue',
+    '#8B0000': 'dark-orange',
+    '#800080': 'purple',
+    '#00FF00': 'green'
   };
-  return colorMap[color] || '';
+  
+  const colorName = colorMap[color] || 'blue';
+  
+  switch(count) {
+    case 1:
+      return `${basePath}/Rectangle-${colorName}.png`;
+    case 2:
+      return `${basePath}/1к2/1к2-Rectangle-${colorName}.png`;
+    case 3:
+      return `${basePath}/1к3/1к3-Rectangle-${colorName}.png`;
+    case 4:
+      return `${basePath}/1к4/1к4-Rectangle-${colorName}.png`;
+    default:
+      return `${basePath}/Rectangle-${colorName}.png`;
+  }
 };
 // Добавляем состояние для меню последней игры
 const lastGameMenuVisible = ref(false);
@@ -995,7 +1009,7 @@ const explodeAllBugs = (raceEndTime) => {
         button.occupied = true;
         button.finishedBugId = bug.id;
         
-        if (button.bugs.length < 2) {
+        if (button.bugs.length < 4) {
           button.bugs.push(bug.id);
         }
       }
@@ -1327,7 +1341,7 @@ const animate = () => {
           
           // Добавляем таракана в кнопку (максимум 2)
           const button = winButtons.value.find(b => b.id === zone.buttonId);
-          if (button && button.bugs.length < 2) {
+          if (button && button.bugs.length < 4) {
             button.bugs.push(bug.id);
           }
             } else {

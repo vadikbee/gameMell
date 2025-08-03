@@ -186,15 +186,13 @@
         </div>
        
         <!-- Центральное меню -->
-        <div 
-          v-if="centerMenuVisible" 
-          class="center-menu"
+        <div v-if="centerMenuVisible" class="center-menu">
+        <!-- Изменение здесь: динамический src -->
+        <img 
+          :src="activeTab === 'overtaking' ? '/images/menus/center-buttom-overtaking.png' : '/images/menus/center-buttom.png'" 
+          alt="Center Menu" 
+          class="menu-image"
         >
-          <img 
-            src="/images/menus/center-buttom.png" 
-            alt="Center Menu" 
-            class="menu-image"
-          >
            <div class="menu-tabs">
     <!-- Изменено: поменяны местами вкладки -->
         <div 

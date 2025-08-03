@@ -84,7 +84,7 @@
     >
          <!-- Контейнер для цветных индикаторов (обновлено) -->
  
-<div class="color-indicators" v-if="btn.bugs.length > 0">
+ <div class="color-indicators" v-if="btn.bugs.length > 0">
   <div 
     v-for="(bugId, bugIndex) in btn.bugs" 
     :key="bugIndex"
@@ -262,11 +262,15 @@
                 @click="handleResetClick"
               >
               <img 
-                src="/images/menus/Group 164.png" 
-                alt="Group 164" 
-                class="group-164-button"
-                @click="placeBet"
-              >
+              src="/images/menus/Group 164.png" 
+              alt="Group 164" 
+              class="group-164-button"
+              :class="{ 'group-164-clicked': isGroup164Clicked }"
+              @click="placeBet"
+              @mousedown="isGroup164Clicked = true"
+              @mouseup="isGroup164Clicked = false"
+              @mouseleave="isGroup164Clicked = false"
+            >
             </div>
             <!-- Новый блок счетчика ставок.... -->
             <div class="bet-counter-container">
@@ -610,32 +614,43 @@ const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
-const handleButtonClick = (button) => {
+const handleButtonClick = (btn) => {
+  // Снимаем выделение со всех кнопок
+  winButtons.value.forEach(button => {
+    button.selected = false;
+  });
+  
   // Если меню уже открыто для этой кнопки - закрываем его
-  if (centerWinMenuVisible.value && activeWinMenuId.value === button.id) {
+  if (centerWinMenuVisible.value && activeWinMenuId.value === btn.id) {
     centerWinMenuVisible.value = false;
     activeWinMenuId.value = null;
     selectedTrap.value = null;
     selectedBugs.value = [];
-    button.selected = false; // Снимаем выделение
   } 
   // Если открыто другое меню - закрываем его и открываем новое
   else if (centerWinMenuVisible.value) {
     centerWinMenuVisible.value = false;
     setTimeout(() => {
-      activeWinMenuId.value = button.id;
+      activeWinMenuId.value = btn.id;
       centerWinMenuVisible.value = true;
-      selectTrap(button.id);
-      button.selected = true; // Выделяем новую кнопку
+      selectTrap(btn.id);
+      btn.selected = true; // Выделяем новую кнопку
     }, 50);
   }
   // Если меню закрыто - открываем его
   else {
-    button.selected = true; // Выделяем кнопку
-    activeWinMenuId.value = button.id;
+    btn.selected = true; // Выделяем кнопку
+    activeWinMenuId.value = btn.id;
     centerWinMenuVisible.value = true;
-    selectTrap(button.id);
+    selectTrap(btn.id);
   }
+};
+
+const startRaceCycle = () => {
+  isPaused.value = false;
+  breakInProgress.value = true;
+  raceInProgress.value = false;
+  phaseStartTime.value = Date.now();
 };
 // Показать уведомление
 const showNotification = (message, isWin) => {
@@ -695,9 +710,16 @@ const placeSectionBet = () => {
   resetBugSelections();
   
   // Закрываем меню
+  resetWinButtonSelection();
   centerWinMenuVisible.value = false;
 };
-
+// Добавляем новую функцию для сброса выделения
+const resetWinButtonSelection = () => {
+  winButtons.value.forEach(button => {
+    button.selected = false;
+  });
+  activeWinMenuId.value = null;
+};
 // ОБНОВЛЕННАЯ функция проверки результатов ставок
 const checkBetsResults = () => {
 const winningBets = [];
@@ -778,11 +800,7 @@ const resetBugSelections = () => {
   selectedTrap.value = null;
   bugSelections.value = {};
   
-  // Сбросить состояние кнопок
-  winButtons.value.forEach(btn => {
-    btn.selected = false;
-    btn.bugs = [];
-  });
+  
 };
 
 
@@ -790,7 +808,7 @@ const resetBugSelections = () => {
 const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
 const historyBetsInsideCenter = ref(false);
-
+const isGroup164Clicked = ref(false);
 // Состояния для управления ставками
 const currentBet = ref(0);
 const balance = ref(10000); // Начальный баланс
@@ -878,6 +896,7 @@ const formattedBalance = computed(() => {
   return `${balance.value} ${t('currency')}`;
 });
 // Фиксация ставки и списание средств
+// Обновленная функция placeBet
 const placeBet = () => {
   if (currentBet.value > 0 && currentBet.value <= balance.value) {
     // Списание средств
@@ -891,6 +910,19 @@ const placeBet = () => {
     
     // Сброс ставки
     resetAllBets();
+    
+    // Закрываем центральное меню
+    centerMenuVisible.value = false;
+    
+    // Сбрасываем выделение всех кнопок в меню
+    menuButtons.value.forEach(btn => {
+      btn.selected = false;
+    });
+    
+    // Показываем уведомление об успешной ставке
+    infoMessage.value = t('bet_placed_successfully', { amount: currentBet.value });
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
   }
 };
 // Добавлено: переменные для управления зажатием кнопок
@@ -939,13 +971,7 @@ const lastGames = ref([
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
 ]);
 
-// Обновляем функцию startRaceCycle
-const startRaceCycle = () => {
-  isPaused.value = false; // Сброс паузы при начале цикла
-  breakInProgress.value = true;
-  raceInProgress.value = false;
-  phaseStartTime.value = Date.now();
-};
+
 // Функция для переключения вкладок
 const setActiveTab = (tab) => {
   activeTab.value = tab;
@@ -1204,10 +1230,10 @@ const startAnimation = () => {
   accumulatedTime.value = 0;
 isPaused.value = false;
   pausedDuration.value = 0;
-  winButtons.value.forEach(btn => {
-    btn.occupied = false; // Сбрасываем занятость кнопок
-    btn.menuVisible = false;
-    btn.selected = false;
+ winButtons.value.forEach(btn => {
+    btn.bugs = [];
+    btn.occupied = false;
+    btn.finishedBugId = null;
   });
 
   // ... предыдущий код ...
@@ -1723,6 +1749,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+
   // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
   if (nextRaceBets.value.length > 0) {
     currentRaceBets.value = [...nextRaceBets.value];
@@ -1746,16 +1773,8 @@ const handleGenerateClick = async () => {
     isLoading.value = true;
     bugs.value = []; // Важно: очищаем предыдущих тараканов
     
-    // Сброс состояния кнопок
-    winButtons.value.forEach(btn => {
-      btn.occupied = false;
-      btn.menuVisible = false;
-      btn.hovered = false;
-      btn.selected = false;
-      btn.bugs = []; // Сбрасываем тараканов
-      btn.finishedBugId = null;  // Сбрасываем ID таракана
-      if (btn.menuTimer) clearTimeout(btn.menuTimer);
-    });
+   // ВМЕСТО ЭТОГО добавим очистку только в начале новой гонки
+  
 
     // Сброс состояния тараканов
     bugProgress.value = [];
@@ -1938,12 +1957,7 @@ const startExplosionAnimation = () => {
         }
       });
       
-      // Сбрасываем занятость кнопок для не финишировавших тараканов
-      winButtons.value.forEach(btn => {
-        if (!bugs.value.some(bug => bug.targetButtonId === btn.id && bug.finished)) {
-          btn.occupied = false;
-        }
-      });
+      
       
       explosionActive.value = false;
       animationExplodeFrame.value = null;
@@ -1977,6 +1991,7 @@ onMounted(() => {
   window.addEventListener('resize', updateScale);
   startRaceCycle(); // Запускаем цикл при монтировании
   loadGameHistory(); // Загружаем историю игр
+  
   updateProgress(); // Запускаем прогресс-бар
    // Запускаем обновление прогресса
   animationFrameId.value = requestAnimationFrame(updateProgress);
@@ -2917,7 +2932,28 @@ const getButtonStyle = (btn) => {
     hue-rotate(5deg);
 }
 
+.group-164-button {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
 
+.group-164-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.group-164-button:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.group-164-clicked {
+  animation: button-pulse 0.3s ease;
+}
+
+@keyframes button-pulse {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(0.95); }
+  100% { transform: translateX(-50%) scale(1); }
+}
 
 
 

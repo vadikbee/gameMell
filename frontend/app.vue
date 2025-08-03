@@ -617,6 +617,7 @@ const handleButtonClick = (button) => {
     activeWinMenuId.value = null;
     selectedTrap.value = null;
     selectedBugs.value = [];
+    button.selected = false; // Снимаем выделение
   } 
   // Если открыто другое меню - закрываем его и открываем новое
   else if (centerWinMenuVisible.value) {
@@ -625,10 +626,12 @@ const handleButtonClick = (button) => {
       activeWinMenuId.value = button.id;
       centerWinMenuVisible.value = true;
       selectTrap(button.id);
+      button.selected = true; // Выделяем новую кнопку
     }, 50);
   }
   // Если меню закрыто - открываем его
   else {
+    button.selected = true; // Выделяем кнопку
     activeWinMenuId.value = button.id;
     centerWinMenuVisible.value = true;
     selectTrap(button.id);

@@ -34,6 +34,9 @@
     />
     
     <div class="menu-container">
+      <div class="win-menu-title">
+        {{ t('who_reaches_section') }}
+      </div>
        <div v-if="raceInProgress" class="next-race-notice">
       {{ t('next_round_bet') }}
     </div>
@@ -2778,6 +2781,22 @@ const getButtonStyle = (btn) => {
   z-index: 10; /* Поверх изображения меню */
    border: 1px solid red !important;
    
+}
+.win-menu-title {
+  position: absolute;
+  top: 32.5%; /* Позиционирование сверху */
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Hero', 'Bahnschrift', sans-serif; /* Основной шрифт + fallback */
+  font-weight: 700; /* Bold */
+  font-size: 15px;
+  line-height: 1; /* 100% */
+  color: #FFFFFF; /* Белый цвет текста */
+  text-transform: uppercase; /* Все заглавные */
+  z-index: 12; /* Поверх других элементов */
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8); /* Тень для лучшей читаемости */
+  padding: 0 20px; /* Защита от краев */
 }
 
 /* Стиль кнопки таракана */

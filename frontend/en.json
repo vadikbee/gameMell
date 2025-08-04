@@ -13,5 +13,6 @@
   "bet_won": "Your bet won! +{0}₽",
   "bet_lost": "Bet lost",
   "bet_number": "Bet #{0}",
-  "currency": "$"
+  "currency": "$",
+  "who_reaches_section": "who reaches section?"
 }

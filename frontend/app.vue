@@ -5191,6 +5191,7 @@ width: 23%;
   background-size: 100% auto;
     
   }
+  
   .history-bets.inside-center {
     top: -480%;
   }
@@ -5215,18 +5216,18 @@ width: 23%;
   z-index: 1;
 }
 
-.button-win-1 { right: 4px; }
+.button-win-1 { right: 5px; }
 .button-win-2 { right: 58px; }
 .button-win-3 { right: 111px; }
 .button-win-4 { right: 164px; }
 .button-win-5 { right: 217px; }
 .button-win-6 { right: 270px; }
-.button-win-7 { right: 323px; }
+.button-win-7 { right: 324px; }
 .button-1, .button-2,.button-3 {
   top: -5%;
 }
 .button-1 {
-  left: 0.3%;
+  left: 1%;
   width: 23%;
   top: -6%;
 }
@@ -5242,28 +5243,29 @@ width: 23%;
 }
 .labirint-bg {
   top: 8.2%;
-  z-index: 1;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .otmena-button{
-  top: 695%;
+  top: 680%;
 }
 .menu-buttons-container{
   width: 85%;
   
   transform: scale(0.9);
   left: 12%;
-  top: 105%;
+  top: 109%;
    --column-gap: 8.9px; /* Горизонтальное расстояние */
   --row-gap: 9px;
 }
 .x2-button-container {
   height: 35%;
   width: 11%;
-  top: 630%;
+  top: 620%;
 }
 .reset-button {
-  top: 699%;
+  top: 681%;
   height: 35%;
 }
 .bet-counter-container {
@@ -5271,13 +5273,27 @@ width: 23%;
   height: 42%;
 }
 .stavki-buttons-container {
-top: 575%;
-height: 50%;
-left: 6%;
+top: 567%;
+
+left: 5.5%;
 gap: 3%;
 width:55%;
 }
 
+.bet-counter-container {
+margin-top: 97.5%;
+left: 36.5%;
+height: 44%;
+width: 20%;
+}
+.bet-display {
+margin-top: -5%;
+font-size: 13px;
+height: 70%;
+}
+.bet-button {
+  margin-top: -4%;
+}
 }
 
 </style>

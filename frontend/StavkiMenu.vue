@@ -536,8 +536,13 @@ defineEmits([
     
   }
   .menu-stavki {
-    margin-left: -15%;
+    margin-left: -20%;
     scale: 95%;
+  }
+  .otmena-button {
+    left: 11%;
+    margin-top: -10%;
+    scale: 120%;
   }
 }
 </style>

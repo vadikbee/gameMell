@@ -2411,7 +2411,7 @@ const getButtonStyle = (btn) => {
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #333 !important;
+  
 }
 
 .icon-1 {
@@ -2575,7 +2575,7 @@ const getButtonStyle = (btn) => {
   transform: translateX(-50%);
   width: 372px;
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #4CAF50;
+  
   border-radius: 10px;
   z-index: 10000;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -2623,12 +2623,12 @@ const getButtonStyle = (btn) => {
   text-align: center;
 }
 .notification.win {
-  border: 2px solid #4CAF50;
+  
   background-color: rgba(76, 175, 80, 0.15);
 }
 
 .notification.lose {
-  border: 2px solid #F44336;
+  
   background-color: rgba(244, 67, 54, 0.15);
 }
 
@@ -2677,7 +2677,7 @@ const getButtonStyle = (btn) => {
   top: 442%; /* Позиция под кнопками ставок */
   z-index: 9;
  
-   border: 1px solid rgb(36, 223, 15) !important; 
+   
 }
 /* Стиль для активной вкладки */
 .tab-button.active {
@@ -2739,7 +2739,7 @@ const getButtonStyle = (btn) => {
   height: 50%;
   width: 130%;
   max-width: 640px;
-  border: 1px solid red !important;
+  
 }
 
 
@@ -2779,7 +2779,7 @@ const getButtonStyle = (btn) => {
   width: 130%;
   height: 60%;
   z-index: 10; /* Поверх изображения меню */
-   border: 1px solid red !important;
+   
    
 }
 .win-menu-title {
@@ -2809,7 +2809,7 @@ const getButtonStyle = (btn) => {
   transition: all 0.3s ease;
   transform-origin: center;
   z-index: 11;
-   border: 1px solid rgb(2, 247, 255) !important;
+   
 }
 
 /* Эффекты при наведении */
@@ -2952,7 +2952,7 @@ const getButtonStyle = (btn) => {
   transform: translateX(-50%);
   z-index: 12; /* Поверх других элементов */
   width: 23%;
-   border: 1px solid red !important; 
+    
 }
 
 .bet-button {
@@ -2974,7 +2974,7 @@ const getButtonStyle = (btn) => {
   transform: translateX(-50%); /* Центрирование по горизонтали */
   width: 372px;
   background: rgba(255, 220, 220, 0.9);
-  border: 1px solid #FF6B6B;
+  
   border-radius: 10px;
   z-index: 10000;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -3058,7 +3058,7 @@ const getButtonStyle = (btn) => {
   left: 3%;
   z-index: 9;
   padding: 0px;
-  border: 1px solid rgb(36, 223, 15) !important; 
+  
   top: 404%;
 }
 
@@ -3117,7 +3117,7 @@ const getButtonStyle = (btn) => {
 /* Стиль для скрытия диагональных кнопок */
  .menu-button.diagonal {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-    border: 1px solid #FF8C00 !important;
+    
     box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
     display: block !important; /* Принудительно показываем */
     visibility: visible !important;
@@ -3226,7 +3226,7 @@ const getButtonStyle = (btn) => {
 /* Стили для новой кнопки Group 164 */
 .group-164-button {
   position: absolute;
-  margin-top: 85%;
+  margin-top: 84%;
   margin-left: 32%;
   z-index: 8; /* Выше других элементов меню */
   cursor: pointer;
@@ -3243,7 +3243,7 @@ const getButtonStyle = (btn) => {
 }
 
 .group-164-button:hover {
-  transform: translateX(-50%) scale(1.05);
+  transform: translateX(-50%) scale(1.0);
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
@@ -3260,7 +3260,7 @@ const getButtonStyle = (btn) => {
   transition: filter 0.2s ease;
    border-radius: 2px; /* Регулируйте это значение по вкусу */
   overflow: hidden; /* Важно для корректного отображения закругления */
-  /*border: 1px solid red !important;*/
+  /**/
   
 }
 
@@ -3282,13 +3282,8 @@ const getButtonStyle = (btn) => {
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
-.group-164-button:active {
-  transform: translateX(-50%) scale(0.95);
-}
 
-.group-164-clicked {
-  animation: button-pulse 0.3s ease;
-}
+
 
 @keyframes button-pulse {
   0% { transform: translateX(-50%) scale(1); }
@@ -3355,7 +3350,7 @@ const getButtonStyle = (btn) => {
   margin-top: -695px; /* Фиксированная позиция вверху экрана */
   z-index: 4;
   background: #000000;
-  border: 1px solid red !important; /* Для отладки */
+   /* Для отладки */
 }
 
 /* Контейнер для элементов баланса */
@@ -3368,7 +3363,7 @@ const getButtonStyle = (btn) => {
 }
 /* Стиль для выбранного таракана */
 .bug-button.selected {
-  border: 2px solid #FFD700 !important;
+  
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
   transform: scale(1.1);
   z-index: 15;
@@ -3396,7 +3391,7 @@ const getButtonStyle = (btn) => {
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */
-    border: 1px solid red !important;
+    
 filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
           drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
  
@@ -3424,7 +3419,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   width: 52px;
   height: 64px;
   z-index: 4;
-  border: 1px solid red !important;
+  
 }
 
 /* Позиции контейнеров */
@@ -3517,7 +3512,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid red !important;
+  
 }
 
 /* Анимация выделения */
@@ -3545,7 +3540,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 /* Специфичные стили для диагональных кнопок в Result */
 .menu-button.diagonal {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  border: 1px solid #FF8C00;
+  
   box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
 }
 .main-bg {
@@ -3573,7 +3568,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   height: 50px;
   cursor: pointer;
   z-index: 3;
-  border: 1px solid red !important;
+  
 }
 /* Корректируем позиционирование кнопки */
 .button-2 {
@@ -3587,7 +3582,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   z-index: 3;
   top: 22px;
   right: 110px; /* Исправленное позиционирование */
-  border: 1px solid red !important; 
+   
 }
 
 .button-3 {
@@ -3602,7 +3597,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   /* Точное позиционирование без трансформаций */
   top: 22px;
   left: 291px; /* Фиксированный отступ от левого края */
-  border: 1px solid red !important;
+  
 }
 .menu-button {
   visibility: hidden;
@@ -3798,7 +3793,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   padding: 12px;
   background: linear-gradient(180deg, #7F00FE 0%, #66008F 98.9%);
   color: white;
-  border: none;
+  
   font-family: 'Bahnschrift', sans-serif;
   font-weight: 700;
   font-size: 16px;
@@ -3831,7 +3826,7 @@ position: absolute;
   cursor: default;
    /* Расстояние между изображениями */
   pointer-events: auto;
-  border: 1px solid red !important;
+  
 }
 /* Специфичные стили для изображения stavki */
 .stavki-image {
@@ -3843,7 +3838,7 @@ position: absolute;
   background-repeat: no-repeat;
   background-position: center;
   cursor: default;
-  border: 1px solid red !important;
+  
   
 }
 
@@ -3852,7 +3847,7 @@ position: absolute;
   max-width: 390px; /* Максимальная ширина основного изображения */
   height: auto;
   object-fit: contain;
-  border: 1px solid red !important;
+  
 }
 #Button-1 .button-text {
   white-space: pre-line;
@@ -4018,7 +4013,7 @@ position: absolute;
 /* Стиль для вкладки Overtaking */
 .overtaking-tab {
   background: linear-gradient(180deg, rgba(127, 0, 254, 0.7) 0%, rgba(102, 0, 143, 0.7) 98.9%);
-  border: 1px solid #6B51FF;
+  
 }
 
 /* Стиль для активной вкладки */
@@ -4090,7 +4085,7 @@ position: absolute;
   top: 442%; /* Позиция под кнопками ставок */
   z-index: 9;
  
-   border: 1px solid rgb(36, 223, 15) !important; 
+   
 }
     /* Адаптация для мобильных */
 @media (max-width: 768px) {
@@ -4121,7 +4116,7 @@ position: absolute;
     top: 43%;
     left: 48.5%;
     
-    border: 1px solid rgb(255, 0, 0) !important;
+    
   }
 
   .reset-button {
@@ -4130,7 +4125,7 @@ position: absolute;
     top: 488%;
     left: 0%;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid red !important; 
+     
   }
 
   .otmena-button {
@@ -4212,7 +4207,7 @@ position: absolute;
   /* Стили для диагональных кнопок в режиме Result */
 .menu-button.diagonal {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-  border: 1px solid #FF8C00 !important;
+  
   box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
 }
 
@@ -4355,7 +4350,7 @@ position: absolute;
     left: 14%;
     top: 440%;
     height: 24%;
-   /* border: 1px solid red !important;*/
+   /* */
   }
   .bet-button {
     /* Адаптация кнопок +/- */
@@ -4422,7 +4417,7 @@ position: absolute;
     width: 59%;
     left: 3%;
     gap: 8px;
-    border: 1px solid rgb(243, 93, 0) !important;
+    
   }
   
    .menu-buttons-container {
@@ -4471,7 +4466,7 @@ position: absolute;
     height: 11%;
     top: 89%;
     
-    border: 1px solid rgb(80, 238, 0) !important;
+    
   }
   .panel-up {
     top: -163%;
@@ -4627,7 +4622,7 @@ position: absolute;
 /* Оптимизация для русского языка */
 html[lang="ru"] .bth-1-text,
 html[lang="ru"] .bth-2-text {
-  font-size: 12px;
+  font-size: 1px;
   white-space: nowrap;
 }
 /* .......................375 ......................................*//* .......................375 ......................................*/
@@ -4782,17 +4777,17 @@ html[lang="ru"] .bth-2-text {
    }*/
   .bet-display {
     font-size: 15px;
-    border: 1px solid rgb(170, 9, 245) !important;
+  
     
   }
   .win-menu-center {
     top: 71%;
-    border: 1px solid #cbeb29 !important;
+    
   }
  
   .menu-container {
     top: 10%;
-    border: 1px solid rgb(15, 187, 255) !important;
+    
   }
   .bug-button {
     transform: scale(0.8);
@@ -4836,7 +4831,6 @@ html[lang="ru"] .bth-2-text {
 .menu-buttons-container{
 left: 12%;
 top: 55%;
-border: 1px solid #cbeb29 !important;
 width: 85%;
 --column-gap: 5.5px; /* Горизонтальное расстояние */
 --row-gap: 7.5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
@@ -4860,7 +4854,7 @@ width: 85%;
   height: 80%;
 }
 .x2-button-container {
-  border: 1px solid #cbeb29 !important;
+  
   top: 347%;
   transform: scale(0.8);
   left: 13%;
@@ -4870,7 +4864,7 @@ width: 85%;
   left: 2%;
   width: 6%;
   height: 19%;
-  border: 1px solid #cbeb29 !important;
+  
 }
 }
 
@@ -4926,7 +4920,7 @@ html[lang="ru"] .bth-2-text {
     
   }
   .button-win-container {
-    border: 1px solid rgb(80, 238, 0) !important;
+    
     
     cursor: pointer;
     pointer-events: none;
@@ -4938,7 +4932,7 @@ html[lang="ru"] .bth-2-text {
  .button-win {
   cursor: default !important;
   pointer-events: none;
-  border: 1px solid rgb(36, 0, 238) !important;
+  
   z-index: 7;
  }
   /* Дополнительные корректировки */
@@ -4957,7 +4951,7 @@ html[lang="ru"] .bth-2-text {
   .panel-layer {
     top: 92%;
     height: 8%;
-    border: 1px solid rgb(255, 0, 0) !important;
+    
   }
   .button-3 {
     top: 16%;
@@ -5045,7 +5039,7 @@ html[lang="ru"] .bth-2-text {
 /* Добавим адаптивные стили для русского языка */
 html[lang="ru"] .bth-1-text,
 html[lang="ru"] .bth-3-text {
-  font-size: 11px;
+  font-size: 14px;
   letter-spacing: -0.3px;
   white-space: nowrap;
   padding: 0 5px;
@@ -5112,7 +5106,7 @@ width:55%;
 }
 .menu-buttons-container{
   width: 85%;
-  border: 2px dashed rgba(213, 28, 142, 0.508);
+  
   transform: scale(0.9);
   left: 12%;
   top: 105%;
@@ -5209,7 +5203,7 @@ width: 23%;
   height: 8%;
   width: 13.1%;
   z-index: 4;
-  border: 2px dashed rgba(45, 7, 219, 0.508);
+  
   .button-win {
         pointer-events: auto; /* Разрешаем события */
     }
@@ -5256,7 +5250,7 @@ width: 23%;
 }
 .menu-buttons-container{
   width: 85%;
-  border: 2px dashed rgba(213, 28, 142, 0.508);
+  
   transform: scale(0.9);
   left: 12%;
   top: 105%;

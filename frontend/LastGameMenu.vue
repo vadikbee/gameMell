@@ -64,7 +64,7 @@ const getPositionColor = (results, position) => {
 /* Добавьте этот стиль */
 .bug-color.empty {
   background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
+  
 }
 
 .last-game-menu {
@@ -91,7 +91,7 @@ const getPositionColor = (results, position) => {
 }
 .bug-color.empty {
     background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px dashed rgba(255, 255, 255, 0.3);
+    
 }
 .top-left {
   left: 2%;
@@ -170,7 +170,7 @@ const getPositionColor = (results, position) => {
 .bug-color {
   width: 18px;
   height: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  
   border-radius: 3px;
   box-sizing: border-box;
 }
@@ -178,7 +178,7 @@ const getPositionColor = (results, position) => {
 /* Для пустых результатов */
 .bug-color.empty {
   background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
+  
 }
 
 @media (max-width: 390px) {

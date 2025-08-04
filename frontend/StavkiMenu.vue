@@ -216,14 +216,21 @@ defineEmits([
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid rgb(243, 93, 0) !important;
+  
 }
 
 .x2-button:hover {
   transform: scale(1.05);
   filter: brightness(1.1) drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
+.group-164-button {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
 
+.group-164-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
 /* Стили для счетчика ставок */
 .bet-button {
   width: 23px;
@@ -382,7 +389,7 @@ defineEmits([
     top: 48%;
     height: 30%;
     width: 23%;
-    border: 1px solid rgb(36, 223, 15) !important;
+    
     margin-top: 0%;
     left: 43%;
   }
@@ -399,7 +406,7 @@ defineEmits([
     height: 30%;
     left: -7%;
     gap: 10px;
-    border: 1px solid rgb(36, 223, 15) !important;
+    
   }
   
   .stavki-button {
@@ -413,7 +420,7 @@ defineEmits([
     height: 22px;
     left: 32%;
     top: 6%;
-    border: 1px solid rgb(36, 223, 15) !important;
+    
   }
   
   .otmena-button {
@@ -421,7 +428,7 @@ defineEmits([
     height: 24px;
     left: 11%;
     top: 382%;
-    border: 1px solid rgb(36, 223, 15) !important;
+    
   }
   
   .reset-button {
@@ -429,7 +436,7 @@ defineEmits([
     height: 25px;
     margin-top: -10.6%;
     left: 8.7%;
-    border: 1px solid rgb(36, 223, 15) !important;
+    
   }
   
  

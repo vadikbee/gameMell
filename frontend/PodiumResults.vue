@@ -205,14 +205,14 @@ const podiums = computed(() => {
 .bug-color {
   width: 16px;
   height: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  
   border-radius: 2px;
   opacity: 0.8;
 }
 
 .bug-color.empty {
   background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
+  
 }
 
 @media (max-width: 480px) {
@@ -221,7 +221,7 @@ const podiums = computed(() => {
   .podium-container{
     transform: scale(1.5);
     top: -30%;
-    border: 1px solid rgb(243, 93, 0) !important;
+    
   }
   .outer-container {
   
@@ -234,7 +234,7 @@ const podiums = computed(() => {
   margin-left: 35%;
   padding: 0 0px; /* Добавляет отступы по бокам */
   box-sizing: border-box;
-  border: 1px solid rgb(243, 93, 0) !important;
+  
 }
 
 }

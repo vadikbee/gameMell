@@ -69,7 +69,7 @@ const bets = [
   box-sizing: border-box;
   top: 57.3%;
   margin-left: -6%;
-  border: 1px solid red !important; 
+  
 }
 
 /* Позиционирование */

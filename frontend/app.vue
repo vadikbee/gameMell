@@ -853,7 +853,7 @@ const activeWinMenuId = ref(null);
 const historyBetsInsideCenter = ref(false);
 const isGroup164Clicked = ref(false);
 // Добавляем состояние для выбранного таракана-победителя
-const selectedWinnerBugId = ref(null);
+const selectedWinnerBugIds = ref([]);
 // Состояния для управления ставками
 const currentBet = ref(0);
 const balance = ref(10000); // Начальный баланс
@@ -973,6 +973,7 @@ const openPersonalAccount = () => {
 };
 // Сброс всех ставок
 const resetAllBets = () => {
+  selectedWinnerBugIds.value = [];
   undoStack.value.push({
     type: 'reset',
     prevBet: currentBet.value
@@ -1004,19 +1005,22 @@ const formattedBalance = computed(() => {
 // Фиксация ставки и списание средств
 // Обновленная функция placeBet
 const placeBet = () => {
-  if (currentBet.value > 0 && currentBet.value <= balance.value) {
-    let bet = null;
-    
-    // Ставка на победителя (вкладка Result)
-    if (activeTab.value === 'result' && selectedWinnerBugId.value !== null) {
-      bet = {
-        type: 'winner',
-        bugId: selectedWinnerBugId.value,
-        amount: currentBet.value,
-        timestamp: new Date().toISOString(),
-        result: 'pending'
-      };
-    } 
+     if (currentBet.value > 0 && currentBet.value <= balance.value) {
+        // Ставка на победителя (вкладка Result)
+        if (activeTab.value === 'result' && selectedWinnerBugIds.value.length > 0) {
+            selectedWinnerBugIds.value.forEach(bugId => {
+                const bet = {
+                    type: 'winner',
+                    bugId: bugId,
+                    amount: currentBet.value,
+                    timestamp: new Date().toISOString(),
+                    result: 'pending'
+                };
+                balance.value -= currentBet.value;
+                betHistory.value.push(bet);
+                nextRaceBets.value.push(bet);
+            });
+        }
     // Ставка на обгоны (вкладка Overtaking)
     else if (activeTab.value === 'overtaking') {
       // ... существующая логика для ставок на обгоны ...
@@ -1034,8 +1038,13 @@ const placeBet = () => {
       resetAllBets();
       
       // Сбрасываем выбор
-      menuButtons.value.forEach(btn => btn.selected = false);
-      selectedWinnerBugId.value = null;
+      // В функции placeBet после успешной ставки:
+        menuButtons.value.forEach(btn => {
+            if (btn.id >= 0 && btn.id <= 6) {
+                btn.selected = false;
+            }
+        });
+        selectedWinnerBugIds.value = [];
       
       // Показываем уведомление
       infoMessage.value = t('bet_placed_successfully', { amount: currentBet.value });
@@ -1109,11 +1118,17 @@ const lastGames = ref([
 ]);
 
 
-// Функция для переключения вкладок
 const setActiveTab = (tab) => {
+  // Сбрасываем выделение со всех кнопок
+  menuButtons.value.forEach(btn => {
+    btn.selected = false;
+  });
+  
+  // Сбрасываем выбранных тараканов-победителей (только для вкладки Result)
+  selectedWinnerBugIds.value = [];
+  
+  // Устанавливаем новую вкладку
   activeTab.value = tab;
-  // Здесь можно добавить логику для отображения соответствующего контента
-  console.log(`Active tab changed to: ${tab}`);
 };
 const explodeAllBugs = (raceEndTime) => {
   if (!isTabActive.value || bugs.value.length === 0) return;
@@ -1803,19 +1818,18 @@ const diagonalButtons = computed(() => {
 });
 
 const toggleMenuButton = (btn) => {
-  // Для вкладки Result - только кнопки первой строки (ставки на победителя)
   if (activeTab.value === 'result' && btn.id >= 0 && btn.id <= 6) {
-    // Снимаем выделение со всех кнопок в первой строке
-    menuButtons.value.forEach((button, index) => {
-      if (index >= 0 && index <= 6) {
-        button.selected = false;
-      }
-    });
+    btn.selected = !btn.selected; // Переключаем состояние
     
-    // Выделяем текущую кнопку
-    btn.selected = true;
-    selectedWinnerBugId.value = btn.id;
-  } else {
+    if (btn.selected) {
+        selectedWinnerBugIds.value.push(btn.id);
+    } else {
+        const index = selectedWinnerBugIds.value.indexOf(btn.id);
+        if (index !== -1) {
+            selectedWinnerBugIds.value.splice(index, 1);
+        }
+    }
+} else {
     // Для остальных кнопок (не ставка на победителя)
     btn.selected = !btn.selected;
   }

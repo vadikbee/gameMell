@@ -733,26 +733,32 @@ const resetWinButtonSelection = () => {
   });
   activeWinMenuId.value = null;
 };
-// ОБНОВЛЕННАЯ функция проверки результатов ставок
+// Обновленная функция проверки результатов
 const checkBetsResults = () => {
-const winningBets = [];
-  const losingBets = []; // Новый массив для проигрышных ставок
+  const winningBets = [];
+  const losingBets = [];
   let totalWin = 0;
-  let totalLose = 0; // Общая сумма проигрыша
+  let totalLose = 0;
 
-  // Находим таракана-победителя (первого финишировавшего)
-  const winnerBug = bugs.value
+  // Собираем финишировавших тараканов с их позициями
+  const finishedBugs = bugs.value
     .filter(bug => bug.finished)
-    .sort((a, b) => a.finishTime - b.finishTime)[0];
+    .sort((a, b) => a.finishTime - b.finishTime)
+    .map((bug, index) => ({
+      id: bug.id,
+      position: index + 1
+    }));
 
   currentRaceBets.value.forEach(bet => {
     if (bet.result !== 'pending') return;
     
-    // Обработка ставки на победителя
-    if (bet.type === 'winner') {
-      if (winnerBug && winnerBug.id === bet.bugId) {
-        // Выигрыш
-        const winAmount = bet.amount * 7; // Коэффициент 7:1
+    // Обработка ставки на позицию
+    if (bet.type === 'position') {
+      const bugResult = finishedBugs.find(b => b.id === bet.bugId);
+      
+      if (bugResult && bugResult.position === bet.position) {
+        // Выигрыш 8:1
+        const winAmount = bet.amount * 8;
         totalWin += winAmount;
         balance.value += winAmount;
         winningBets.push({
@@ -793,20 +799,31 @@ const winningBets = [];
       bet.result = 'lose';
       losingBets.push({
         ...bet,
-        loseAmount: bet.amount, // Сумма проигрыша равна ставке
+        loseAmount: bet.amount, // Сумма проигтавке
         bugColors: bet.bugs.map(id => bugColors.value[id-1])
       });
       totalLose += bet.amount;
     }
+    // В цикле проверки ставок добавить:
+if (bet.type === 'position') {
+  const bugResult = finishedBugs.find(b => b.id === bet.bugId);
+  if (bugResult && bugResult.position === bet.position) {
+    // Выигрыш 8:1
+    const winAmount = bet.amount * 8;
+    totalWin += winAmount;
+    balance.value += winAmount;
+    winningBets.push({ ...bet, winAmount });
+    bet.result = 'win';
+  } else {
+    // Проигрыш
+    losingBets.push({ ...bet, loseAmount: bet.amount });
+    totalLose += bet.amount;
+    bet.result = 'lose';
+  }
+}
   });
 
   if (winningBets.length > 0) {
-    winData.value = {
-      amount: totalWin,
-      bets: winningBets,
-      timestamp: new Date()
-    };
-    winNotificationVisible.value = true;
     
     // Автоматическое скрытие через 3 секунды
     setTimeout(() => {
@@ -816,10 +833,13 @@ const winningBets = [];
     }, 3000);
   }
    // Показываем уведомление о проигрыше
-  if (losingBets.length > 0) {
+   if (losingBets.length > 0) {
     loseData.value = {
-      amount: totalLose,
-      bets: losingBets,
+      amount: Math.floor(totalLose), // Округление вниз
+      bets: losingBets.map(bet => ({
+        ...bet,
+        loseAmount: Math.floor(bet.loseAmount) // Округление для каждой ставки
+      })),
       timestamp: new Date()
     };
     loseNotificationVisible.value = true;
@@ -1000,61 +1020,74 @@ const multiplyBet = () => {
 
 // Добавьте вычисляемое свойство
 const formattedBalance = computed(() => {
-  return `${balance.value} ${t('currency')}`;
+  return `${Math.round(balance.value)} ${t('currency')}`;
 });
 // Фиксация ставки и списание средств
 // Обновленная функция placeBet
+// Обновленная функция placeBet
 const placeBet = () => {
-     if (currentBet.value > 0 && currentBet.value <= balance.value) {
-        // Ставка на победителя (вкладка Result)
-        if (activeTab.value === 'result' && selectedWinnerBugIds.value.length > 0) {
-            selectedWinnerBugIds.value.forEach(bugId => {
-                const bet = {
-                    type: 'winner',
-                    bugId: bugId,
-                    amount: currentBet.value,
-                    timestamp: new Date().toISOString(),
-                    result: 'pending'
-                };
-                balance.value -= currentBet.value;
-                betHistory.value.push(bet);
-                nextRaceBets.value.push(bet);
-            });
-        }
-    // Ставка на обгоны (вкладка Overtaking)
-    else if (activeTab.value === 'overtaking') {
-      // ... существующая логика для ставок на обгоны ...
-    }
+  if (currentBet.value <= 0) {
+    infoMessage.value = t('enter_bet_amount');
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
+    return;
+  }
+
+  let betsPlaced = false;
+  const totalBetAmount = currentBet.value;
+  
+  // Ставки на конкретные места (вкладка Result)
+  if (activeTab.value === 'result') {
+    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
     
-    if (bet) {
+    if (selectedButtons.length > 0) {
+      // Проверка баланса
+      if (totalBetAmount > balance.value) {
+        infoMessage.value = t('insufficient_funds');
+        infoNotificationVisible.value = true;
+        setTimeout(() => infoNotificationVisible.value = false, 3000);
+        return;
+      }
+
       // Списание средств
-      balance.value -= currentBet.value;
+      balance.value -= totalBetAmount;
       
-      // Сохраняем ставку
-      betHistory.value.push(bet);
-      nextRaceBets.value.push(bet);
+      // Создаем ставки
+      selectedButtons.forEach(button => {
+        const row = Math.floor(button.id / 7); // 0-6 = bugId
+        const col = button.id % 7;             // 0-6 = место (col + 1)
+        const position = col + 1;
+        
+        const bet = {
+          type: 'position',
+          bugId: row,
+          position: position,
+          amount: totalBetAmount / selectedButtons.length,
+          timestamp: new Date().toISOString(),
+          result: 'pending'
+        };
+        
+        betHistory.value.push(bet);
+        nextRaceBets.value.push(bet);
+      });
       
-      // Сбрасываем текущую ставку
-      resetAllBets();
-      
-      // Сбрасываем выбор
-      // В функции placeBet после успешной ставки:
-        menuButtons.value.forEach(btn => {
-            if (btn.id >= 0 && btn.id <= 6) {
-                btn.selected = false;
-            }
-        });
-        selectedWinnerBugIds.value = [];
-      
-      // Показываем уведомление
-      infoMessage.value = t('bet_placed_successfully', { amount: currentBet.value });
-      infoNotificationVisible.value = true;
-      setTimeout(() => infoNotificationVisible.value = false, 3000);
-    } else {
-      infoMessage.value = t('select_bet_option');
-      infoNotificationVisible.value = true;
-      setTimeout(() => infoNotificationVisible.value = false, 3000);
+      betsPlaced = true;
     }
+  }
+  
+  if (betsPlaced) {
+    // Сброс и уведомление
+    resetAllBets();
+    menuButtons.value.forEach(btn => btn.selected = false);
+    
+    infoMessage.value = t('bet_placed_successfully');
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
+  } else {
+    // Уведомление если не выбрана ставка
+    infoMessage.value = t('select_bet_option');
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
   }
 };
 // Добавлено: переменные для управления зажатием кнопок
@@ -1816,21 +1849,21 @@ const diagonalButtons = computed(() => {
   }
   return diagonals;
 });
-
 const toggleMenuButton = (btn) => {
-  if (activeTab.value === 'result' && btn.id >= 0 && btn.id <= 6) {
-    btn.selected = !btn.selected; // Переключаем состояние
+  if (activeTab.value === 'result') {
+    const row = Math.floor(btn.id / 7);
+    const col = btn.id % 7;
     
-    if (btn.selected) {
-        selectedWinnerBugIds.value.push(btn.id);
-    } else {
-        const index = selectedWinnerBugIds.value.indexOf(btn.id);
-        if (index !== -1) {
-            selectedWinnerBugIds.value.splice(index, 1);
-        }
-    }
-} else {
-    // Для остальных кнопок (не ставка на победителя)
+    // Снимаем выделение со всей строки
+    menuButtons.value.forEach(otherBtn => {
+      if (Math.floor(otherBtn.id / 7) === row) {
+        otherBtn.selected = false;
+      }
+    });
+    
+    // Выделяем текущую кнопку
+    btn.selected = true;
+  } else {
     btn.selected = !btn.selected;
   }
 };

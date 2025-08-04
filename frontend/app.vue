@@ -12,6 +12,7 @@
     <div class="main-bg">
       <HistoryBets 
       v-if="historyBetsVisible && !historyBetsInsideCenter" 
+      ref="historyBetsRef"
       :isCenterMenuOpen="centerMenuVisible" 
       :title="t('history_bets')"
       class="outside-center"
@@ -156,6 +157,7 @@
       <div class="panel-layer">
         <!-- Кнопки управления -->
       <div 
+          ref="button1Ref"
           class="button-1" 
           id="Button-1" 
           :class="{ 'initial-animation': initialAnimationActive }"
@@ -166,10 +168,12 @@
         <!-- Меню последней игры -->
         <LastGameMenu 
           v-if="lastGameMenuVisible"
+          ref="lastGameMenuRef"
           :isCenterMenuOpen="centerMenuVisible"
           :games="lastGames"
         />
         <div 
+          ref="button2Ref"
           class="button-2" 
           id="Button-2" 
           :class="{ 'initial-animation': initialAnimationActive }"
@@ -178,6 +182,7 @@
           <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
         </div>
         <div 
+          ref="button3Ref"
           class="button-3" 
           id="Button-3" 
           :class="{ 'initial-animation': initialAnimationActive }"
@@ -187,7 +192,7 @@
         </div>
        
         <!-- Центральное меню -->
-        <div v-if="centerMenuVisible" class="center-menu">
+        <div v-if="centerMenuVisible" class="center-menu" ref="centerMenuRef">
         <!-- Изменение здесь: динамический src -->
         <img 
           :src="activeTab === 'overtaking' ? '/images/menus/center-buttom-overtaking.png' : '/images/menus/center-buttom.png'" 
@@ -234,6 +239,7 @@
         />
           <HistoryBets 
             v-if="historyBetsVisible && historyBetsInsideCenter" 
+            ref="historyBetsRef"
             :isCenterMenuOpen="centerMenuVisible" 
             :insideCenter="true"
             :title="t('history_bets')"
@@ -613,6 +619,12 @@ const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
+const button1Ref = ref(null);
+const button2Ref = ref(null);
+const button3Ref = ref(null);
+const lastGameMenuRef = ref(null);
+const centerMenuRef = ref(null);
+const historyBetsRef = ref(null);
 const handleButtonClick = (btn) => {
   
   // Снимаем выделение со всех кнопок
@@ -855,6 +867,41 @@ const handleDocumentClick = (event) => {
     if (menuEl && !menuEl.contains(event.target) && 
         (!buttonContainerEl || !buttonContainerEl.contains(event.target))) {
       closeWinMenu();
+    }
+  }
+// Закрытие LastGameMenu (Button-1)
+  if (lastGameMenuVisible.value) {
+    const menuEl = lastGameMenuRef.value?.$el || lastGameMenuRef.value;
+    const buttonEl = button1Ref.value;
+    
+    if (menuEl && 
+        !menuEl.contains(event.target) && 
+        !buttonEl.contains(event.target)) {
+      lastGameMenuVisible.value = false;
+    }
+  }
+
+  // Закрытие CenterMenu (Button-2)
+  if (centerMenuVisible.value) {
+    const menuEl = centerMenuRef.value;
+    const buttonEl = button2Ref.value;
+    
+    if (menuEl && 
+        !menuEl.contains(event.target) && 
+        !buttonEl.contains(event.target)) {
+      centerMenuVisible.value = false;
+    }
+  }
+
+  // Закрытие HistoryBets (Button-3)
+  if (historyBetsVisible.value && !historyBetsInsideCenter.value) {
+    const menuEl = historyBetsRef.value?.$el || historyBetsRef.value;
+    const buttonEl = button3Ref.value;
+    
+    if (menuEl && 
+        !menuEl.contains(event.target) && 
+        !buttonEl.contains(event.target)) {
+      historyBetsVisible.value = false;
     }
   }
 };
@@ -2023,6 +2070,7 @@ const updateScale = () => {
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick);
+  document.addEventListener('click', handleDocumentClick);
     document.addEventListener('visibilitychange', handleVisibilityChange);
   updateScale();
   window.addEventListener('resize', updateScale);
@@ -2055,6 +2103,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick);
   document.removeEventListener('click', handleDocumentClick);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
   // Очищаем таймеры при уничтожении компонента

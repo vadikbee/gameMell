@@ -507,7 +507,7 @@ defineEmits([
     width: 27%;
     height: 72px;
     top: 43%;
-    left: -5%;
+    left: -15%;
     
   }
 }

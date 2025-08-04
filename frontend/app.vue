@@ -17,7 +17,7 @@
       class="outside-center"
     />
       <!-- Центральное фиксированное меню -->
-      <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100">
+      <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100" ref="winMenuCenterRef">
     <StavkiMenu
       :currentBet="currentBet"
       :stavkiButtons="stavkiButtons"
@@ -77,6 +77,7 @@
       v-for="(btn, index) in winButtons" 
       :key="'btn-'+btn.id"
       class="button-win-container"
+      :ref="el => setButtonWinContainerRef(btn.id, el)"
       :class="{
         'initial-animation': initialAnimationActive,
         [`button-win-${index + 1}`]: true
@@ -613,6 +614,7 @@ const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
 const handleButtonClick = (btn) => {
+  
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
     button.selected = false;
@@ -620,6 +622,7 @@ const handleButtonClick = (btn) => {
   
   // Если меню уже открыто для этой кнопки - закрываем его
   if (centerWinMenuVisible.value && activeWinMenuId.value === btn.id) {
+    closeWinMenu();
     centerWinMenuVisible.value = false;
     activeWinMenuId.value = null;
     selectedTrap.value = null;
@@ -835,7 +838,33 @@ const addToBet = (amount) => {
     currentBet.value = newBet;
   }
 };
+const winMenuCenterRef = ref(null);
+const buttonWinContainerRefs = ref({});
 
+const setButtonWinContainerRef = (id, el) => {
+  if (el) {
+    buttonWinContainerRefs.value[id] = el;
+  }
+};
+
+const handleDocumentClick = (event) => {
+  if (centerWinMenuVisible.value && activeWinMenuId.value !== null) {
+    const menuEl = winMenuCenterRef.value;
+    const buttonContainerEl = buttonWinContainerRefs.value[activeWinMenuId.value];
+    
+    if (menuEl && !menuEl.contains(event.target) && 
+        (!buttonContainerEl || !buttonContainerEl.contains(event.target))) {
+      closeWinMenu();
+    }
+  }
+};
+
+const closeWinMenu = () => {
+  centerWinMenuVisible.value = false;
+  resetWinButtonSelection();
+  selectedTrap.value = null;
+  selectedBugs.value = [];
+};
 // Отмена последней ставки
 const undoLastBet = () => {
   if (undoStack.value.length > 0) {
@@ -1700,11 +1729,6 @@ const toggleCenterMenu = () => {
   }
 };
 
-// Добавляем обработчик для закрытия меню победы
-const closeWinMenu = () => {
-  winButtons.value.forEach(btn => btn.selected = false);
-  centerWinMenuVisible.value = false;
-};
 
 // Убедимся что все методы определены
 watch(centerMenuVisible, (newVal) => {
@@ -1998,6 +2022,7 @@ const updateScale = () => {
   
 
 onMounted(() => {
+  document.addEventListener('click', handleDocumentClick);
     document.addEventListener('visibilitychange', handleVisibilityChange);
   updateScale();
   window.addEventListener('resize', updateScale);
@@ -2030,6 +2055,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
   // Очищаем таймеры при уничтожении компонента
   clearInterval(cycleTimer);

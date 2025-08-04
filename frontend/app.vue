@@ -1851,19 +1851,35 @@ const diagonalButtons = computed(() => {
 });
 const toggleMenuButton = (btn) => {
   if (activeTab.value === 'result') {
-    const row = Math.floor(btn.id / 7);
-    const col = btn.id % 7;
+    const row = Math.floor(btn.id / 7); // ID таракана (0-6)
+    const col = btn.id % 7;             // Место (0-6)
     
-    // Снимаем выделение со всей строки
+    // Проверка: если кнопка уже выбрана - снимаем выделение
+    if (btn.selected) {
+      btn.selected = false;
+      return;
+    }
+    
+    // Проверяем, не выбран ли уже другой таракан на это место
+    const alreadySelected = menuButtons.value.some(otherBtn => 
+      otherBtn.id % 7 === col && 
+      otherBtn.selected && 
+      otherBtn.id !== btn.id
+    );
+    
+    if (alreadySelected) return; // Место уже занято другим тараканом
+    
+    // Снимаем предыдущий выбор для этого таракана (если был)
     menuButtons.value.forEach(otherBtn => {
-      if (Math.floor(otherBtn.id / 7) === row) {
+      if (Math.floor(otherBtn.id / 7) === row && otherBtn.selected) {
         otherBtn.selected = false;
       }
     });
     
-    // Выделяем текущую кнопку
+    // Выбираем текущую кнопку
     btn.selected = true;
   } else {
+    // Логика для вкладки Overtaking
     btn.selected = !btn.selected;
   }
 };

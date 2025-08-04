@@ -508,7 +508,7 @@ defineEmits([
     height: 72px;
     top: 43%;
     left: -5%;
-    transform: translateX(0);
+    
   }
 }
 
@@ -528,6 +528,9 @@ defineEmits([
     margin-left: -17.5%;
     
   }
-  
+  .menu-stavki {
+    margin-left: -15%;
+    scale: 95%;
+  }
 }
 </style>

@@ -5232,13 +5232,19 @@ width: 23%;
   top: -5%;
 }
 .button-1 {
-  left: 1.4%;
+  left: 0.3%;
+  width: 23%;
+  top: -6%;
+}
+.button-3 {
+  width: 23%;
+  left: 74.2%;
 }
 .group-164-button {
-  transform: scale(1);
+  
   top: 64%;
   height: 100%;
-  left: 30%;
+  left: 43%;
 }
 .labirint-bg {
   top: 8.2%;

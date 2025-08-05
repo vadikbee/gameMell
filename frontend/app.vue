@@ -506,6 +506,7 @@
   </transition>
   <audio ref="balanceIncomeSound" src="/sounds/balanceIncome.mp3"></audio>
   <audio ref="raceStartSound" src="/sounds/raceIsStarted.mp3"></audio>
+  <audio ref="countdownSound" src="/sounds/countdown.mp3"></audio>
   <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
 </template>
 
@@ -527,6 +528,11 @@ const soundVolume = ref(0.5);
 // Добавляем новое состояние для управления анимацией
 const initialAnimationActive = ref(true);
 // Добавьте новый импорт i18n
+// Добавьте новый ref
+const countdownSound = ref(null);
+
+// Добавьте переменную для отслеживания состояния звука
+const countdownPlayed = ref(false);
 
 const currentLanguage = computed(() => locale.value.toUpperCase());
 
@@ -640,6 +646,19 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+// Функция для воспроизведения звука обратного отсчета
+const playCountdownSound = () => {
+  if (!userInteracted.value || !countdownSound.value) return;
+  
+  try {
+    countdownSound.value.currentTime = 0;
+    countdownSound.value.volume = soundVolume.value;
+    countdownSound.value.play().catch(e => console.error("Countdown sound error:", e));
+    countdownPlayed.value = true;
+  } catch (e) {
+    console.error("Countdown playback error:", e);
+  }
+};
 // Создайте функцию для воспроизведения звука
 const playRaceStartSound = () => {
   if (!userInteracted.value || !raceStartSound.value) return;
@@ -733,7 +752,8 @@ const firstInteractionHandler = () => {
       dizzySoundElement.value,
       balanceIncomeSound.value,
       balanceOutcomeSound.value,
-      raceStartSound.value
+      raceStartSound.value,
+      countdownSound.value // Добавляем новый звук
     ];
     
     soundEffects.forEach(sound => {
@@ -2169,6 +2189,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+countdownPlayed.value = false; // Сбрасываем флаг
 playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
   // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
   if (nextRaceBets.value.length > 0) {
@@ -2283,6 +2304,11 @@ const updateProgress = () => {
   if (breakInProgress.value) {
     // Прогресс перерыва
     const breakElapsed = now - phaseStartTime.value;
+    const breakRemaining = breakInterval.value - breakElapsed;
+   // Проверяем, осталась ли 1 секунда и звук еще не проигран
+    if (breakRemaining <= 1750 && !countdownPlayed.value) {
+      playCountdownSound();
+    }
     progress.value = Math.min(100, (breakElapsed / breakInterval.value) * 100);
     isBettingPhase.value = true;
 
@@ -2293,7 +2319,14 @@ const updateProgress = () => {
       phaseStartTime.value = now;
       handleGenerateClick(); // Добавленный вызов
     }
-  } else if (raceInProgress.value) {
+  } else if (raceInProgress.value && raceActualStartTime.value) {
+    const raceElapsed = now - raceActualStartTime.value;
+    const raceRemaining = raceInterval.value - raceElapsed;
+    
+    // Проверяем, осталась ли 1 секунда и звук еще не проигран
+    if (raceRemaining <= 1750 && !countdownPlayed.value) {
+      playCountdownSound();
+    }
     // Прогресс гонки с учетом реального времени начала
     if (raceActualStartTime.value) {
       const raceElapsed = now - raceActualStartTime.value;
@@ -2326,7 +2359,10 @@ const updateProgress = () => {
     }
     
   }
-  
+   // Сбрасываем флаг при смене фазы
+  if (!breakInProgress.value && !raceInProgress.value) {
+    countdownPlayed.value = false;
+  }
   animationFrameId.value = requestAnimationFrame(updateProgress);
   
 };

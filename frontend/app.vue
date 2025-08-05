@@ -32,6 +32,7 @@
       @stop-action="stopAction"
       @add-bet="addToBet"
       @x2-click="multiplyBet"
+      @button-click="playStakeActionClick"
     />
     
     <div class="menu-container">
@@ -507,7 +508,10 @@
   <audio ref="balanceIncomeSound" src="/sounds/balanceIncome.mp3"></audio>
   <audio ref="raceStartSound" src="/sounds/raceIsStarted.mp3"></audio>
   <audio ref="countdownSound" src="/sounds/countdown.mp3"></audio>
-  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
+ <audio ref="clearPendingBetsSound" src="/sounds/clearPendingBets.mp3"></audio>
+<audio ref="cancelPendingBetSound" src="/sounds/cancelPendingBet.mp3"></audio>
+ <audio ref="stakeActionClickSound" src="/sounds/stakeActionClick.mp3"></audio>
+ <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
 </template>
 
 
@@ -535,7 +539,10 @@ const countdownSound = ref(null);
 const countdownPlayed = ref(false);
 
 const currentLanguage = computed(() => locale.value.toUpperCase());
-
+// В секции refs
+const clearPendingBetsSound = ref(null);
+const cancelPendingBetSound = ref(null);
+const stakeActionClickSound = ref(null);
 
 
 
@@ -1034,6 +1041,7 @@ const stavkiButtons = ref([
 // Добавление ставки
 // Обновленная функция добавления ставки
 const addToBet = (amount) => {
+  playStakeActionClick();
   const maxAllowed = Math.min(balance.value, 10000);
   const newBet = Math.min(currentBet.value + amount, maxAllowed);
   
@@ -1054,7 +1062,17 @@ const setButtonWinContainerRef = (id, el) => {
     buttonWinContainerRefs.value[id] = el;
   }
 };
-
+const playStakeActionClick = () => {
+  if (!userInteracted.value || !stakeActionClickSound.value) return;
+  
+  try {
+    stakeActionClickSound.value.currentTime = 0;
+    stakeActionClickSound.value.volume = soundVolume.value;
+    stakeActionClickSound.value.play().catch(e => console.error("Stake action sound error:", e));
+  } catch (e) {
+    console.error("Stake action playback error:", e);
+  }
+};
 const handleDocumentClick = (event) => {
   if (centerWinMenuVisible.value && activeWinMenuId.value !== null) {
     const menuEl = winMenuCenterRef.value;
@@ -1110,6 +1128,11 @@ const closeWinMenu = () => {
 };
 // Отмена последней ставки
 const undoLastBet = () => {
+  if (cancelPendingBetSound.value && userInteracted.value) {
+    cancelPendingBetSound.value.currentTime = 0;
+    cancelPendingBetSound.value.volume = soundVolume.value;
+    cancelPendingBetSound.value.play().catch(e => console.error("Cancel sound error:", e));
+  }
   if (undoStack.value.length > 0) {
     const lastAction = undoStack.value.pop();
     currentBet.value = lastAction.prevBet;
@@ -1137,6 +1160,11 @@ const openPersonalAccount = () => {
 };
 // Сброс всех ставок
 const resetAllBets = () => {
+  if (clearPendingBetsSound.value && userInteracted.value) {
+    clearPendingBetsSound.value.currentTime = 0;
+    clearPendingBetsSound.value.volume = soundVolume.value;
+    clearPendingBetsSound.value.play().catch(e => console.error("Clear sound error:", e));
+  }
   selectedWinnerBugIds.value = [];
   undoStack.value.push({
     type: 'reset',
@@ -1148,6 +1176,7 @@ const resetAllBets = () => {
 // Удвоение ставки
 
 const multiplyBet = () => {
+  playStakeActionClick(); // Добавьте этот вызов
   if (currentBet.value > 0) {
     const maxAllowed = Math.min(balance.value, 10000);
     const newBet = Math.min(currentBet.value * 2, maxAllowed);
@@ -1333,6 +1362,7 @@ const lastGames = ref([
 
 
 const setActiveTab = (tab) => {
+  playStakeActionClick();
   // Сбрасываем выделение со всех кнопок
   menuButtons.value.forEach(btn => {
     btn.selected = false;
@@ -1382,6 +1412,7 @@ const explodeAllBugs = (raceEndTime) => {
 // Add this method after the selectTrap function
 // В секции script
 const toggleBugSelection = (bugId) => {
+  playStakeActionClick();
   if (!selectedTrap.value) return;
   
   const currentSelections = [...(bugSelections.value[selectedTrap.value] || [])];
@@ -1886,6 +1917,11 @@ watch(centerMenuVisible, (newVal) => {
 });
 // Исправляем логику сброса ставки (теперь это отмена последнего действия)
 const handleResetClick = () => {
+  if (clearPendingBetsSound.value && userInteracted.value) {
+    clearPendingBetsSound.value.currentTime = 0;
+    clearPendingBetsSound.value.volume = soundVolume.value;
+    clearPendingBetsSound.value.play().catch(e => console.error("Clear sound error:", e));
+  }
   stopAction(); // Останавливаем любые активные интервалы
   restorePreviousBet();
   
@@ -1900,6 +1936,7 @@ const handleResetClick = () => {
 // Функция для удвоения ставки
 // Обновим метод handleX2ButtonClick
 const handleX2ButtonClick = () => {
+  playStakeActionClick();
   if (currentBet.value > 0) {
     // Используем undoStack вместо betHistoryStack
     undoStack.value.push({
@@ -1934,6 +1971,7 @@ const handleResetBetClick = () => {
 
 // Обновленные функции изменения ставки с сохранением состояния
 const incrementBet = () => {
+  playStakeActionClick();
   if (!actionInterval.value && !actionTimeout.value) {
     saveCurrentBet();
   }
@@ -1942,6 +1980,7 @@ const incrementBet = () => {
 }
 
 const decrementBet = () => {
+  playStakeActionClick();
   if (!actionInterval.value && !actionTimeout.value) {
     saveCurrentBet();
   }
@@ -1951,6 +1990,11 @@ const decrementBet = () => {
 
 // Функция для сброса ставки к нулю
 const handleOtmenaButtonClick = () => {
+  if (cancelPendingBetSound.value && userInteracted.value) {
+    cancelPendingBetSound.value.currentTime = 0;
+    cancelPendingBetSound.value.volume = soundVolume.value;
+    cancelPendingBetSound.value.play().catch(e => console.error("Cancel sound error:", e));
+  }
   stopAction(); // Останавливаем любые активные интервалы
   saveCurrentBet(); // Сохраняем текущее значение
   currentBet.value = 0;
@@ -2058,6 +2102,7 @@ const diagonalButtons = computed(() => {
   return diagonals;
 });
 const toggleMenuButton = (btn) => {
+  playStakeActionClick();
   if (activeTab.value === 'result') {
     const row = Math.floor(btn.id / 7); // ID таракана (0-6)
     const col = btn.id % 7;             // Место (0-6)
@@ -2821,7 +2866,7 @@ const getButtonStyle = (btn) => {
   width: 47px;
   height: 28px;
   left: 12%;
-  top: 442%; /* Позиция под кнопками ставок */
+  top: 439%; /* Позиция под кнопками ставок */
   z-index: 9;
  
    
@@ -3241,7 +3286,7 @@ const getButtonStyle = (btn) => {
   margin-top: -11%;
   transform: translateX(-50%);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  margin-left: 8%;
+  margin-left: 7.5%;
   
   /* Для правильного отображения изображения */
   background-size: contain;
@@ -5433,6 +5478,9 @@ width: 23%;
   width: 23%;
   top: -6%;
 }
+.win-menu-title {
+  top: 38%;
+}
 .button-3 {
   width: 23%;
   left: 74.2%;
@@ -5443,9 +5491,10 @@ width: 23%;
   height: 100%;
   left: 43%;
 }
+
 .labirint-bg {
   top: 8.2%;
-  z-index: 10;
+  z-index: 5;
   pointer-events: none;
 }
 

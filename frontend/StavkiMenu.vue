@@ -52,7 +52,7 @@
       src="/images/buttons/x2.png" 
       alt="x2"
       class="x2-button"
-      @click="$emit('x2-click')"
+      @click="$emit('x2-click'); $emit('button-click')"
     >
   </div>
 </div>
@@ -380,10 +380,10 @@ defineEmits([
     width: 27%;
     top: 41%;
     height: 69px;
-    transform: scale(1.0) translateX(37%);
+    
     
     margin-top: -20%;
-    left: -15%;
+    left: 8.2%;
   }
   .bet-counter-container {
     top: 48%;
@@ -531,7 +531,7 @@ defineEmits([
 
 @media (min-width: 392px) and (max-width: 394px) {
  .menu-stavki {
-    transform: scale(0.9);
+    
     margin-left: -17.5%;
     
   }

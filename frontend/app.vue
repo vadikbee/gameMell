@@ -504,6 +504,9 @@
       </div>
     </div>
   </transition>
+  <audio ref="balanceIncomeSound" src="/sounds/balanceIncome.mp3"></audio>
+  <audio ref="raceStartSound" src="/sounds/raceIsStarted.mp3"></audio>
+  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
 </template>
 
 
@@ -559,7 +562,7 @@ const switchLanguage = () => {
 
 // Добавляем реактивный ключ
 const key = ref(0);
-
+const userInteracted = ref(false); // Добавьте эту строку
 // Добавляем переменные для звука
 
 const dizzySound = ref(null);
@@ -620,7 +623,8 @@ const selectTrap = (trapId) => {
 // Добавьте эти состояния
 const infoNotificationVisible = ref(false);
 const infoMessage = ref('');
-
+// Добавьте новый ref
+const raceStartSound = ref(null);
 const nextRaceBets = ref([]);
 // Состояния для уведомлений
 // Добавляем новый массив для ставок текущей гонки
@@ -636,6 +640,18 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+// Создайте функцию для воспроизведения звука
+const playRaceStartSound = () => {
+  if (!userInteracted.value || !raceStartSound.value) return;
+  
+  try {
+    raceStartSound.value.currentTime = 0;
+    raceStartSound.value.volume = soundVolume.value;
+    raceStartSound.value.play().catch(e => console.error("Race start sound error:", e));
+  } catch (e) {
+    console.error("Race start playback error:", e);
+  }
+};
 const handleButtonClick = (btn) => {
 
   // Снимаем выделение со всех кнопок
@@ -695,11 +711,10 @@ const enableMusic = async () => {
   try {
     if (!backgroundMusic.value) return;
     
-    // Пытаемся воспроизвести
+    backgroundMusic.value.volume = soundVolume.value;
     await backgroundMusic.value.play();
     isMusicPlaying.value = true;
     
-    // Убираем обработчики после успешного запуска
     document.removeEventListener('click', firstInteractionHandler);
     document.removeEventListener('touchstart', firstInteractionHandler);
   } catch (error) {
@@ -708,9 +723,36 @@ const enableMusic = async () => {
   }
 };
 // Обработчик первого взаимодействия
+// Обновите firstInteractionHandler
 const firstInteractionHandler = () => {
-  enableMusic();
+  try {
+    userInteracted.value = true;
+    
+    // Разблокировка только для звуков эффектов (не для фоновой музыки)
+    const soundEffects = [
+      dizzySoundElement.value,
+      balanceIncomeSound.value,
+      balanceOutcomeSound.value,
+      raceStartSound.value
+    ];
+    
+    soundEffects.forEach(sound => {
+      if (sound) {
+        sound.volume = 0.001;
+        sound.play()
+          .then(() => sound.pause())
+          .catch(e => console.debug("Sound effect unlock:", e));
+        sound.currentTime = 0;
+      }
+    });
+    
+    // Включаем фоновую музыку отдельно
+    enableMusic();
+  } catch (e) {
+    console.error("First interaction error:", e);
+  }
 };
+
 // Показать подсказку для включения звука
 const showMusicEnableHint = () => {
   infoMessage.value = t('enable_sound_hint');
@@ -741,6 +783,7 @@ const placeSectionBet = () => {
 
   // Списание средств
   balance.value -= currentBet.value;
+  playOutcomeSound(); // Add this line
 
  // Создаем объект ставки
   const bet = {
@@ -822,6 +865,7 @@ const checkBetsResults = () => {
         const winAmount = bet.amount * 3; // Коэффициент 3:1
         totalWin += winAmount;
         balance.value += winAmount;
+        playIncomeSound(); // Add this line
         winningBets.push({
           ...bet,
           winAmount,
@@ -1131,6 +1175,7 @@ const placeBet = () => {
 
       // Списание средств
       balance.value -= totalBetAmount;
+      playOutcomeSound(); // Add this line
       
       // Создаем ставки
       selectedButtons.forEach(button => {
@@ -1965,13 +2010,9 @@ const winButtons = ref([
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
 // ==============================
-// app.vue
-// Вычисляемое свойство для диагональных кнопок
-// Функция для переключения музыки
-// Обновленный toggleMusic
 const toggleMusic = () => {
   if (!backgroundMusic.value) return;
-
+  
   if (isMusicPlaying.value) {
     backgroundMusic.value.pause();
   } else {
@@ -2128,13 +2169,13 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
-
+playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
   // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
   if (nextRaceBets.value.length > 0) {
     currentRaceBets.value = [...nextRaceBets.value];
     nextRaceBets.value = [];
   }
-
+  
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;

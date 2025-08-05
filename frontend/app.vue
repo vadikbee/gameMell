@@ -1,8 +1,9 @@
 <template>
   <div class="main-color">
     <!-- История ставок в основном интерфейсе -->
-    
+     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
+    
     <div 
       class="main-bg-container" 
       
@@ -348,6 +349,11 @@
         
         <!-- Верхняя панель баланса -->
         <div class="panel-up">
+         <!-- Обновленный элемент управления музыкой -->
+  <div class="music-control" @click="toggleMusic">
+    <div class="music-icon" :class="{ 'music-off': !isMusicPlaying }"></div>
+    <div v-if="!isMusicPlaying" class="music-hint">!</div>
+  </div>
           <div class="language-switcher" @click="switchLanguage">
          {{ currentLanguage }}
         </div>
@@ -628,8 +634,10 @@ const button3Ref = ref(null);
 const lastGameMenuRef = ref(null);
 const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
+const backgroundMusic = ref(null);
+const isMusicPlaying = ref(false);
 const handleButtonClick = (btn) => {
-  
+
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
     button.selected = false;
@@ -682,7 +690,35 @@ const showNotification = (message, isWin) => {
     notificationVisible.value = false;
   }, 3000);
 };
-
+// Обновленная функция для включения музыки
+const enableMusic = async () => {
+  try {
+    if (!backgroundMusic.value) return;
+    
+    // Пытаемся воспроизвести
+    await backgroundMusic.value.play();
+    isMusicPlaying.value = true;
+    
+    // Убираем обработчики после успешного запуска
+    document.removeEventListener('click', firstInteractionHandler);
+    document.removeEventListener('touchstart', firstInteractionHandler);
+  } catch (error) {
+    console.error("Ошибка воспроизведения музыки:", error);
+    showMusicEnableHint();
+  }
+};
+// Обработчик первого взаимодействия
+const firstInteractionHandler = () => {
+  enableMusic();
+};
+// Показать подсказку для включения звука
+const showMusicEnableHint = () => {
+  infoMessage.value = t('enable_sound_hint');
+  infoNotificationVisible.value = true;
+  setTimeout(() => {
+    infoNotificationVisible.value = false;
+  }, 5000);
+};
 // Обработчик ставки на секцию
 const placeSectionBet = () => {
   if (!selectedTrap.value || selectedBugs.value.length === 0) {
@@ -1931,6 +1967,28 @@ const winButtons = ref([
 // ==============================
 // app.vue
 // Вычисляемое свойство для диагональных кнопок
+// Функция для переключения музыки
+// Обновленный toggleMusic
+const toggleMusic = () => {
+  if (!backgroundMusic.value) return;
+
+  if (isMusicPlaying.value) {
+    backgroundMusic.value.pause();
+  } else {
+    enableMusic().catch(showMusicEnableHint);
+  }
+  
+  isMusicPlaying.value = !isMusicPlaying.value;
+};
+
+
+// Регулировка громкости
+const setMusicVolume = (volume) => {
+  if (backgroundMusic.value) {
+    backgroundMusic.value.volume = volume;
+  }
+};
+
 const diagonalButtons = computed(() => {
   const diagonals = [];
   for (let i = 0; i < 7; i++) {
@@ -2307,6 +2365,7 @@ const updateScale = () => {
   
 
 onMounted(() => {
+  
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('click', handleDocumentClick);
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -2338,6 +2397,14 @@ onMounted(() => {
   setTimeout(() => {
     initialAnimationActive.value = false;
   }, 4500);
+ if (backgroundMusic.value) {
+    backgroundMusic.value.volume = 0.2;
+    backgroundMusic.value.preload = "auto";
+    
+    // Добавляем обработчики для первого взаимодействия
+    document.addEventListener('click', firstInteractionHandler);
+    document.addEventListener('touchstart', firstInteractionHandler);
+  }
 });
 
 onUnmounted(() => {
@@ -2351,6 +2418,8 @@ onUnmounted(() => {
  if (animationFrameId.value) {
     cancelAnimationFrame(animationFrameId.value);
   }
+document.removeEventListener('click', firstInteractionHandler);
+  document.removeEventListener('touchstart', firstInteractionHandler);
 });
 const textButtonStyle = {
   backgroundImage: 'none',
@@ -2376,6 +2445,7 @@ const getButtonStyle = (btn) => {
   }
   return {}; // Для overtaking - стандартный стиль
 };
+
 </script>
 <style scoped>
 
@@ -3687,7 +3757,62 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   border-radius: 4px;
   margin-right: 10px;
 }
+/* Добавляем стили для подсказки */
+.music-hint {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  background: #FF0000;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1s infinite;
+}
 
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.music-control {
+  position: absolute;
+  top: 7px;
+  right: 315px;
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  background-color: #000000;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.music-icon {
+  width: 20px;
+  height: 20px;
+  background-image: url('/images/icons/music-on.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.music-icon.music-off {
+  background-image: url('/images/icons/music-off.png');
+}
+
+.music-control:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
 .title {
   font-family: 'Bahnschrift', sans-serif;
   font-weight: 700;

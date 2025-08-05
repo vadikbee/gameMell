@@ -21,8 +21,12 @@
       src="/images/menus/Group 164.png" 
       alt="Group 164" 
       class="group-164-button"
-      @click="$emit(context === 'win' ? 'win-bet-click' : 'group164-click')"
-    >
+      @click="$emit(context === 'win' ? 'win-bet-click' : 'group164-click');"
+      
+      @mousedown="isGroup164Clicked = true"
+      @mouseup="isGroup164Clicked = false"
+      @mouseleave="isGroup164Clicked = false"
+        >
     </div>
     <div class="bet-counter-container">
       <div 
@@ -65,7 +69,8 @@ defineProps({
   context: {
     type: String,
     default: 'center' // 'center' или 'win'
-  }
+  },
+  playBetClick: Function // Добавляем новый проп
 });
 
 defineEmits([
@@ -79,6 +84,29 @@ defineEmits([
   'x2-click',
   'win-bet-click' // Новое событие для ставок на секцию
 ]);
+// Новые методы внутри компонента StavkiMenu
+const handleGroup164Click = () => {
+  if (props.playBetClick) {
+    props.playBetClick();
+  }
+  context === 'win' 
+    ? emit('win-bet-click') 
+    : emit('group164-click');
+};
+
+const handleButtonClick = (amount) => {
+  if (props.playBetClick) {
+    props.playBetClick();
+  }
+  emit('add-bet', amount);
+};
+
+const playSoundAndEmit = (eventName) => {
+  if (props.playBetClick) {
+    props.playBetClick();
+  }
+  emit(eventName);
+};
 </script>
 
 <style scoped>

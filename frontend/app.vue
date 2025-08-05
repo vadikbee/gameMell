@@ -32,7 +32,9 @@
       @stop-action="stopAction"
       @add-bet="addToBet"
       @x2-click="multiplyBet"
+      :playBetClick="playBetClick" 
       @button-click="playStakeActionClick"
+      @group164-click="placeBet"
     />
     
     <div class="menu-container">
@@ -276,7 +278,7 @@
               alt="Group 164" 
               class="group-164-button"
               :class="{ 'group-164-clicked': isGroup164Clicked }"
-              @click="placeBet"
+              @click="() => { playBetClick(); placeBet(); }"
               @mousedown="isGroup164Clicked = true"
               @mouseup="isGroup164Clicked = false"
               @mouseleave="isGroup164Clicked = false"
@@ -511,6 +513,7 @@
  <audio ref="clearPendingBetsSound" src="/sounds/clearPendingBets.mp3"></audio>
 <audio ref="cancelPendingBetSound" src="/sounds/cancelPendingBet.mp3"></audio>
  <audio ref="stakeActionClickSound" src="/sounds/stakeActionClick.mp3"></audio>
+ <audio ref="betClickSound" src="/sounds/betClick.mp3"></audio>
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
 </template>
 
@@ -633,6 +636,7 @@ const selectTrap = (trapId) => {
   selectedTrap.value = trapId;
   selectedBugs.value = bugSelections.value[trapId] || [];
 };
+const betClickSound = ref(null);
 // Добавьте эти состояния
 const infoNotificationVisible = ref(false);
 const infoMessage = ref('');
@@ -678,13 +682,24 @@ const playRaceStartSound = () => {
     console.error("Race start playback error:", e);
   }
 };
+  const playBetClick = () => {
+  if (!userInteracted.value || !betClickSound.value) return;
+  
+  try {
+    betClickSound.value.currentTime = 0;
+    betClickSound.value.volume = soundVolume.value;
+    betClickSound.value.play().catch(e => console.error("Bet click sound error:", e));
+  } catch (e) {
+    console.error("Bet click playback error:", e);
+  }
+};
 const handleButtonClick = (btn) => {
 
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
     button.selected = false;
   });
-  
+
   // Если меню уже открыто для этой кнопки - закрываем его
   if (centerWinMenuVisible.value && activeWinMenuId.value === btn.id) {
     closeWinMenu();
@@ -790,6 +805,7 @@ const showMusicEnableHint = () => {
 };
 // Обработчик ставки на секцию
 const placeSectionBet = () => {
+  playBetClick(); // Добавляем звук
   if (!selectedTrap.value || selectedBugs.value.length === 0) {
     alert('Выберите тараканов для ставки');
     return;
@@ -1199,6 +1215,7 @@ const formattedBalance = computed(() => {
 // Обновленная функция placeBet
 // Обновленная функция placeBet
 const placeBet = () => {
+  playBetClick(); // Добавляем звук
   if (currentBet.value <= 0) {
     infoMessage.value = t('enter_bet_amount');
     infoNotificationVisible.value = true;
@@ -2195,6 +2212,8 @@ watch(centerMenuVisible, (newVal) => {
 
 // Добавляем обработчик для кнопки Group 164
 const handleGroup164Click = () => {
+  playBetClick(); // Добавляем звук
+  placeBet();
   console.log('Group 164 clicked');
   // Здесь будет логика подтверждения ставки
 };

@@ -853,6 +853,7 @@ const placeSectionBet = () => {
 
   // Списание средств
   balance.value -= currentBet.value;
+  showBetPlacedNotification();
   playOutcomeSound(); // Add this line
 
  // Создаем объект ставки
@@ -1237,9 +1238,15 @@ const multiplyBet = () => {
 const formattedBalance = computed(() => {
   return `${Math.round(balance.value)} ${t('currency')}`;
 });
-// Фиксация ставки и списание средств
-// Обновленная функция placeBet
-// Обновленная функция placeBet
+// Функция для показа уведомления
+const showBetPlacedNotification = () => {
+  infoMessage.value = t('bet_placed');
+  infoNotificationVisible.value = true;
+  
+  setTimeout(() => {
+    infoNotificationVisible.value = false;
+  }, 2000); // Автоматическое скрытие через 2 секунды
+};
 const placeBet = () => {
   playBetClick(); // Добавляем звук
   if (currentBet.value <= 0) {
@@ -1267,6 +1274,7 @@ const placeBet = () => {
 
       // Списание средств
       balance.value -= totalBetAmount;
+      showBetPlacedNotification();
       playOutcomeSound(); // Add this line
       
       // Создаем ставки

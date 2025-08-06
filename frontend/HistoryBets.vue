@@ -40,7 +40,17 @@ const props = defineProps({
   insideCenter: Boolean, // Добавляем новый пропс
   title: String
 });
-
+// Определение типа ставки
+const getBetType = (bet) => {
+  switch (bet.type) {
+    case 'position': return t('position_bet');
+    case 'overtaking': return t('overtaking_bet');
+    case 'section': 
+      // +++ ПОДДЕРЖКА СТАВОК НА СЕКЦИЮ +++
+      return `${t('section_bet')} ${bet.trapId}`;
+    default: return t('bet');
+  }
+};
 const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center'; // Для истории внутри меню
   return props.isCenterMenuOpen ? 'top-right' : 'bottom-right'; // Для истории снаружи
@@ -63,15 +73,7 @@ const getFirstColor = (bet) => {
   return '#FFFFFF'; // Цвет по умолчанию
 };
 
-// Определение типа ставки
-const getBetType = (bet) => {
-  switch (bet.type) {
-    case 'position': return t('position_bet');
-    case 'overtaking': return t('overtaking_bet');
-    case 'section': return t('section_bet');
-    default: return t('bet');
-  }
-};
+
 
 // Форматирование суммы
 const formatAmount = (bet) => {

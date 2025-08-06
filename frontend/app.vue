@@ -885,14 +885,13 @@ const resetWinButtonSelection = () => {
   });
   activeWinMenuId.value = null;
 };
-// Обновленная функция проверки результатов
+
 const checkBetsResults = () => {
   const winningBets = [];
   const losingBets = [];
   let totalWin = 0;
   let totalLose = 0;
 
-  // Собираем финишировавших тараканов с их позициями
   const finishedBugs = bugs.value
     .filter(bug => bug.finished)
     .sort((a, b) => a.finishTime - b.finishTime)
@@ -902,31 +901,39 @@ const checkBetsResults = () => {
     }));
 
   currentRaceBets.value.forEach(bet => {
-
-    
     if (bet.result !== 'pending') return;
     
-    // Обработка ставки на позицию
+    // 1. Обработка ставки на ПОЗИЦИЮ
     if (bet.type === 'position') {
       const bugResult = finishedBugs.find(b => b.id === bet.bugId);
       
       if (bugResult && bugResult.position === bet.position) {
-        // Выигрыш 8:1
-        const winAmount = bet.amount * 8;
+        const winAmount = bet.amount * 8; // Коэффициент 8:1
         totalWin += winAmount;
         balance.value += winAmount;
+        playIncomeSound();
         winningBets.push({
           ...bet,
           winAmount,
-          bugColors: [bugColors.value[bet.bugId]]
-        }); // Обработка ставки на обгон
-    // Обработка ставки на обгон
-    if (bet.type === 'overtaking') {
+          bugColors: [bugColors.value[bet.bugId-1]]
+        });
+        bet.result = 'win';
+      } else {
+        losingBets.push({
+          ...bet,
+          loseAmount: bet.amount,
+          bugColors: [bugColors.value[bet.bugId-1]]
+        });
+        totalLose += bet.amount;
+        bet.result = 'lose';
+      }
+    } 
+    // 2. Обработка ставки на ОБГОН
+    else if (bet.type === 'overtaking') {
       const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
       const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
       
-      // Условие выигрыша: обгоняющий финишировал, а обгоняемый - нет, 
-      // или обгоняющий финишировал раньше
+      // Условие выигрыша: обгоняющий финишировал раньше
       const isWin = (overtakerResult && !overtakenResult) || 
                    (overtakerResult && overtakenResult && 
                     overtakerResult.position < overtakenResult.position);
@@ -935,13 +942,13 @@ const checkBetsResults = () => {
         const winAmount = bet.amount * 3; // Коэффициент 3:1
         totalWin += winAmount;
         balance.value += winAmount;
-        playIncomeSound(); // Add this line
+        playIncomeSound();
         winningBets.push({
           ...bet,
           winAmount,
           bugColors: [
-            bugColors.value[bet.overtaker], 
-            bugColors.value[bet.overtaken]
+            bugColors.value[bet.overtaker-1], 
+            bugColors.value[bet.overtaken-1]
           ]
         });
         bet.result = 'win';
@@ -950,95 +957,87 @@ const checkBetsResults = () => {
           ...bet,
           loseAmount: bet.amount,
           bugColors: [
-            bugColors.value[bet.overtaker], 
-            bugColors.value[bet.overtaken]
+            bugColors.value[bet.overtaker-1], 
+            bugColors.value[bet.overtaken-1]
           ]
         });
         totalLose += bet.amount;
         bet.result = 'lose';
       }
     }
-  
-  
-        bet.result = 'win';
-      } else {
-        // Проигрыш
+    // 3. Обработка ставки на СЕКЦИЮ (НОВЫЙ ТИП)
+    else if (bet.type === 'section') {
+      const button = winButtons.value.find(b => b.id === bet.trapId);
+      
+      if (!button) {
+        // Кнопка не найдена - проигрыш
         losingBets.push({
           ...bet,
           loseAmount: bet.amount,
-          bugColors: [bugColors.value[bet.bugId]]
+          bugColors: bet.bugs.map(id => bugColors.value[id-1])
+        });
+        totalLose += bet.amount;
+        bet.result = 'lose';
+        return;
+      }
+
+      // Проверяем, есть ли хотя бы один выбранный таракан в списке пришедших на кнопку
+      const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
+      
+      if (isWin) {
+        const winAmount = bet.amount * 2; // Коэффициент 2:1
+        totalWin += winAmount;
+        balance.value += winAmount;
+        playIncomeSound();
+        winningBets.push({
+          ...bet,
+          winAmount,
+          bugColors: bet.bugs.map(id => bugColors.value[id-1])
+        });
+        bet.result = 'win';
+      } else {
+        losingBets.push({
+          ...bet,
+          loseAmount: bet.amount,
+          bugColors: bet.bugs.map(id => bugColors.value[id-1])
         });
         totalLose += bet.amount;
         bet.result = 'lose';
       }
     }
-    
-    const button = winButtons.value.find(b => b.id === bet.trapId);
-    if (!button) return;
-    
-    const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
-    bet.result = isWin ? 'win' : 'lose';
-    
-    if (isWin) {
-      const winAmount = bet.amount * 2;
-      totalWin += winAmount;
-      balance.value += winAmount;
-      winningBets.push({
-        ...bet,
-        winAmount,
-        bugColors: bet.bugs.map(id => bugColors.value[id-1])
-      });
-    }else {
-      // Обработка проигрыша
-      bet.result = 'lose';
-      losingBets.push({
-        ...bet,
-        loseAmount: bet.amount, // Сумма проигтавке
-        bugColors: bet.bugs.map(id => bugColors.value[id-1])
-      });
-      totalLose += bet.amount;
-    }
-    // В цикле проверки ставок добавить:
-if (bet.type === 'position') {
-  const bugResult = finishedBugs.find(b => b.id === bet.bugId);
-  if (bugResult && bugResult.position === bet.position) {
-    // Выигрыш 8:1
-    const winAmount = bet.amount * 8;
-    totalWin += winAmount;
-    balance.value += winAmount;
-    winningBets.push({ ...bet, winAmount });
-    bet.result = 'win';
-  } else {
-    // Проигрыш
-    losingBets.push({ ...bet, loseAmount: bet.amount });
-    totalLose += bet.amount;
-    bet.result = 'lose';
-  }
-}
   });
 
+  // Показ уведомления о выигрыше
   if (winningBets.length > 0) {
+    winData.value = {
+      amount: Math.floor(totalWin),
+      bets: winningBets.map(bet => ({
+        ...bet,
+        winAmount: Math.floor(bet.winAmount)
+      })),
+      timestamp: new Date()
+    };
+    winNotificationVisible.value = true;
     
-    // Автоматическое скрытие через 3 секунды
     setTimeout(() => {
       if (!expandedWinDetails.value) {
         winNotificationVisible.value = false;
       }
     }, 3000);
   }
-   // Показываем уведомление о проигрыше
-   if (losingBets.length > 0) {
+  
+  // Показ уведомления о проигрыше
+  if (losingBets.length > 0) {
     loseData.value = {
-      amount: Math.floor(totalLose), // Округление вниз
+      amount: Math.floor(totalLose),
       bets: losingBets.map(bet => ({
         ...bet,
-        loseAmount: Math.floor(bet.loseAmount) // Округление для каждой ставки
+        loseAmount: Math.floor(bet.loseAmount)
       })),
       timestamp: new Date()
     };
     loseNotificationVisible.value = true;
     
-    // Автоматическое скрытие через 3 секунды
     setTimeout(() => {
       if (!expandedLoseDetails.value) {
         loseNotificationVisible.value = false;

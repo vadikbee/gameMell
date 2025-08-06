@@ -1,25 +1,32 @@
 <template>
+  <template>
   <div class="history-bets" :class="positionClass">
-    <!-- Заголовок -->
     <div class="history-header">
-      <div class="history-title">{{ title  }}</div>
-      
+      <div class="history-title">{{ title }}</div>
     </div>
     
-    <!-- Список ставок -->
-      <div class="bets-list">
-    <div v-for="(bet, index) in bets" :key="index" class="bet-item">
-      <div class="bet-color-indicator"></div>
-      <div class="bet-info">
-        <div class="bet-description">{{ t('bet_number', [index + 1]) }}</div>
-        <div class="bet-amount">-{{ bet.amount }}₽</div>
-      </div>
-      <div class="bet-time">
-        {{ new Date(bet.timestamp).toLocaleTimeString() }}
+    <div class="bets-list">
+      <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
+        <div 
+          class="bet-color-indicator" 
+          :style="{ background: getFirstColor(bet) }"
+        ></div>
+        <div class="bet-info">
+          <div class="bet-description">{{ getBetType(bet) }}</div>
+          <div 
+            class="bet-amount" 
+            :class="{ 'win-amount': bet.result === 'win', 'lose-amount': bet.result === 'lose' }"
+          >
+            {{ formatAmount(bet) }}
+          </div>
+        </div>
+        <div class="bet-time">
+          {{ formatTime(bet.timestamp) }}
+        </div>
       </div>
     </div>
   </div>
-</div>
+</template>
 </template>
 
 <script setup>
@@ -39,24 +46,63 @@ const positionClass = computed(() => {
   return props.isCenterMenuOpen ? 'top-right' : 'bottom-right'; // Для истории снаружи
 });
 // Заглушка данных (в реальном приложении будет запрос к API)
-const bets = [
-  { 
-    color: 'linear-gradient(180deg, #FDF735 0%, #FD7E00 100%)', 
-    description: 'win', 
-    amount: '25₽ x 6 = 150₽', 
-    time: '15:35' 
-  },
-  { 
-    color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)', 
-    description: 'will come', 
-    amount: '25₽ x 6 = 150₽', 
-    time: '15:30' 
-  },
-  // ... другие ставки
-];
+// Форматирование времени
+const formatTime = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+// Получение первого цвета ставки
+const getFirstColor = (bet) => {
+  if (bet.bugColors && bet.bugColors.length > 0) {
+    return bet.bugColors[0];
+  }
+  return '#FFFFFF'; // Цвет по умолчанию
+};
+
+// Определение типа ставки
+const getBetType = (bet) => {
+  switch (bet.type) {
+    case 'position': return t('position_bet');
+    case 'overtaking': return t('overtaking_bet');
+    case 'section': return t('section_bet');
+    default: return t('bet');
+  }
+};
+
+// Форматирование суммы
+const formatAmount = (bet) => {
+  if (bet.result === 'win') {
+    return `+${bet.winAmount}₽`;
+  }
+  return `-${bet.amount}₽`;
+};
+
+// Обратный порядок ставок (последние сверху)
+const formattedBets = computed(() => {
+  return [...props.bets].reverse();
+});
 </script>
 
 <style scoped>
+.win-amount {
+  color: #28a745; /* Зеленый для выигрыша */
+}
+
+.lose-amount {
+  color: #dc3545; /* Красный для проигрыша */
+}
+
+.bet-color-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 2px;
+  margin-right: 8px;
+  border: 1px solid #FFFFFF;
+}
 /* .history-bets обе менюшки  */
 .history-bets {
   position: absolute;

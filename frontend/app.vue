@@ -15,6 +15,7 @@
       v-if="historyBetsVisible && !historyBetsInsideCenter" 
       ref="historyBetsRef"
       :isCenterMenuOpen="centerMenuVisible" 
+      :bets="betHistory"
       :title="t('history_bets')"
       class="outside-center"
     />
@@ -244,12 +245,13 @@
           :games="lastGames" 
           class="group-image"
         />
-          <HistoryBets 
+            <HistoryBets 
             v-if="historyBetsVisible && historyBetsInsideCenter" 
             ref="historyBetsRef"
             :isCenterMenuOpen="centerMenuVisible" 
             :insideCenter="true"
             :title="t('history_bets')"
+            :bets="betHistory"
             class="inside-center"
           />
           
@@ -532,6 +534,8 @@ import { useI18n } from 'vue-i18n'
 const { t, locale } = useI18n();
 const dizzySoundElement = ref(null);
 const soundVolume = ref(0.5);
+const balanceIncomeSound = ref(null);
+const balanceOutcomeSound = ref(null); // Добавлено здесь
 // Добавляем новое состояние для управления анимацией
 const initialAnimationActive = ref(true);
 // Добавьте новый импорт i18n
@@ -764,31 +768,32 @@ const enableMusic = async () => {
   }
 };
 // Обработчик первого взаимодействия
-// Обновите firstInteractionHandler
+// Обновить firstInteractionHandler
 const firstInteractionHandler = () => {
   try {
     userInteracted.value = true;
     
-    // Разблокировка только для звуков эффектов (не для фоновой музыки)
+    // Убедиться, что все звуковые элементы доступны
     const soundEffects = [
       dizzySoundElement.value,
       balanceIncomeSound.value,
       balanceOutcomeSound.value,
       raceStartSound.value,
-      countdownSound.value // Добавляем новый звук
+      countdownSound.value
     ];
     
     soundEffects.forEach(sound => {
       if (sound) {
-        sound.volume = 0.001;
-        sound.play()
-          .then(() => sound.pause())
-          .catch(e => console.debug("Sound effect unlock:", e));
-        sound.currentTime = 0;
+        try {
+          sound.volume = 0.001;
+          sound.play().then(() => sound.pause()).catch(e => console.debug("Sound unlock error:", e));
+          sound.currentTime = 0;
+        } catch (e) {
+          console.debug("Sound effect unlock error:", e);
+        }
       }
     });
     
-    // Включаем фоновую музыку отдельно
     enableMusic();
   } catch (e) {
     console.error("First interaction error:", e);
@@ -802,6 +807,28 @@ const showMusicEnableHint = () => {
   setTimeout(() => {
     infoNotificationVisible.value = false;
   }, 5000);
+};
+const playIncomeSound = () => {
+  if (!userInteracted.value || !balanceIncomeSound.value) return;
+  try {
+    balanceIncomeSound.value.currentTime = 0;
+    balanceIncomeSound.value.volume = soundVolume.value;
+    balanceIncomeSound.value.play().catch(e => console.error("Income sound error:", e));
+  } catch (e) {
+    console.error("Income playback error:", e);
+  }
+};
+
+// ДОБАВЬТЕ ЭТУ ФУНКЦИЮ
+const playOutcomeSound = () => {
+  if (!userInteracted.value || !balanceOutcomeSound.value) return;
+  try {
+    balanceOutcomeSound.value.currentTime = 0;
+    balanceOutcomeSound.value.volume = soundVolume.value;
+    balanceOutcomeSound.value.play();
+  } catch (e) {
+    console.error("Outcome sound error:", e);
+  }
 };
 // Обработчик ставки на секцию
 const placeSectionBet = () => {

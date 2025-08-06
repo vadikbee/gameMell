@@ -542,7 +542,7 @@ const playSoundAndEmit = (eventName) => {
     width: 27%;
     height: 72px;
     top: 43%;
-    left: -15%;
+    left: 8.3%;
     
   }
 }
@@ -554,6 +554,7 @@ const playSoundAndEmit = (eventName) => {
     margin-left: -17%;
     
   }
+  
   
 }
 

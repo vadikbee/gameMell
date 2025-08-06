@@ -5481,7 +5481,9 @@ width: 23%;
   transform: scale(1);
 }
 
-
+.group-164-button {
+  margin-right: 10%;
+}
 
 }
 @media (min-width: 392px) and (max-width: 394px) {

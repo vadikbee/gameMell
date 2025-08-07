@@ -13,6 +13,47 @@ $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
 
+
+///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
+// Эндпоинт получения данных игрового аккаунта
+Route::get('/api/v1/gameplay/games/accounts/{code}/{session}', function ($code, $session) {
+    try {
+        // Валидация параметров
+        if (empty($code) || empty($session)) {
+            return response()->json([
+                'errors' => [
+                    'parameters' => ['Параметры code и session обязательны']
+                ]
+            ], 422);
+        }
+
+        // Здесь должна быть реальная логика получения данных аккаунта
+        // Для примера используем демо-данные
+        $accountData = [
+            'name' => 'PlayerOne',
+            'lang' => 'EN',
+            'session' => $session,
+            'currency' => 'USD',
+            'balance' => '1500.75'
+        ];
+
+        return response()->json($accountData);
+
+    } catch (\Exception $e) {
+        Log::error('Account error: ' . $e->getMessage());
+        return response()->json(['error' => 'Internal server error'], 500);
+    }
+});
+
+// Обработка CORS для OPTIONS запроса
+Route::options('/api/v1/gameplay/games/accounts/{code}/{session}', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
+
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
 Route::get('/api/v1/gameplay/games/instances/{code}', function ($code) {
     // Возвращает настройки игрового инстанса
@@ -213,3 +254,12 @@ Route::options('/game-history/last', function () {
 });
 
 Route::get('/game-history/last', [GameHistoryController::class, 'getLastGames']);
+
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+
+
+// Затем динамический маршрут для остальных кодов
+Route::get('/gameplay/games/sessions/{code}/last', [GameHistoryController::class, 'getLastSessions']);
+
+
+///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////

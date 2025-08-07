@@ -15,7 +15,7 @@
       v-if="historyBetsVisible && !historyBetsInsideCenter" 
       ref="historyBetsRef"
       :isCenterMenuOpen="centerMenuVisible" 
-      :bets="betHistory"
+      :bets="betHistoryFromApi"
       :title="t('history_bets')"
       class="outside-center"
     />
@@ -259,7 +259,7 @@
             :isCenterMenuOpen="centerMenuVisible" 
             :insideCenter="true"
             :title="t('history_bets')"
-            :bets="betHistory"
+            :bets="betHistoryFromApi"
             class="inside-center"
           />
           
@@ -1922,8 +1922,20 @@ const clickBug = (index) => {
   console.log(`Clicked on bug ${menuBugs.value[index].id}`);
 };
 
+const betHistoryFromApi = ref([]);
 
-const loadBetHistory = async () => {
+const fetchBetHistory = async () => {
+  try {
+    const response = await fetch('/api/v1/gameplay/games/bets/cockroaches-space-maze/latest');
+    if (!response.ok) throw new Error('Failed to fetch bet history');
+    const data = await response.json();
+    betHistoryFromApi.value = data.bets || [];
+  } catch (error) {
+    console.error('Error fetching bet history:', error);
+    betHistoryFromApi.value = [];
+  }
+};
+/*const loadBetHistory = async () => {
   try {
     const response = await fetch('/api/v1/gameplay/games/bets/latest', {
       headers: { Authorization: `Bearer ${authToken}` }
@@ -1935,35 +1947,35 @@ const loadBetHistory = async () => {
   } catch (error) {
     console.error('Error loading bet history:', error);
   }
-};
+};*/
 
 // Вызывать при открытии окна
 watch(historyBetsVisible, (visible) => {
   if (visible) {
-    loadBetHistory();
+    
   }
 });
 
 // Обработчик для кнопки истории ставок
+// Обновите toggleHistoryBets:
 const toggleHistoryBets = () => {
   if (centerMenuVisible.value) {
-    // Закрываем историю игр при открытии ставок внутри центра
-    if (lastGameMenuVisible.value) {
-      lastGameMenuVisible.value = false;
-    }
+    if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
     historyBetsVisible.value = !historyBetsVisible.value;
     historyBetsInsideCenter.value = true;
-  } else {
-    // Закрываем историю игр при открытии внешней истории ставок
-    if (lastGameMenuVisible.value) {
-      lastGameMenuVisible.value = false;
-    }
     
-    if (historyBetsInsideCenter.value) {
-      historyBetsVisible.value = false;
-      historyBetsInsideCenter.value = false;
+    // Загружаем только при открытии
+    if (historyBetsVisible.value) {
+      fetchBetHistory();
     }
+  } else {
+    if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
     historyBetsVisible.value = !historyBetsVisible.value;
+    
+    // Загружаем только при открытии
+    if (historyBetsVisible.value) {
+      fetchBetHistory();
+    }
   }
 };
 

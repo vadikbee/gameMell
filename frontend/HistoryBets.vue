@@ -1,4 +1,4 @@
-<template>
+
   <template>
   <div class="history-bets" :class="positionClass">
     <div class="history-header">
@@ -7,27 +7,17 @@
     
     <div class="bets-list">
       <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
-        <div 
-          class="bet-color-indicator" 
-          :style="{ background: getFirstColor(bet) }"
-        ></div>
+        <div class="bet-color-indicator" :style="{ background: getFirstColor(bet) }"></div>
         <div class="bet-info">
           <div class="bet-description">{{ getBetType(bet) }}</div>
-          <div 
-            class="bet-amount" 
-            :class="{ 'win-amount': bet.result === 'win', 'lose-amount': bet.result === 'lose' }"
-          >
-            {{ formatAmount(bet) }}
-          </div>
+          <div class="bet-amount">{{ bet.amount }}₽</div>
         </div>
-        <div class="bet-time">
-          {{ formatTime(bet.timestamp) }}
-        </div>
+        <div class="bet-time">{{ formatTime(bet.time) }}</div>
       </div>
     </div>
   </div>
 </template>
-</template>
+
 
 <script setup>
 import { computed,defineProps  } from 'vue';
@@ -40,37 +30,33 @@ const props = defineProps({
   insideCenter: Boolean, // Добавляем новый пропс
   title: String
 });
-// Определение типа ставки
-const getBetType = (bet) => {
-  switch (bet.type) {
-    case 'position': return t('position_bet');
-    case 'overtaking': return t('overtaking_bet');
-    case 'section': 
-      // +++ ПОДДЕРЖКА СТАВОК НА СЕКЦИЮ +++
-      return `${t('section_bet')} ${bet.trapId}`;
-    default: return t('bet');
-  }
-};
+
 const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center'; // Для истории внутри меню
   return props.isCenterMenuOpen ? 'top-right' : 'bottom-right'; // Для истории снаружи
 });
-// Заглушка данных (в реальном приложении будет запрос к API)
-// Форматирование времени
-const formatTime = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
+
+// Форматирование времени из поля "time"
+const formatTime = (timeString) => {
+  if (!timeString) return '';
+  return timeString.split(':').slice(0, 2).join(':');
 };
 
-// Получение первого цвета ставки
+// Получение цвета из градиента
 const getFirstColor = (bet) => {
-  if (bet.bugColors && bet.bugColors.length > 0) {
-    return bet.bugColors[0];
+  if (!bet.color) return '#FFFFFF';
+  const match = bet.color.match(/#[0-9A-Fa-f]{6}/);
+  return match ? match[0] : '#FFFFFF';
+};
+
+// Определение типа ставки
+const getBetType = (bet) => {
+  switch (bet.type) {
+    case 'win': return t('position_bet');
+    case 'place': return t('overtaking_bet');
+    case 'trap': return t('section_bet');
+    default: return t('bet');
   }
-  return '#FFFFFF'; // Цвет по умолчанию
 };
 
 

@@ -26,8 +26,8 @@
       :stavkiButtons="stavkiButtons"
       context="win"
       @win-bet-click="placeSectionBet"
-      @otmena-click="undoLastBet"
-      @reset-click="resetAllBets"
+      @otmena-click="resetAllBets"
+      @reset-click="undoLastBet"
       @decrement-start="startDecrement"
       @increment-start="startIncrement"
       @stop-action="stopAction"
@@ -126,7 +126,9 @@
           }"
         ></div>
           
-        
+        <div v-if="btn.betAmount" class="trap-bet-amount">
+    {{ btn.betAmount }}₽
+  </div>
       </div>
       
       <!-- Тараканы -->
@@ -227,18 +229,24 @@
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
     <!-- app.vue -->
       <div class="menu-buttons-container">
-          <div 
-            v-for="btn in menuButtons" 
-            :key="btn.id"
-            class="menu-button"
-            :class="{
-              selected: btn.selected,
-              'text-button': activeTab === 'result',
-              'visible': isButtonVisible(btn)
-            }"
-            @click="toggleMenuButton(btn)"
-          ></div>
-        </div>
+  <div 
+    v-for="btn in menuButtons" 
+    :key="btn.id"
+    class="menu-button"
+    :class="{
+      selected: btn.selected,
+      'text-button': activeTab === 'result',
+      'button-visible': isButtonVisible(btn),
+      'has-bet': btn.betAmount > 0 // Добавляем класс для ставок
+    }"
+    @click="toggleMenuButton(btn)"
+  >
+    <!-- Отображаем сумму ставки если есть -->
+    <div v-if="btn.betAmount" class="bet-amount-display">
+      {{ btn.betAmount }}₽
+    </div>
+  </div>
+</div>
 
          <PodiumResults 
           v-if="lastGames.length > 0" 
@@ -878,6 +886,11 @@ const placeSectionBet = () => {
   // Закрываем меню
   resetWinButtonSelection();
   centerWinMenuVisible.value = false;
+  // Сохраняем информацию о ставке для отображения
+  const button = winButtons.value.find(b => b.id === selectedTrap.value);
+  if (button) {
+    button.betAmount = currentBet.value;
+  }
 };
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
@@ -1213,7 +1226,7 @@ const resetAllBets = () => {
     type: 'reset',
     prevBet: currentBet.value
   });
-  currentBet.value = 0;
+  currentBet.value = 25;
 };
 
 // Удвоение ставки
@@ -1247,6 +1260,27 @@ const showBetPlacedNotification = () => {
     infoNotificationVisible.value = false;
   }, 2000); // Автоматическое скрытие через 2 секунды
 };
+// Добавляем сброс при начале гонки
+watch(raceInProgress, (newVal) => {
+  if (newVal) {
+    // Сбрасываем ставки в матрице
+    menuButtons.value.forEach(b => {
+      b.selected = false;
+      b.betAmount = 0;
+    });
+    
+    // Сбрасываем выбор для overtaking
+    overtakingSelection.value = { overtaker: null, overtaken: null };
+    
+    // Сбрасываем текущую ставку к минимальной
+    currentBet.value = 25;
+  }
+  // Сбрасываем ставки на ловушки
+    winButtons.value.forEach(btn => {
+      btn.betAmount = 0;
+      btn.selected = false;
+    });
+});
 const placeBet = () => {
   playBetClick(); // Добавляем звук
   if (currentBet.value <= 0) {
@@ -1297,6 +1331,9 @@ const placeBet = () => {
       });
       
       betsPlaced = true;
+      selectedButtons.forEach(button => {
+      button.betAmount = totalBetAmount / selectedButtons.length;
+    });
     }
      
   }
@@ -1369,7 +1406,7 @@ const animationFrame = ref(null);
 const makeBetsText = computed(() => t('make_bets'));
 // Выносим из метода explodeAllBugs в область setup
 // Обновленная функция для получения изображения цвета
-const minBet = 0;
+const minBet = 25;
 const maxBet = 10000;
 const betStep = 25; // Шаг изменения ставки
 
@@ -1982,6 +2019,7 @@ const handleResetClick = () => {
     resetBtn.classList.add('reset-clicked');
     setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
   }
+  undoLastBet(); 
 };
 
 // Функция для удвоения ставки
@@ -2048,7 +2086,7 @@ const handleOtmenaButtonClick = () => {
   }
   stopAction(); // Останавливаем любые активные интервалы
   saveCurrentBet(); // Сохраняем текущее значение
-  currentBet.value = 0;
+ const currentBet = ref(25); // Было 0
   
   // Анимация
   const otmenaBtn = document.querySelector('.otmena-button');
@@ -2056,6 +2094,7 @@ const handleOtmenaButtonClick = () => {
     otmenaBtn.classList.add('otmena-clicked');
     setTimeout(() => otmenaBtn.classList.remove('otmena-clicked'), 300);
   }
+  resetAllBets(); 
 };
 // Новое состояние для выбранной пары тараканов (обгоняющий, обгоняемый)
 const overtakingSelection = ref({ 
@@ -3463,7 +3502,16 @@ const getButtonStyle = (btn) => {
   pointer-events: none;
   animation: explosion-pulse 0.1s infinite alternate;
 }
-
+.trap-bet-amount {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  color: yellow;
+  text-shadow: 0 0 2px black;
+}
 @keyframes explosion-pulse {
   0% { transform: translate(-50%, -50%) scale(1); }
   100% { transform: translate(-50%, -50%) scale(1.1); }
@@ -3605,6 +3653,16 @@ const getButtonStyle = (btn) => {
   height: 100%; 
   gap: 10px; /* Расстояние между элементами */
   
+}
+.bet-amount-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 2px black;
 }
 /* Стиль для выбранного таракана */
 .bug-button.selected {

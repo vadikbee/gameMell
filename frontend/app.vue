@@ -857,7 +857,7 @@ const placeSectionBet = () => {
   }
 
  // Проверка минимальной ставки
-  const minBet = 10;
+  const minBet = 25;
   if (currentBet.value < minBet) {
     alert(`Минимальная ставка: ${minBet}₽`);
     return;
@@ -1074,14 +1074,11 @@ const checkBetsResults = () => {
   currentRaceBets.value = [];
 };
 
-// Очистить выбор тараканов после гонки
+// Обновленная функция resetBugSelections
 const resetBugSelections = () => {
-  // Сбросить все выборы
-  selectedBugs.value = [];
   selectedTrap.value = null;
+  selectedBugs.value = [];
   bugSelections.value = {};
-  
-  
 };
 
 
@@ -1093,7 +1090,7 @@ const isGroup164Clicked = ref(false);
 // Добавляем состояние для выбранного таракана-победителя
 const selectedWinnerBugIds = ref([]);
 // Состояния для управления ставками
-const currentBet = ref(0);
+const currentBet = ref(25);
 const balance = ref(10000); // Начальный баланс
 const betHistory = ref([]); // История ставок
 const undoStack = ref([]); // Стек для отмены операций
@@ -1191,7 +1188,8 @@ const closeWinMenu = () => {
   centerWinMenuVisible.value = false;
   resetWinButtonSelection();
   selectedTrap.value = null;
-  selectedBugs.value = [];
+  
+  
 };
 // Отмена последней ставки
 const undoLastBet = () => {
@@ -1272,10 +1270,10 @@ const showBetPlacedNotification = () => {
   }, 2000); // Автоматическое скрытие через 2 секунды
 };
 // Добавляем сброс при начале гонки
+// Обновленный сброс при начале гонки
 watch(raceInProgress, (newVal) => {
   if (newVal) {
-    lockedBugsArray.value = []; // Очищаем массив блокировок
-    // Сбрасываем ставки в матрице
+    // Очищаем ТОЛЬКО ставки в матрице
     menuButtons.value.forEach(b => {
       b.selected = false;
       b.betAmount = 0;
@@ -1284,14 +1282,14 @@ watch(raceInProgress, (newVal) => {
     // Сбрасываем выбор для overtaking
     overtakingSelection.value = { overtaker: null, overtaken: null };
     
-    // Сбрасываем текущую ставку к минимальной
-    currentBet.value = 25;
+    // НЕ сбрасываем текущую ставку!
   }
+  
   // Сбрасываем ставки на ловушки
-    winButtons.value.forEach(btn => {
-      btn.betAmount = 0;
-      btn.selected = false;
-    });
+  winButtons.value.forEach(btn => {
+    btn.betAmount = 0;
+    btn.selected = false;
+  });
 });
 const placeBet = () => {
   playBetClick(); // Добавляем звук
@@ -1443,7 +1441,7 @@ const makeBetsText = computed(() => t('make_bets'));
 // Обновленная функция для получения изображения цвета
 const minBet = 25;
 const maxBet = 10000;
-const betStep = 25; // Шаг изменения ставки
+const betStep = 1; // Шаг изменения ставки
 
 const winNotificationVisible = ref(false);
 const expandedWinDetails = ref(false);
@@ -2386,6 +2384,11 @@ const handleGenerateClick = async () => {
   lockedBugs.value = new Set();
 countdownPlayed.value = false; // Сбрасываем флаг
 playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
+
+// СОХРАНЯЕМ состояние выбора если меню открыто
+  if (!centerWinMenuVisible.value) {
+    resetBugSelections();
+  }
   // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
   if (nextRaceBets.value.length > 0) {
     currentRaceBets.value = [...nextRaceBets.value];

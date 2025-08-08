@@ -3696,12 +3696,18 @@ const getButtonStyle = (btn) => {
 }
 
 .menu-button.selected {
-  /* Изменяем цвет на желтый с помощью фильтра */
-  filter: 
-    brightness(1.2) 
-    sepia(1) 
-    saturate(5) 
-    hue-rotate(5deg);
+  background-color: #000 !important; /* Черный фон */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important; /* Белая тень */
+}
+/* Стили для текста внутри выбранной кнопки */
+.menu-button.selected .coefficient-text,
+.menu-button.selected .bet-amount-display {
+  color: white !important; /* Белый текст */
+}
+
+/* Скрываем белый фон коэффициента при выборе */
+.menu-button.selected .coefficient-bg {
+  display: none;
 }
 
 .group-164-button {
@@ -3746,7 +3752,7 @@ const getButtonStyle = (btn) => {
 .labirint-bg {
   aspect-ratio: unset;
   position: absolute;
-  top: 8.5%; /* Точная подстройка позиции сверху */
+  top: 8.1%; /* Точная подстройка позиции сверху */
   left: 0;
   width: 100%; /* Занимает всю ширину родителя */
   

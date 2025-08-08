@@ -60,7 +60,8 @@
           :class="{
             'bug-button-hovered': hoveredBugIndex === index,
             'bug-button-clicked': clickedBugIndex === index,
-            'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId
+            'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId,
+            'locked': lockedBugsArray.includes(bug.id)
           }"
           @mouseenter="hoverBug(index)"
           @mouseleave="unhoverBug"
@@ -237,7 +238,8 @@
       selected: btn.selected,
       'text-button': activeTab === 'result',
       'button-visible': isButtonVisible(btn),
-      'has-bet': btn.betAmount > 0 // Добавляем класс для ставок
+      'has-bet': btn.betAmount > 0, // Добавляем класс для ставок
+      'locked': lockedBugs.has(Math.floor(btn.id / 7)) // Добавляем класс блокировки
     }"
     @click="toggleMenuButton(btn)"
   >
@@ -550,6 +552,8 @@ const initialAnimationActive = ref(true);
 // Добавьте новый ref
 const countdownSound = ref(null);
 
+const lockedBugsArray = ref([]);
+
 // Добавьте переменную для отслеживания состояния звука
 const countdownPlayed = ref(false);
 
@@ -669,6 +673,8 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+// Добавляем новое состояние для отслеживания заблокированных тараканов
+const lockedBugs = ref(new Set());
 // Функция для воспроизведения звука обратного отсчета
 const playCountdownSound = () => {
   if (!userInteracted.value || !countdownSound.value) return;
@@ -841,6 +847,10 @@ const playOutcomeSound = () => {
 // Обработчик ставки на секцию
 const placeSectionBet = () => {
   playBetClick(); // Добавляем звук
+   // Блокируем выбранных тараканов
+  const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
+  lockedBugsArray.value = newLocked;
+
   if (!selectedTrap.value || selectedBugs.value.length === 0) {
     alert('Выберите тараканов для ставки');
     return;
@@ -903,6 +913,7 @@ const resetWinButtonSelection = () => {
 const checkBetsResults = () => {
   const winningBets = [];
   const losingBets = [];
+  resetWinMenu(); // Добавлен вызов сброса меню
   let totalWin = 0;
   let totalLose = 0;
 
@@ -1263,6 +1274,7 @@ const showBetPlacedNotification = () => {
 // Добавляем сброс при начале гонки
 watch(raceInProgress, (newVal) => {
   if (newVal) {
+    lockedBugsArray.value = []; // Очищаем массив блокировок
     // Сбрасываем ставки в матрице
     menuButtons.value.forEach(b => {
       b.selected = false;
@@ -1283,6 +1295,22 @@ watch(raceInProgress, (newVal) => {
 });
 const placeBet = () => {
   playBetClick(); // Добавляем звук
+  // Блокируем выбранных тараканов
+ if (activeTab.value === 'result') {
+    const newLocked = [...lockedBugsArray.value];
+    selectedButtons.forEach(button => {
+      const row = Math.floor(button.id / 7);
+      if (!newLocked.includes(row)) newLocked.push(row);
+    });
+    lockedBugsArray.value = newLocked;
+  }
+  // Блокировка для ставок на обгон
+  else if (activeTab.value === 'overtaking') {
+    const { overtaker, overtaken } = overtakingSelection.value;
+    if (overtaker !== null) lockedBugs.value.add(overtaker);
+    if (overtaken !== null) lockedBugs.value.add(overtaken);
+  }
+
   if (currentBet.value <= 0) {
     infoMessage.value = t('enter_bet_amount');
     infoNotificationVisible.value = true;
@@ -1387,6 +1415,13 @@ const placeBet = () => {
     infoNotificationVisible.value = true;
     setTimeout(() => infoNotificationVisible.value = false, 3000);
   }
+};
+// Автоматическое обновление меню после гонки
+const resetWinMenu = () => {
+  centerWinMenuVisible.value = false;
+  activeWinMenuId.value = null;
+  selectedTrap.value = null;
+  selectedBugs.value = [];
 };
 // Добавлено: переменные для управления зажатием кнопок
 const actionInterval = ref(null);
@@ -1500,7 +1535,10 @@ const explodeAllBugs = (raceEndTime) => {
 // Add this method after the selectTrap function
 // В секции script
 const toggleBugSelection = (bugId) => {
+  if (lockedBugsArray.value.includes(bugId)) return;
   playStakeActionClick();
+   // Проверяем, не заблокирован ли таракан
+  if (lockedBugs.value.has(bugId)) return;
   if (!selectedTrap.value) return;
   
   const currentSelections = [...(bugSelections.value[selectedTrap.value] || [])];
@@ -2208,6 +2246,9 @@ const toggleMenuButton = (btn) => {
   if (activeTab.value === 'result') {
     const row = Math.floor(btn.id / 7); // ID таракана (0-6)
     const col = btn.id % 7;             // Место (0-6)
+
+    // Проверяем, не заблокирован ли таракан
+    if (lockedBugs.value.has(bugId)) return;
     
     // Проверка: если кнопка уже выбрана - снимаем выделение
     if (btn.selected) {
@@ -2235,6 +2276,9 @@ const toggleMenuButton = (btn) => {
     btn.selected = true;
   } else if (activeTab.value === 'overtaking') {
     const bugId = Math.floor(btn.id / 7); // Определяем ID таракана
+
+    // Проверяем, не заблокирован ли таракан
+    if (lockedBugs.value.has(bugId)) return;
     
     // Если кнопка уже выбрана - снимаем выделение
     if (btn.selected) {
@@ -2338,6 +2382,8 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+// Сбрасываем блокировку тараканов
+  lockedBugs.value = new Set();
 countdownPlayed.value = false; // Сбрасываем флаг
 playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
   // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
@@ -2878,7 +2924,18 @@ const getButtonStyle = (btn) => {
   overflow: hidden;
   cursor: pointer;
 }
+/* Добавляем стили для заблокированных элементов */
+.menu-button.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
+.bug-button.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .info-notification .notification-header {
   background: rgba(76, 175, 80, 0.2);
   padding: 10px 15px;

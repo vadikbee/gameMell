@@ -229,7 +229,7 @@
         </div>
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
     <!-- app.vue -->
-      <div class="menu-buttons-container">
+   <div class="menu-buttons-container">
   <div 
     v-for="btn in menuButtons" 
     :key="btn.id"
@@ -238,14 +238,24 @@
       selected: btn.selected,
       'text-button': activeTab === 'result',
       'button-visible': isButtonVisible(btn),
-      'has-bet': btn.betAmount > 0, // Добавляем класс для ставок
-      'locked': lockedBugs.has(Math.floor(btn.id / 7)) // Добавляем класс блокировки
+      'has-bet': btn.betAmount > 0,
+      'locked': lockedBugs.has(Math.floor(btn.id / 7))
     }"
     @click="toggleMenuButton(btn)"
   >
-    <!-- Отображаем сумму ставки если есть -->
     <div v-if="btn.betAmount" class="bet-amount-display">
       {{ btn.betAmount }}₽
+    </div>
+    
+    <!-- Обновленный блок коэффициента -->
+    <div 
+      v-if="activeTab === 'result' && isButtonVisible(btn) && !btn.betAmount" 
+      class="coefficient-container"
+    >
+      <div class="coefficient-bg"></div>
+      <div class="coefficient-text">
+        2.23
+      </div>
     </div>
   </div>
 </div>
@@ -345,21 +355,32 @@
           </div> 
           
           <!-- Кнопки меню -->
-          <div class="menu-buttons-container">
-    <!-- Заменить текущее условие видимости -->
-<div 
-  v-for="btn in menuButtons" 
-  :key="btn.id"
-  class="menu-button"
-  :class="{
-    selected: btn.selected,
-    'text-button': activeTab === 'result',
-    'button-visible': activeTab === 'result' || 
-                     (activeTab === 'overtaking' && !diagonalButtons.includes(btn.id))
-  }"
-  @click="toggleMenuButton(btn)"
-></div>
+       <!-- Обновленный второй контейнер menu-buttons-container -->
+<div class="menu-buttons-container">
+  <div 
+    v-for="btn in menuButtons" 
+    :key="btn.id"
+    class="menu-button"
+    :class="{
+      selected: btn.selected,
+      'text-button': activeTab === 'result',
+      'button-visible': activeTab === 'result' || 
+                       (activeTab === 'overtaking' && !diagonalButtons.includes(btn.id))
+    }"
+    @click="toggleMenuButton(btn)"
+  >
+    <!-- Добавлен блок коэффициента -->
+    <div 
+      v-if="activeTab === 'result' && !btn.betAmount" 
+      class="coefficient-container"
+    >
+      <div class="coefficient-bg"></div>
+      <div class="coefficient-text">
+        2.23
+      </div>
+    </div>
   </div>
+</div>
         </div>
         
         <!-- Верхняя панель баланса -->
@@ -3391,7 +3412,51 @@ const getButtonStyle = (btn) => {
   margin: 0 -13px;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
 }
+.menu-button.text-button {
+  background-image: none !important;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+/* Стили для нового контейнера коэффициента */
+.coefficient-container {
+  position: relative;
+  width: 40px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Стиль для фона коэффициента */
+.coefficient-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  z-index: 1;
+}
+
+/* Стиль для текста коэффициента */
+.coefficient-text {
+  position: relative;
+  z-index: 2;
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 20px;
+  text-align: center;
+  color: #3F3F3F;
+}
+
+/* Убираем фоновое изображение для кнопок в режиме Result */
+.menu-button.text-button {
+  background-image: none !important;
+}
 .stavki-buttons-container {
   position: absolute;
   display: flex;

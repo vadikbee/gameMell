@@ -230,13 +230,15 @@
         </div>
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
     <!-- app.vue -->
-  <div class="menu-buttons-container">
+  <!-- Обновленный блок menu-buttons-container -->
+<div class="menu-buttons-container">
   <div 
     v-for="btn in menuButtons" 
     :key="btn.id"
     class="menu-button"
     :class="{
-      selected: btn.selected,
+      'selected': btn.selected,
+      'confirmed': btn.confirmed, // Добавлен класс для подтвержденных ставок
       'text-button': activeTab === 'result' || activeTab === 'overtaking',
       'button-visible': isButtonVisible(btn),
       'has-bet': btn.betAmount > 0,
@@ -1097,7 +1099,12 @@ const checkBetsResults = () => {
       }
     }, 3000);
   }
-  
+  // Сбрасываем состояния кнопок после проверки ставок
+  menuButtons.value.forEach(b => {
+    b.selected = false;
+    b.confirmed = false;
+    b.betAmount = 0;
+  });
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
   unlockAllBugs();
@@ -1342,7 +1349,7 @@ const placeBet = () => {
     if (overtaker !== null) lockedBugs.value.add(overtaker);
     if (overtaken !== null) lockedBugs.value.add(overtaken);
   }
-
+  
   if (currentBet.value <= 0) {
     infoMessage.value = t('enter_bet_amount');
     infoNotificationVisible.value = true;
@@ -1393,6 +1400,7 @@ const placeBet = () => {
       betsPlaced = true;
       selectedButtons.forEach(button => {
       button.betAmount = totalBetAmount / selectedButtons.length;
+      button.confirmed = true; // Помечаем кнопку как подтвержденную
     });
     }
      
@@ -1446,6 +1454,16 @@ const placeBet = () => {
     infoMessage.value = t('select_bet_option');
     infoNotificationVisible.value = true;
     setTimeout(() => infoNotificationVisible.value = false, 3000);
+  }
+if (betsPlaced) {
+    // Помечаем выбранные кнопки как подтвержденные
+    menuButtons.value.forEach(btn => {
+      if (btn.selected) {
+        btn.confirmed = true;
+      }
+    });
+    
+    resetAllBets();
   }
 };
 // Автоматическое обновление меню после гонки
@@ -3695,9 +3713,19 @@ const getButtonStyle = (btn) => {
   
 }
 
+/* Обновленные стили для состояний кнопок */
 .menu-button.selected {
-  background-color: #000 !important; /* Черный фон */
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important; /* Белая тень */
+  background-color: #000 !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
+}
+.menu-button.confirmed {
+  background: linear-gradient(180deg, #3C42E3 0%, #2A2FBF 100%) !important;
+}
+
+
+/* Скрываем белый фон коэффициента при выборе */
+.menu-button.selected .coefficient-bg {
+  display: none;
 }
 /* Стили для текста внутри выбранной кнопки */
 .menu-button.selected .coefficient-text,
@@ -3705,10 +3733,7 @@ const getButtonStyle = (btn) => {
   color: white !important; /* Белый текст */
 }
 
-/* Скрываем белый фон коэффициента при выборе */
-.menu-button.selected .coefficient-bg {
-  display: none;
-}
+
 
 .group-164-button {
   transition: transform 0.3s ease, filter 0.3s ease;
@@ -3815,6 +3840,15 @@ const getButtonStyle = (btn) => {
   transform: scale(1.1);
   z-index: 15;
 }
+.menu-button.confirmed {
+  background: linear-gradient(180deg, #3C42E3 0%, #2A2FBF 100%) !important;
+}
+
+.menu-button.confirmed .coefficient-text,
+.menu-button.confirmed .bet-amount-display {
+  color: white !important;
+}
+
 
 /* Усиленная анимация для выбранного состояния */
 .bug-button.selected .bug-image {

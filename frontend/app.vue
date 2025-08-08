@@ -229,17 +229,17 @@
         </div>
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
     <!-- app.vue -->
-   <div class="menu-buttons-container">
+  <div class="menu-buttons-container">
   <div 
     v-for="btn in menuButtons" 
     :key="btn.id"
     class="menu-button"
     :class="{
       selected: btn.selected,
-      'text-button': activeTab === 'result',
+      'text-button': activeTab === 'result' || activeTab === 'overtaking',
       'button-visible': isButtonVisible(btn),
       'has-bet': btn.betAmount > 0,
-      'locked': lockedBugs.has(Math.floor(btn.id / 7))
+      'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
     }"
     @click="toggleMenuButton(btn)"
   >
@@ -247,9 +247,9 @@
       {{ btn.betAmount }}₽
     </div>
     
-    <!-- Обновленный блок коэффициента -->
+    <!-- Коэффициент для обеих вкладок -->
     <div 
-      v-if="activeTab === 'result' && isButtonVisible(btn) && !btn.betAmount" 
+      v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
       class="coefficient-container"
     >
       <div class="coefficient-bg"></div>
@@ -356,6 +356,7 @@
           
           <!-- Кнопки меню -->
        <!-- Обновленный второй контейнер menu-buttons-container -->
+<!-- Второй контейнер для кнопок -->
 <div class="menu-buttons-container">
   <div 
     v-for="btn in menuButtons" 
@@ -363,15 +364,15 @@
     class="menu-button"
     :class="{
       selected: btn.selected,
-      'text-button': activeTab === 'result',
+      'text-button': activeTab === 'result' || activeTab === 'overtaking',
       'button-visible': activeTab === 'result' || 
                        (activeTab === 'overtaking' && !diagonalButtons.includes(btn.id))
     }"
     @click="toggleMenuButton(btn)"
   >
-    <!-- Добавлен блок коэффициента -->
+    <!-- Коэффициент для обеих вкладок -->
     <div 
-      v-if="activeTab === 'result' && !btn.betAmount" 
+      v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
       class="coefficient-container"
     >
       <div class="coefficient-bg"></div>
@@ -3453,7 +3454,7 @@ const getButtonStyle = (btn) => {
   color: #3F3F3F;
 }
 
-/* Убираем фоновое изображение для кнопок в режиме Result */
+/* Убираем фоновое изображение для кнопок */
 .menu-button.text-button {
   background-image: none !important;
 }

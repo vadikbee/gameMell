@@ -3130,7 +3130,7 @@ const getButtonStyle = (btn) => {
 /* Контейнер для кнопок тараканов */
 .bug-buttons-container {
   position: absolute;
-  top: 33%;
+  top: 36%;
   left: -17%;
   width: 130%;
   height: 60%;
@@ -4494,6 +4494,10 @@ position: absolute;
 /* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
 
 @media (max-width: 768px) {
+
+  .bug-buttons-container {
+    top: 40%;
+  }
 .button-1,.button-2,.button-3 {
   margin-top: 4%;
   
@@ -4592,8 +4596,7 @@ position: absolute;
     width: 70%;
   }
 
-  
-  
+
   .win-menu-center {
     width: 300px;
     height: 180px;
@@ -4605,6 +4608,7 @@ position: absolute;
     margin-bottom: 15px;
     left: 62.5%;
   }
+  
 }
 /* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
   

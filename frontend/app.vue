@@ -1,5 +1,6 @@
 <template>
   <div class="main-color">
+    
     <!-- История ставок в основном интерфейсе -->
      <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
@@ -616,7 +617,7 @@ const switchLanguage = () => {
   // Принудительно обновляем компоненты
   key.value++; // Добавляем реактивность
 }
-
+const soundEnabled = ref(true); // Добавляем общий флаг для управления звуком
 // Добавляем реактивный ключ
 const key = ref(0);
 const userInteracted = ref(false); // Добавьте эту строку
@@ -702,6 +703,7 @@ const isMusicPlaying = ref(false);
 const lockedBugs = ref(new Set());
 // Функция для воспроизведения звука обратного отсчета
 const playCountdownSound = () => {
+  if (!userInteracted.value || !betClickSound.value || !soundEnabled.value) return;
   if (!userInteracted.value || !countdownSound.value) return;
   
   try {
@@ -715,6 +717,7 @@ const playCountdownSound = () => {
 };
 // Создайте функцию для воспроизведения звука
 const playRaceStartSound = () => {
+  if (!userInteracted.value || !betClickSound.value || !soundEnabled.value) return;
   if (!userInteracted.value || !raceStartSound.value) return;
   
   try {
@@ -726,6 +729,7 @@ const playRaceStartSound = () => {
   }
 };
   const playBetClick = () => {
+    if (!userInteracted.value || !betClickSound.value || !soundEnabled.value) return;
   if (!userInteracted.value || !betClickSound.value) return;
   
   try {
@@ -792,15 +796,13 @@ const showNotification = (message, isWin) => {
 };
 // Обновленная функция для включения музыки
 const enableMusic = async () => {
+  if (!soundEnabled.value) return; // Проверяем общий флаг звука
+  
   try {
     if (!backgroundMusic.value) return;
-    
     backgroundMusic.value.volume = soundVolume.value;
     await backgroundMusic.value.play();
     isMusicPlaying.value = true;
-    
-    document.removeEventListener('click', firstInteractionHandler);
-    document.removeEventListener('touchstart', firstInteractionHandler);
   } catch (error) {
     console.error("Ошибка воспроизведения музыки:", error);
     showMusicEnableHint();
@@ -860,6 +862,7 @@ const playIncomeSound = () => {
 
 // ДОБАВЬТЕ ЭТУ ФУНКЦИЮ
 const playOutcomeSound = () => {
+  if (!userInteracted.value || !betClickSound.value || !soundEnabled.value) return;
   if (!userInteracted.value || !balanceOutcomeSound.value) return;
   try {
     balanceOutcomeSound.value.currentTime = 0;
@@ -1151,7 +1154,9 @@ const setButtonWinContainerRef = (id, el) => {
     buttonWinContainerRefs.value[id] = el;
   }
 };
+
 const playStakeActionClick = () => {
+  if (!userInteracted.value || !betClickSound.value || !soundEnabled.value) return;
   if (!userInteracted.value || !stakeActionClickSound.value) return;
   
   try {
@@ -2242,17 +2247,17 @@ const winButtons = ref([
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
 // ==============================
 const toggleMusic = () => {
-  if (!backgroundMusic.value) return;
+  soundEnabled.value = !soundEnabled.value;
   
-  if (isMusicPlaying.value) {
-    backgroundMusic.value.pause();
-  } else {
+  // Обновляем состояние музыки
+  isMusicPlaying.value = soundEnabled.value;
+  
+  if (soundEnabled.value) {
     enableMusic().catch(showMusicEnableHint);
+  } else if (backgroundMusic.value) {
+    backgroundMusic.value.pause();
   }
-  
-  isMusicPlaying.value = !isMusicPlaying.value;
 };
-
 
 // Регулировка громкости
 const setMusicVolume = (volume) => {

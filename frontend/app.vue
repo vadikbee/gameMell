@@ -563,7 +563,10 @@ const clearPendingBetsSound = ref(null);
 const cancelPendingBetSound = ref(null);
 const stakeActionClickSound = ref(null);
 
-
+const unlockAllBugs = () => {
+  lockedBugs.value = new Set();
+  lockedBugsArray.value = [];
+};
 
 // Добавляем состояние для выбранных тараканов
 const selectedBugIds = ref([]);
@@ -1072,6 +1075,7 @@ const checkBetsResults = () => {
   
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
+  unlockAllBugs();
 };
 
 // Обновленная функция resetBugSelections
@@ -1293,8 +1297,12 @@ watch(raceInProgress, (newVal) => {
 const placeBet = () => {
   playBetClick(); // Добавляем звук
   // Блокируем выбранных тараканов
- if (activeTab.value === 'result') {
+// Блокировка тараканов для вкладки Result
+  if (activeTab.value === 'result') {
     const newLocked = [...lockedBugsArray.value];
+    // ИСПРАВЛЕНИЕ: Заменяем selectedButtons на получение выбранных кнопок
+    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
+    
     selectedButtons.forEach(button => {
       const row = Math.floor(button.id / 7);
       if (!newLocked.includes(row)) newLocked.push(row);

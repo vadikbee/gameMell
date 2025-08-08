@@ -3853,7 +3853,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 .button-win-container {
   position: absolute;
   width: 52px;
-  height: 64px;
+  height: 66px;
   z-index: 4;
   
 }

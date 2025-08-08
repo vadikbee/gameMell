@@ -44,21 +44,21 @@
       ></div>
     </div>
     <div class="stavki-buttons-container">
-    <img 
-      v-for="button in stavkiButtons"
-      :key="button.id"
-      :src="button.src"
-      :alt="button.alt"
-      class="stavki-button"
-      @click="$emit('add-bet', button.amount)"
-    >
-    <img 
-      src="/images/buttons/x2.png" 
-      alt="x2"
-      class="x2-button"
-      @click="$emit('x2-click'); $emit('button-click')"
-    >
+  <div 
+    v-for="button in stavkiButtons"
+    :key="button.id"
+    class="stavki-button"
+    @click="$emit('add-bet', button.amount)"
+  >
+    {{ button.amount }}
   </div>
+  <div 
+    class="stavki-button x2-button"
+    @click="$emit('x2-click'); $emit('button-click')"
+  >
+    Х2
+  </div>
+</div>
 </div>
 </template>
 
@@ -213,9 +213,26 @@ const playSoundAndEmit = (eventName) => {
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
+
+/* Обновленные стили для кнопок */
+.stavki-buttons-container {
+  left: -8%;
+  border: 5px #ff0000;
+}
 .stavki-button {
-  width: 50px;
-  height: 26px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 47px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.9);
+  box-shadow: 3px 6px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #FFFFFF;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
@@ -231,20 +248,18 @@ const playSoundAndEmit = (eventName) => {
 
 .x2-button {
   position: relative;
-  width: 48px;
-  height: 30px;
+  width: 47px;
+  height: 24px;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
   flex: none;
   margin-top: -13.5%;
-  left: 26%;
+  left: -55%;
   z-index: 9;
   flex-grow: 0;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .x2-button:hover {
@@ -314,6 +329,9 @@ const playSoundAndEmit = (eventName) => {
 
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
+  .x2-button {
+    left: -58%;
+  }
   .bet-counter-container {
     top: -373.5%;
     margin-top: 98%;
@@ -326,23 +344,6 @@ const playSoundAndEmit = (eventName) => {
     margin: 0 -18px;
   }
   
-  .stavki-buttons-container {
-    top: 404%;
-    width: 85%;
-    padding-left: 15px;
-  }
-  
-  .stavki-button {
-    margin-top: 0%;
-  }
-  
-  .x2-button {
-    width: 55px;
-    height: 32px;
-    left: 31%;
-    margin-top: 11.1%;
-  }
-  
   .otmena-button {
     width: 25px;
     height: 25px;
@@ -350,7 +351,7 @@ const playSoundAndEmit = (eventName) => {
   }
   
   .reset-button {
-    width: 50px;
+    width: 49px;
     height: 24px;
     top: 392%;
     left: 56%;
@@ -361,13 +362,12 @@ const playSoundAndEmit = (eventName) => {
     top: 45%;
     left: 48.5%;
   }
-}
 
-/* Адаптация для маленьких экранов */
-@media (max-width: 768px) {
+
   .stavki-buttons-container {
-    top: 9%;
-    left: -24%;
+    top: 100%;
+    left: -6%;
+    gap: 3%;
   }
    .reset-button {
     left: 2%;
@@ -378,13 +378,7 @@ const playSoundAndEmit = (eventName) => {
     
     left: 1%;
   }
-   .x2-button {
-    
-    left: 29.5%;
-    width: 52px;
-    height: 28px;
-    
-  }
+ 
   .group-164-button {
     width: 113px;
     margin-top: -21%;
@@ -429,10 +423,10 @@ const playSoundAndEmit = (eventName) => {
   }
   
   .stavki-buttons-container {
-    top: 10%;
+    top: 85%;
     width: 70%;
     height: 30%;
-    left: -7%;
+    left: 11%;
     gap: 10px;
     
   }
@@ -446,8 +440,8 @@ const playSoundAndEmit = (eventName) => {
   .x2-button {
     width: 46px;
     height: 22px;
-    left: 32%;
-    top: 6%;
+    left: -70%;
+    top: 27%;
     
   }
   
@@ -554,7 +548,18 @@ const playSoundAndEmit = (eventName) => {
     margin-left: -17%;
     
   }
-  
+  .stavki-buttons-container {
+    left: 12%;
+  }
+  .stavki-button {
+    margin-top: 0%;
+    
+    
+  }
+  .x2-button {
+    left: -71.5%;
+    top: 120%;
+  }
   
 }
 

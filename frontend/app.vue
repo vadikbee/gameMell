@@ -210,23 +210,23 @@
           alt="Center Menu" 
           class="menu-image"
         >
-           <div class="menu-tabs">
-    <!-- Изменено: поменяны местами вкладки -->
-        <div 
-          class="tab-button overtaking-tab"
-          :class="{ active: activeTab === 'overtaking' }"
-          @click="setActiveTab('overtaking')"
-        >
-          {{ t('OVERTAKING') }}
+          <div class="menu-tabs">
+          <!-- Вкладка Overtaking -->
+          <div 
+            class="tab-button overtaking-tab"
+            :class="{ active: activeTab === 'overtaking' }"
+            @click="setActiveTab('overtaking')"
+          >
+            {{ t('OVERTAKING') }}
+          </div>
+          <div 
+            class="tab-button result-tab"
+            :class="{ active: activeTab === 'result' }"
+            @click="setActiveTab('result')"
+          >
+            {{ t('RESULT') }}
+          </div>
         </div>
-        <div 
-          class="tab-button result-tab"
-          :class="{ active: activeTab === 'result' }"
-          @click="setActiveTab('result')"
-        >
-          {{ t('RESULT') }}
-        </div>
-      </div>
          <!-- Контейнер для кнопок в зависимости от активной вкладки -->
     <!-- app.vue -->
       <div class="menu-buttons-container">
@@ -321,27 +321,27 @@
             <!-- ... остальной код ... -->
             <!-- Кнопки ставок -->
             <div class="stavki-buttons-container">
-              <img 
+              <div 
                 v-for="button in stavkiButtons"
                 :key="button.id"
-                :src="button.src"
-                :alt="button.alt"
                 class="stavki-button"
                 @click="addToBet(button.amount)"
               >
+                {{ button.amount }}
+              </div>
             </div>
             <div class="x2-button-container">
-            <img 
-              src="/images/buttons/x2.png" 
-              alt="x2"
-              class="x2-button"
+            <div 
+              class="stavki-button x2-button"
               :class="{ 'x2-clicked': isX2Clicked }"
               @click="handleX2ButtonClick"
               @mousedown="isX2Clicked = true"
               @mouseup="isX2Clicked = false"
               @mouseleave="isX2Clicked = false"
             >
+              X2
             </div>
+</div>
           </div> 
           
           <!-- Кнопки меню -->
@@ -1096,12 +1096,11 @@ const betHistory = ref([]); // История ставок
 const undoStack = ref([]); // Стек для отмены операций
 const betHistoryStack = ref([]); // Добавляем новую переменную
 const stavkiButtons = ref([
-  { id: '25', amount: 25, src: '/images/buttons/25.png', alt: '25' },
-  { id: '50', amount: 50, src: '/images/buttons/50.png', alt: '50' },
-  { id: '100', amount: 100, src: '/images/buttons/100.png', alt: '100' },
-  { id: '500', amount: 500, src: '/images/buttons/500.png', alt: '500' },
+  { id: '25', amount: 25 },
+  { id: '50', amount: 50 },
+  { id: '100', amount: 100 },
+  { id: '500', amount: 500 },
 ]);
-
 // Добавление ставки
 // Обновленная функция добавления ставки
 const addToBet = (amount) => {
@@ -2241,41 +2240,17 @@ const diagonalButtons = computed(() => {
 });
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
+    // Используем единое название переменной row для всех вкладок
+  const row = Math.floor(btn.id / 7); 
   if (activeTab.value === 'result') {
     const row = Math.floor(btn.id / 7); // ID таракана (0-6)
-    const col = btn.id % 7;             // Место (0-6)
-
-    // Проверяем, не заблокирован ли таракан
-    if (lockedBugs.value.has(bugId)) return;
     
-    // Проверка: если кнопка уже выбрана - снимаем выделение
-    if (btn.selected) {
-      btn.selected = false;
-      return;
-    }
+    // Убрана проверка на блокировку и ограничения выбора
+    btn.selected = !btn.selected; // Просто переключаем состояние кнопки
     
-    // Проверяем, не выбран ли уже другой таракан на это место
-    const alreadySelected = menuButtons.value.some(otherBtn => 
-      otherBtn.id % 7 === col && 
-      otherBtn.selected && 
-      otherBtn.id !== btn.id
-    );
-    
-    if (alreadySelected) return; // Место уже занято другим тараканом
-    
-    // Снимаем предыдущий выбор для этого таракана (если был)
-    menuButtons.value.forEach(otherBtn => {
-      if (Math.floor(otherBtn.id / 7) === row && otherBtn.selected) {
-        otherBtn.selected = false;
-      }
-    });
-    
-    // Выбираем текущую кнопку
-    btn.selected = true;
   } else if (activeTab.value === 'overtaking') {
-    const bugId = Math.floor(btn.id / 7); // Определяем ID таракана
-
-    // Проверяем, не заблокирован ли таракан
+    const bugId = Math.floor(btn.id / 7);
+    
     if (lockedBugs.value.has(bugId)) return;
     
     // Если кнопка уже выбрана - снимаем выделение
@@ -3007,24 +2982,30 @@ const getButtonStyle = (btn) => {
   pointer-events: auto;
 }
 
-/* Обновляем стили для вкладок */
- .menu-tabs {
-    top: 15px;
-    height: 20px;
-  }
+/* Контейнер вкладок */
+.menu-tabs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 24px;
+  z-index: 15;
+}
   
 
-/* Стиль для вкладки Result (теперь справа) */
+/* Специфичные стили для вкладки Result */
 .result-tab {
-  border-radius: 0 50px 50px 0; /* Закругление справа */
-  margin-left: 1px; /* Расстояние между вкладками */
+  border-radius: 0 50px 50px 0;
 }
-
 /* Стиль для вкладки Overtaking (теперь слева) */
 .overtaking-tab {
   border-radius: 50px 0 0 50px; /* Закругление слева */
 }
-
+/* Стили для НЕактивных вкладок */
+.tab-button:not(.active) {
+  background: rgba(0, 0, 0, 0.4);
+}
 .x2-button-container {
   position: absolute;
   width: 47px;
@@ -3408,25 +3389,31 @@ const getButtonStyle = (btn) => {
   display: flex;
   flex-direction: row;
   justify-content: center;
-   gap: var(--stavki-gap, 10px); /* Используем CSS-переменную для управления расстоянием */
+  gap: 10px;
   width: 60%;
   height: 30%;
   left: 3%;
   z-index: 9;
   padding: 0px;
-  
   top: 404%;
 }
 
 .stavki-button {
-  width: 50px;
-  height: 26px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 47px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.9);
+  box-shadow: 3px 6px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #FFFFFF;
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
-  flex: none;
-  order: 1;
-  flex-grow: 0;
-  margin-top: 0%;
 }
 
 .stavki-button:hover {
@@ -4394,10 +4381,9 @@ position: absolute;
   color: #FFFFFF;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 50px;
-  padding: 4px 0;
+  box-sizing: border-box;
+  height: 100%;
 }
-
 .color-indicators {
   position: absolute;
   width: 100%;
@@ -4446,10 +4432,10 @@ position: absolute;
   
 }
 
-/* Стиль для активной вкладки */
+/* Стили для активной вкладки */
 .tab-button.active {
-  box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
-  filter: brightness(1.2);
+  background: linear-gradient(180deg, rgba(127, 0, 254, 0.7) 0%, rgba(102, 0, 143, 0.7) 98.9%);
+  border: 1px solid #6B51FF;
 }
 
 /* Эффекты при наведении */
@@ -4718,10 +4704,10 @@ position: absolute;
   }
   
   
-  .overtaking-tab {
-    border-radius: 40px 0 0 40px; /* Уменьшаем скругление */
-  }
-
+ /* Специфичные стили для вкладки Overtaking */
+.overtaking-tab {
+  border-radius: 50px 0 0 50px;
+}
   .result-tab {
     border-radius: 0 40px 40px 0; /* Уменьшаем скругление */
   }
@@ -4879,6 +4865,10 @@ position: absolute;
   }
   .bug-buttons-container {
     transform: scale(0.9) translateY(20%) translateX(0%);
+    
+  }
+  .bug-buttons-container {
+    top: 35%;
     
   }
   

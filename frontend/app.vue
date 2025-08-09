@@ -3996,14 +3996,8 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   
 }
 
-/* Анимация выделения */
-.menu-button.selected {
-  filter: 
-    brightness(1.2) 
-    sepia(1) 
-    saturate(5) 
-    hue-rotate(5deg);
-}
+
+
 
 /* Анимация наведения */
 .menu-button:hover {

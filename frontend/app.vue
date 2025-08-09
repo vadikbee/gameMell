@@ -128,9 +128,7 @@
           }"
         ></div>
           
-        <div v-if="btn.betAmount" class="trap-bet-amount">
-    {{ btn.betAmount }}₽
-  </div>
+        
       </div>
       
       <!-- Тараканы -->
@@ -247,28 +245,24 @@
   }"
   @click="toggleMenuButton(btn)"
 >
-  <div v-if="btn.betAmount" class="bet-amount-display">
-    {{ btn.betAmount }}₽
+  <!-- Удалено старое отображение -->
+  <!-- Новое расположение элементов -->
+  <div v-if="btn.confirmed" class="confirmed-content">
+    <div class="confirmed-coefficient">2.23</div>
+    
   </div>
   
-  <!-- Коэффициент для обеих вкладок -->
-  <div 
-    v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
-    class="coefficient-container"
-  >
-    <div class="coefficient-bg"></div>
-    <div class="coefficient-text">2.23</div>
+  <div v-else>
+    
+    <div 
+      v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
+      class="coefficient-container"
+    >
+      <div class="coefficient-bg"></div>
+      <div class="coefficient-text">2.23</div>
+    </div>
   </div>
-  
-  <!-- Добавьте этот блок для отображения коэффициента в подтвержденных кнопках -->
-  <div 
-    v-if="btn.confirmed" 
-    class="confirmed-coefficient"
-  >
-    2.23
-  </div>
-
-  </div>
+</div>
 </div>
 
          <PodiumResults 
@@ -395,9 +389,7 @@
   
   <!-- Старое отображение (для неподтвержденных кнопок) -->
   <div v-if="!btn.confirmed">
-    <div v-if="btn.betAmount" class="bet-amount-display">
-      {{ btn.betAmount }}₽
-    </div>
+    
     <div 
       v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
       class="coefficient-container"
@@ -2756,21 +2748,7 @@ const textButtonStyle = {
   justifyContent: 'center'
 };
 
-// Вычисляемый стиль для кнопок
-const getButtonStyle = (btn) => {
-  // Для режима Result - сохраняем стиль knopka-menu, но добавляем белый фон
-  if (activeTab.value === 'result') {
-    return {
-      backgroundImage: "url('/images/buttons/knopka-menu.png')",
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      backgroundSize: 'cover',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    };
-  }
-  return {}; // Для overtaking - стандартный стиль
-};
+
 
 </script>
 <style scoped>
@@ -2980,16 +2958,12 @@ const getButtonStyle = (btn) => {
 }
 /* Добавляем стили для заблокированных элементов */
 .menu-button.locked {
-  opacity: 0.5;
+  opacity: 1;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.bug-button.locked {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
+
 .info-notification .notification-header {
   background: rgba(76, 175, 80, 0.2);
   padding: 10px 15px;
@@ -3468,24 +3442,22 @@ const getButtonStyle = (btn) => {
   justify-content: center;
 }
 
-/* Стили для нового контейнера коэффициента */
-.coefficient-container {
-  position: relative;
-  width: 40px;
-  height: 28px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-/* Стиль для фона коэффициента */
-.coefficient-bg {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 3px;
-  z-index: 1;
+.confirmed-bet-amount {
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 16px;
+  color: #FFFFFF; /* Белый цвет вместо прозрачного */
+  margin-top: 30%;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); /* Добавляем тень для лучшей читаемости */
+  opacity: 1 !important; /* Убираем любую прозрачность */
+  font-style: normal; /* Убираем курсив если был */
+}
+/* Усиливаем видимость для заблокированных элементов */
+.menu-button.locked .confirmed-bet-amount {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
 }
 
 /* Стиль для текста коэффициента */
@@ -3498,12 +3470,10 @@ const getButtonStyle = (btn) => {
   line-height: 20px;
   text-align: center;
   color: #3F3F3F;
+  
 }
 
-/* Убираем фоновое изображение для кнопок */
-.menu-button.text-button {
-  background-image: none !important;
-}
+
 .stavki-buttons-container {
   position: absolute;
   display: flex;
@@ -3599,7 +3569,6 @@ const getButtonStyle = (btn) => {
   margin-left: 50%;
   
 }
-
 
 .next-race-notice {
   position: absolute;
@@ -3724,7 +3693,7 @@ const getButtonStyle = (btn) => {
 }
 
 .menu-button {
-  background-image: url('/images/buttons/knopka-menu.png');
+  
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -3741,32 +3710,16 @@ const getButtonStyle = (btn) => {
   border-radius: 3px;
   background-image: none !important;
   position: relative;
+  
 }
 
-/* Стили для суммы ставки в подтвержденной кнопке */
-.menu-button.confirmed .bet-amount-display {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'Hero', 'Bahnschrift', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 16px;
-  color: #FFFFFF;
-  z-index: 2;
-}
 
 /* Стили для коэффициента в подтвержденной кнопке */
 .confirmed-coefficient {
   position: absolute;
   left: 0;
   right: 0;
-  top: 7px;
+  top: 4px;
   font-family: 'Hero', 'Bahnschrift', sans-serif;
   font-weight: 700;
   font-size: 8px;
@@ -3781,19 +3734,14 @@ const getButtonStyle = (btn) => {
   background-color: #000 !important;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
 }
-.menu-button.confirmed {
-  background: linear-gradient(180deg, #3C42E3 0%, #2A2FBF 100%) !important;
-}
 
 
-/* Скрываем белый фон коэффициента при выборе */
-.menu-button.selected .coefficient-bg {
-  display: none;
-}
+
 /* Стили для текста внутри выбранной кнопки */
 .menu-button.selected .coefficient-text,
-.menu-button.selected .bet-amount-display {
+.menu-button.selected  {
   color: white !important; /* Белый текст */
+  
 }
 
 
@@ -3886,16 +3834,7 @@ const getButtonStyle = (btn) => {
   gap: 10px; /* Расстояние между элементами */
   
 }
-.bet-amount-display {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 0 2px black;
-}
+
 /* Стиль для выбранного таракана */
 .bug-button.selected {
   
@@ -3907,10 +3846,7 @@ const getButtonStyle = (btn) => {
   background: linear-gradient(180deg, #3C42E3 0%, #2A2FBF 100%) !important;
 }
 
-.menu-button.confirmed .coefficient-text,
-.menu-button.confirmed .bet-amount-display {
-  color: white !important;
-}
+
 
 
 /* Усиленная анимация для выбранного состояния */

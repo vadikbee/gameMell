@@ -232,34 +232,42 @@
     <!-- app.vue -->
   <!-- Обновленный блок menu-buttons-container -->
 <div class="menu-buttons-container">
+  <!-- Обновите шаблон для menu-button -->
+<div 
+  v-for="btn in menuButtons" 
+  :key="btn.id"
+  class="menu-button"
+  :class="{
+    'selected': btn.selected,
+    'confirmed': btn.confirmed,
+    'text-button': activeTab === 'result' || activeTab === 'overtaking',
+    'button-visible': isButtonVisible(btn),
+    'has-bet': btn.betAmount > 0,
+    'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
+  }"
+  @click="toggleMenuButton(btn)"
+>
+  <div v-if="btn.betAmount" class="bet-amount-display">
+    {{ btn.betAmount }}₽
+  </div>
+  
+  <!-- Коэффициент для обеих вкладок -->
   <div 
-    v-for="btn in menuButtons" 
-    :key="btn.id"
-    class="menu-button"
-    :class="{
-      'selected': btn.selected,
-      'confirmed': btn.confirmed, // Добавлен класс для подтвержденных ставок
-      'text-button': activeTab === 'result' || activeTab === 'overtaking',
-      'button-visible': isButtonVisible(btn),
-      'has-bet': btn.betAmount > 0,
-      'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
-    }"
-    @click="toggleMenuButton(btn)"
+    v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
+    class="coefficient-container"
   >
-    <div v-if="btn.betAmount" class="bet-amount-display">
-      {{ btn.betAmount }}₽
-    </div>
-    
-    <!-- Коэффициент для обеих вкладок -->
-    <div 
-      v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
-      class="coefficient-container"
-    >
-      <div class="coefficient-bg"></div>
-      <div class="coefficient-text">
-        2.23
-      </div>
-    </div>
+    <div class="coefficient-bg"></div>
+    <div class="coefficient-text">2.23</div>
+  </div>
+  
+  <!-- Добавьте этот блок для отображения коэффициента в подтвержденных кнопках -->
+  <div 
+    v-if="btn.confirmed" 
+    class="confirmed-coefficient"
+  >
+    2.23
+  </div>
+
   </div>
 </div>
 
@@ -362,28 +370,43 @@
 <!-- Второй контейнер для кнопок -->
 <div class="menu-buttons-container">
   <div 
-    v-for="btn in menuButtons" 
-    :key="btn.id"
-    class="menu-button"
-    :class="{
-      selected: btn.selected,
-      'text-button': activeTab === 'result' || activeTab === 'overtaking',
-      'button-visible': activeTab === 'result' || 
-                       (activeTab === 'overtaking' && !diagonalButtons.includes(btn.id))
-    }"
-    @click="toggleMenuButton(btn)"
-  >
-    <!-- Коэффициент для обеих вкладок -->
+  v-for="btn in menuButtons" 
+  :key="btn.id"
+  class="menu-button"
+  :class="{
+    'selected': btn.selected,
+    'confirmed': btn.confirmed,
+    'text-button': activeTab === 'result' || activeTab === 'overtaking',
+    'button-visible': isButtonVisible(btn),
+    'has-bet': btn.betAmount > 0,
+    'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
+  }"
+  @click="toggleMenuButton(btn)"
+>
+  <!-- Блок для коэффициента -->
+  <div v-if="btn.confirmed" class="confirmed-coefficient">
+    2.23
+  </div>
+  
+  <!-- Блок для суммы ставки -->
+  <div v-if="btn.confirmed" class="confirmed-bet-amount">
+    {{ btn.betAmount }}₽
+  </div>
+  
+  <!-- Старое отображение (для неподтвержденных кнопок) -->
+  <div v-if="!btn.confirmed">
+    <div v-if="btn.betAmount" class="bet-amount-display">
+      {{ btn.betAmount }}₽
+    </div>
     <div 
       v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
       class="coefficient-container"
     >
       <div class="coefficient-bg"></div>
-      <div class="coefficient-text">
-        2.23
-      </div>
+      <div class="coefficient-text">2.23</div>
     </div>
   </div>
+</div>
 </div>
         </div>
         
@@ -3711,6 +3734,46 @@ const getButtonStyle = (btn) => {
   overflow: hidden; /* Важно для корректного отображения закругления */
   /**/
   
+}
+/* Стили для подтвержденной кнопки */
+.menu-button.confirmed {
+  background: #6B51FF !important;
+  border-radius: 3px;
+  background-image: none !important;
+  position: relative;
+}
+
+/* Стили для суммы ставки в подтвержденной кнопке */
+.menu-button.confirmed .bet-amount-display {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 16px;
+  color: #FFFFFF;
+  z-index: 2;
+}
+
+/* Стили для коэффициента в подтвержденной кнопке */
+.confirmed-coefficient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  font-family: 'Hero', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  line-height: 10px;
+  text-align: center;
+  color: #FFC567;
+  z-index: 3;
 }
 
 /* Обновленные стили для состояний кнопок */

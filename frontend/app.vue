@@ -1345,6 +1345,38 @@ watch(raceInProgress, (newVal) => {
 });
 const placeBet = () => {
   playBetClick(); // Добавляем звук
+  if (activeTab.value === 'overtaking') {
+    const selectedBugs = [...overtakingSelection.value];
+    
+    if (selectedBugs.length < 2) {
+      infoMessage.value = t('select_at_least_two_bugs');
+      infoNotificationVisible.value = true;
+      setTimeout(() => infoNotificationVisible.value = false, 3000);
+      return;
+    }
+     // Первый выбранный - обгоняющий, остальные - обгоняемые
+    const overtaker = overtakingSelection.value[0];
+    const overtakenBugs = overtakingSelection.value.slice(1);
+    
+    // Создаем ставки для всех комбинаций
+    overtakenBugs.forEach(overtaken => {
+      
+        const bet = {
+          type: 'overtaking',
+        overtaker,
+        overtaken,
+        amount: currentBet.value / overtakenBugs.length,
+          timestamp: new Date().toISOString(),
+          result: 'pending'
+        };
+        betHistory.value.push(bet);
+        nextRaceBets.value.push(bet);
+      
+    },
+
+    // Блокируем выбранных тараканов
+    lockedBugsArray.value = [...lockedBugsArray.value, ...selectedBugs]);
+  }
   // Блокируем выбранных тараканов
 // Блокировка тараканов для вкладки Result
   if (activeTab.value === 'result') {
@@ -1552,6 +1584,9 @@ const lastGames = ref([
 const setActiveTab = (tab) => {
   playStakeActionClick();
   // Сбрасываем выделение со всех кнопок
+   menuButtons.value.forEach(btn => btn.selected = false);
+  selectedWinnerBugIds.value = [];
+  activeTab.value = tab;
   menuButtons.value.forEach(btn => {
     btn.selected = false;
   });
@@ -1562,9 +1597,9 @@ const setActiveTab = (tab) => {
   // Устанавливаем новую вкладку
   activeTab.value = tab;
 
-  // Сброс выбора для ставок на обгон
-  if (tab === 'overtaking') {
-    overtakingSelection.value = { overtaker: null, overtaken: null };
+if (tab === 'overtaking') {
+    // Инициализируем как пустой массив
+    overtakingSelection.value = [];
   }
 };
 const explodeAllBugs = (raceEndTime) => {
@@ -2147,10 +2182,8 @@ const handleOtmenaButtonClick = () => {
   resetAllBets(); 
 };
 // Новое состояние для выбранной пары тараканов (обгоняющий, обгоняемый)
-const overtakingSelection = ref({ 
-  overtaker: null, // id таракана, который обгоняет
-  overtaken: null  // id таракана, которого обгоняют
-});
+const overtakingSelection = ref([]);
+
 // Функции для управления зажатием кнопок
 const startAction = (action) => {
   // Первое срабатывание сразу
@@ -2239,43 +2272,26 @@ const diagonalButtons = computed(() => {
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
     // Используем единое название переменной row для всех вкладок
-  const row = Math.floor(btn.id / 7); 
-  if (activeTab.value === 'result') {
-    const row = Math.floor(btn.id / 7); // ID таракана (0-6)
-    
-    // Убрана проверка на блокировку и ограничения выбора
-    btn.selected = !btn.selected; // Просто переключаем состояние кнопки
-    
+   const row = Math.floor(btn.id / 7); 
+    if (activeTab.value === 'result') {
+    btn.selected = !btn.selected; 
   } else if (activeTab.value === 'overtaking') {
-    const bugId = Math.floor(btn.id / 7);
+    const bugId = row;
     
-    if (lockedBugs.value.has(bugId)) return;
-    
-    // Если кнопка уже выбрана - снимаем выделение
-    if (btn.selected) {
+    // Проверяем наличие в массиве
+    const index = overtakingSelection.value.indexOf(bugId);
+    if (index !== -1) {
+      // Удаляем из массива
+      overtakingSelection.value.splice(index, 1);
       btn.selected = false;
-      
-      // Удаляем из выбора
-      if (overtakingSelection.value.overtaker === bugId) {
-        overtakingSelection.value.overtaker = null;
-      } else if (overtakingSelection.value.overtaken === bugId) {
-        overtakingSelection.value.overtaken = null;
-      }
-      return;
-    }
-    
-    // Логика выбора
-    if (overtakingSelection.value.overtaker === null) {
-      // Выбор обгоняющего (первый таракан)
-      overtakingSelection.value.overtaker = bugId;
-      btn.selected = true;
-    } else if (overtakingSelection.value.overtaken === null && bugId !== overtakingSelection.value.overtaker) {
-      // Выбор обгоняемого (второй таракан, не совпадает с первым)
-      overtakingSelection.value.overtaken = bugId;
+    } else {
+      // Добавляем в массив
+      overtakingSelection.value.push(bugId);
       btn.selected = true;
     }
   }
 };
+
 
 // ==============================
 // МЕТОДЫ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ

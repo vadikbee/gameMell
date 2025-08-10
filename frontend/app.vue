@@ -567,7 +567,7 @@
  <audio ref="stakeActionClickSound" src="/sounds/stakeActionClick.mp3"></audio>
  <audio ref="betClickSound" src="/sounds/betClick.mp3"></audio>
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
- <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
+ <audio ref="dizzySound" src="/sounds/star.mp3"></audio>
 </template>
 
 
@@ -583,7 +583,7 @@ import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
-const dizzySoundElement = ref(null);
+
 const soundVolume = ref(0.5);
 const balanceIncomeSound = ref(null);
 const balanceOutcomeSound = ref(null); // Добавлено здесь
@@ -832,7 +832,7 @@ const firstInteractionHandler = () => {
     
     // Убедиться, что все звуковые элементы доступны
     const soundEffects = [
-      dizzySoundElement.value,
+      dizzySound.value,
       balanceIncomeSound.value,
       balanceOutcomeSound.value,
       raceStartSound.value,
@@ -1655,6 +1655,7 @@ function formatTime(date) {
 }
 // Добавляем обработчик головокружения
 const makeBugDizzy = (index) => {
+  if (!userInteracted.value || !soundEnabled.value) return; // Добавьте эту проверку
   // Проверяем что bugs.value существует и index в пределах массива
   if (!bugs.value || index >= bugs.value.length) return;
   
@@ -1682,17 +1683,7 @@ onMounted(() => {
     dizzySound.value.play().catch(e => console.error("Ошибка воспроизведения:", e));
   }
 
-  // Для отладки
-  console.log(`Tarakan ${index} is dizzy!`);
- if (dizzySoundElement.value) {
-    try {
-      dizzySoundElement.value.currentTime = 0;
-      dizzySoundElement.value.volume = soundVolume.value;
-      dizzySoundElement.value.play().catch(e => console.error("Dizzy sound error:", e));
-    } catch (e) {
-      console.error("Dizzy playback error:", e);
-    }
-  }
+  
 };
 
 // ==============================

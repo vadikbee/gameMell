@@ -583,7 +583,7 @@ import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
-
+const dizzySoundElement = ref(null);
 const soundVolume = ref(0.5);
 const balanceIncomeSound = ref(null);
 const balanceOutcomeSound = ref(null); // Добавлено здесь
@@ -832,7 +832,7 @@ const firstInteractionHandler = () => {
     
     // Убедиться, что все звуковые элементы доступны
     const soundEffects = [
-      dizzySound.value,
+      dizzySoundElement.value,
       balanceIncomeSound.value,
       balanceOutcomeSound.value,
       raceStartSound.value,
@@ -1683,7 +1683,17 @@ onMounted(() => {
     dizzySound.value.play().catch(e => console.error("Ошибка воспроизведения:", e));
   }
 
-  
+  // Для отладки
+  console.log(`Tarakan ${index} is dizzy!`);
+ if (dizzySoundElement.value) {
+    try {
+      dizzySoundElement.value.currentTime = 0;
+      dizzySoundElement.value.volume = soundVolume.value;
+      dizzySoundElement.value.play().catch(e => console.error("Dizzy sound error:", e));
+    } catch (e) {
+      console.error("Dizzy playback error:", e);
+    }
+  }
 };
 
 // ==============================

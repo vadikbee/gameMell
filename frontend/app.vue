@@ -441,7 +441,7 @@
       </div> 
     </div>
   </div>
-  <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
+  
    <transition name="slide-fade">
   <div 
     v-if="winNotificationVisible && winData" 
@@ -567,6 +567,7 @@
  <audio ref="stakeActionClickSound" src="/sounds/stakeActionClick.mp3"></audio>
  <audio ref="betClickSound" src="/sounds/betClick.mp3"></audio>
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
+ <audio ref="dizzySoundElement" src="/sounds/star.mp3"></audio>
 </template>
 
 
@@ -590,6 +591,7 @@ const balanceOutcomeSound = ref(null); // Добавлено здесь
 const initialAnimationActive = ref(true);
 // Добавьте новый импорт i18n
 // Добавьте новый ref
+const lastGameMenuVisible = ref(false);
 const countdownSound = ref(null);
 
 const lockedBugsArray = ref([]);
@@ -608,13 +610,6 @@ const unlockAllBugs = () => {
   lockedBugsArray.value = [];
 };
 
-// Добавляем состояние для выбранных тараканов
-const selectedBugIds = ref([]);
-const screenWidth = ref(window.innerWidth);
-// Функция определения размера экрана
-const updateScreenSize = () => {
-  screenWidth.value = window.innerWidth;
-};
 
 const switchLanguage = () => {
   const newLang = locale.value === 'en' ? 'ru' : 'en';
@@ -716,6 +711,9 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+watch(lastGameMenuVisible, (visible) => {
+  if (visible) loadGameHistory();
+});
 // Добавляем новое состояние для отслеживания заблокированных тараканов
 const lockedBugs = ref(new Set());
 // Функция для воспроизведения звука обратного отсчета
@@ -828,6 +826,7 @@ const enableMusic = async () => {
 // Обработчик первого взаимодействия
 // Обновить firstInteractionHandler
 const firstInteractionHandler = () => {
+  
   try {
     userInteracted.value = true;
     
@@ -856,6 +855,7 @@ const firstInteractionHandler = () => {
   } catch (e) {
     console.error("First interaction error:", e);
   }
+  
 };
 
 // Показать подсказку для включения звука
@@ -1145,7 +1145,7 @@ const currentBet = ref(25);
 const balance = ref(10000); // Начальный баланс
 const betHistory = ref([]); // История ставок
 const undoStack = ref([]); // Стек для отмены операций
-const betHistoryStack = ref([]); // Добавляем новую переменную
+
 const stavkiButtons = ref([
   { id: '25', amount: 25 },
   { id: '50', amount: 50 },
@@ -1542,7 +1542,7 @@ const getColorImage = (color, count) => {
   }
 };
 // Добавляем состояние для меню последней игры
-const lastGameMenuVisible = ref(false);
+
 const lastGames = ref([
   { id: 1, results: [{ position: 1, color: '#FF0000' }, { position: null, color: '#00FF00' }] },
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
@@ -1684,36 +1684,17 @@ onMounted(() => {
 
   // Для отладки
   console.log(`Tarakan ${index} is dizzy!`);
-if (dizzySoundElement.value) {
+ if (dizzySoundElement.value) {
     try {
-      // Сбрасываем позицию воспроизведения
       dizzySoundElement.value.currentTime = 0;
-      
-      // Устанавливаем громкость
       dizzySoundElement.value.volume = soundVolume.value;
-      
-      // Пытаемся воспроизвести
-      const playPromise = dizzySoundElement.value.play();
-      
-      // Обрабатываем возможные ошибки воспроизведения
-      if (playPromise !== undefined) {
-        playPromise.catch(e => {
-          console.error("Ошибка воспроизведения:", e);
-          // Показываем пользователю сообщение при необходимости
-        });
-      }
+      dizzySoundElement.value.play().catch(e => console.error("Dizzy sound error:", e));
     } catch (e) {
-      console.error("Ошибка воспроизведения:", e);
+      console.error("Dizzy playback error:", e);
     }
   }
 };
-// Функция регулировки громкости
-const setVolume = (volume) => {
-  soundVolume.value = volume;
-  if (dizzySoundElement.value) {
-    dizzySoundElement.value.volume = volume;
-  }
-};
+
 // ==============================
 // МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ СТАВКАМИ
 // ==============================
@@ -1810,9 +1791,7 @@ const loadGameHistory = async () => {
   }
 };
 
-watch(lastGameMenuVisible, (visible) => {
-  if (visible) loadGameHistory();
-});
+
 
 // Обновляем функцию анимации
 const startAnimation = () => {
@@ -2004,26 +1983,7 @@ const unhoverBug = () => {
   hoveredBugIndex.value = null;
 };
 
-// Обновленный обработчик клика
-const clickBug = (index) => {
-  const bugId = menuBugs.value[index].id;
-  
-  if (selectedBugIds.value.includes(bugId)) {
-    // Удаляем если уже выбран
-    selectedBugIds.value = selectedBugIds.value.filter(id => id !== bugId);
-  } else {
-    // Добавляем если не выбран
-    selectedBugIds.value = [...selectedBugIds.value, bugId];
-  }
-  
-  // Сбрасываем состояние клика через 300 мс
-  setTimeout(() => {
-    clickedBugIndex.value = null;
-  }, 300);
-  
-  // Здесь можно добавить логику при клике на таракана
-  console.log(`Clicked on bug ${menuBugs.value[index].id}`);
-};
+
 
 const betHistoryFromApi = ref([]);
 
@@ -2038,19 +1998,6 @@ const fetchBetHistory = async () => {
     betHistoryFromApi.value = [];
   }
 };
-/*const loadBetHistory = async () => {
-  try {
-    const response = await fetch('/api/v1/gameplay/games/bets/latest', {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
-    
-    if (!response.ok) throw new Error('Failed to load bet history');
-    
-    bets.value = await response.json();
-  } catch (error) {
-    console.error('Error loading bet history:', error);
-  }
-};*/
 
 // Вызывать при открытии окна
 watch(historyBetsVisible, (visible) => {
@@ -2157,20 +2104,7 @@ const handleX2ButtonClick = () => {
   }
 };
 
-// Функция для сброса ставки
-const handleResetBetClick = () => {
-  // Восстанавливаем предыдущее значение
-  if (previousBet.value !== null) {
-    currentBet.value = previousBet.value;
-  }
-  
-  // Анимация кнопки
-  const resetBtn = document.querySelector('.reset-button');
-  if (resetBtn) {
-    resetBtn.classList.add('reset-clicked');
-    setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
-  }
-};
+
 
 
 // Обновленные функции изменения ставки с сохранением состояния
@@ -2292,12 +2226,7 @@ const toggleMusic = () => {
   }
 };
 
-// Регулировка громкости
-const setMusicVolume = (volume) => {
-  if (backgroundMusic.value) {
-    backgroundMusic.value.volume = volume;
-  }
-};
+
 
 const diagonalButtons = computed(() => {
   const diagonals = [];
@@ -2380,13 +2309,7 @@ watch(centerMenuVisible, (newVal) => {
   }
 });
 
-// Добавляем обработчик для кнопки Group 164
-const handleGroup164Click = () => {
-  playBetClick(); // Добавляем звук
-  placeBet();
-  console.log('Group 164 clicked');
-  // Здесь будет логика подтверждения ставки
-};
+
 
 // Добавляем отсутствующую переменную для анимации x2
 const isX2Clicked = ref(false);
@@ -2685,7 +2608,7 @@ const updateScale = () => {
 onMounted(() => {
   
   document.addEventListener('click', handleDocumentClick);
-  document.addEventListener('click', handleDocumentClick);
+ 
     document.addEventListener('visibilitychange', handleVisibilityChange);
   updateScale();
   window.addEventListener('resize', updateScale);
@@ -2739,14 +2662,7 @@ onUnmounted(() => {
 document.removeEventListener('click', firstInteractionHandler);
   document.removeEventListener('touchstart', firstInteractionHandler);
 });
-const textButtonStyle = {
-  backgroundImage: 'none',
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  borderRadius: '3px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
+
 
 
 

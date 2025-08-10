@@ -1322,27 +1322,7 @@ const showBetPlacedNotification = () => {
   }, 2000); // Автоматическое скрытие через 2 секунды
 };
 // Добавляем сброс при начале гонки
-// Обновленный сброс при начале гонки
-watch(raceInProgress, (newVal) => {
-  if (newVal) {
-    // Очищаем ТОЛЬКО ставки в матрице
-    menuButtons.value.forEach(b => {
-      b.selected = false;
-      b.betAmount = 0;
-    });
-    
-    // Сбрасываем выбор для overtaking
-    overtakingSelection.value = { overtaker: null, overtaken: null };
-    
-    // НЕ сбрасываем текущую ставку!
-  }
-  
-  // Сбрасываем ставки на ловушки
-  winButtons.value.forEach(btn => {
-    btn.betAmount = 0;
-    btn.selected = false;
-  });
-});
+
 const placeBet = () => {
   playBetClick(); // Добавляем звук
   if (activeTab.value === 'overtaking') {

@@ -962,7 +962,7 @@ const checkBetsResults = () => {
   let totalWin = 0;
   let totalLose = 0;
 
-  const finishedBugs = bugs.value
+   const finishedBugs = bugs.value
     .filter(bug => bug.finished)
     .sort((a, b) => a.finishTime - b.finishTime)
     .map((bug, index) => ({
@@ -973,66 +973,19 @@ const checkBetsResults = () => {
   currentRaceBets.value.forEach(bet => {
     if (bet.result !== 'pending') return;
     
-    // 1. Обработка ставки на ПОЗИЦИЮ
-    if (bet.type === 'position') {
-      const bugResult = finishedBugs.find(b => b.id === bet.bugId);
-      
-      if (bugResult && bugResult.position === bet.position) {
-        const winAmount = bet.amount * 8; // Коэффициент 8:1
-        totalWin += winAmount;
-        balance.value += winAmount;
-        playIncomeSound();
-        winningBets.push({
-          ...bet,
-          winAmount,
-          bugColors: [bugColors.value[bet.bugId-1]]
-        });
-        bet.result = 'win';
-      } else {
-        losingBets.push({
-          ...bet,
-          loseAmount: bet.amount,
-          bugColors: [bugColors.value[bet.bugId-1]]
-        });
-        totalLose += bet.amount;
-        bet.result = 'lose';
-      }
-    } 
     // 2. Обработка ставки на ОБГОН
-    else if (bet.type === 'overtaking') {
+    if (bet.type === 'overtaking') {
       const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
       const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
       
-      // Условие выигрыша: обгоняющий финишировал раньше
-      const isWin = (overtakerResult && !overtakenResult) || 
-                   (overtakerResult && overtakenResult && 
-                    overtakerResult.position < overtakenResult.position);
-      
-      if (isWin) {
-        const winAmount = bet.amount * 3; // Коэффициент 3:1
-        totalWin += winAmount;
-        balance.value += winAmount;
-        playIncomeSound();
-        winningBets.push({
-          ...bet,
-          winAmount,
-          bugColors: [
-            bugColors.value[bet.overtaker-1], 
-            bugColors.value[bet.overtaken-1]
-          ]
-        });
-        bet.result = 'win';
-      } else {
-        losingBets.push({
-          ...bet,
-          loseAmount: bet.amount,
-          bugColors: [
-            bugColors.value[bet.overtaker-1], 
-            bugColors.value[bet.overtaken-1]
-          ]
-        });
-        totalLose += bet.amount;
-        bet.result = 'lose';
+      // Условия выигрыша:
+      let isWin = false;
+      if (overtakerResult && !overtakenResult) {
+        // Обгоняющий финишировал, обгоняемый - нет
+        isWin = true;
+      } else if (overtakerResult && overtakenResult) {
+        // Оба финишировали, сравниваем позиции
+        isWin = overtakerResult.position < overtakenResult.position;
       }
     }
     // 3. Обработка ставки на СЕКЦИЮ (НОВЫЙ ТИП)
@@ -1324,38 +1277,35 @@ const showBetPlacedNotification = () => {
 // Добавляем сброс при начале гонки
 
 const placeBet = () => {
-  playBetClick(); // Добавляем звук
+  playBetClick();
   if (activeTab.value === 'overtaking') {
-    const selectedBugs = [...overtakingSelection.value];
-    
-    if (selectedBugs.length < 2) {
-      infoMessage.value = t('select_at_least_two_bugs');
+    // Проверяем, что выбран обгоняющий и хотя бы один обгоняемый
+    if (overtakingSelection.value.length < 2) {
+      infoMessage.value = t('select_at_least_one_bug_to_overtake');
       infoNotificationVisible.value = true;
       setTimeout(() => infoNotificationVisible.value = false, 3000);
       return;
     }
-     // Первый выбранный - обгоняющий, остальные - обгоняемые
+
     const overtaker = overtakingSelection.value[0];
     const overtakenBugs = overtakingSelection.value.slice(1);
     
     // Создаем ставки для всех комбинаций
     overtakenBugs.forEach(overtaken => {
-      
-        const bet = {
-          type: 'overtaking',
+      const bet = {
+        type: 'overtaking',
         overtaker,
         overtaken,
         amount: currentBet.value / overtakenBugs.length,
-          timestamp: new Date().toISOString(),
-          result: 'pending'
-        };
-        betHistory.value.push(bet);
-        nextRaceBets.value.push(bet);
-      
-    },
-
+        timestamp: new Date().toISOString(),
+        result: 'pending'
+      };
+      betHistory.value.push(bet);
+      nextRaceBets.value.push(bet);
+    });
+    
     // Блокируем выбранных тараканов
-    lockedBugsArray.value = [...lockedBugsArray.value, ...selectedBugs]);
+    lockedBugsArray.value = [...lockedBugsArray.value, ...overtakingSelection.value];
   }
   // Блокируем выбранных тараканов
 // Блокировка тараканов для вкладки Result
@@ -1436,12 +1386,7 @@ const placeBet = () => {
   else if (activeTab.value === 'overtaking') {
     const { overtaker, overtaken } = overtakingSelection.value;
     
-    if (!overtaker || !overtaken) {
-      infoMessage.value = t('select_two_bugs');
-      infoNotificationVisible.value = true;
-      setTimeout(() => infoNotificationVisible.value = false, 3000);
-      return;
-    }
+    
 
     if (totalBetAmount > balance.value) {
       infoMessage.value = t('insufficient_funds');
@@ -1466,7 +1411,7 @@ const placeBet = () => {
     
     // Сброс выбора
     menuButtons.value.forEach(b => b.selected = false);
-    overtakingSelection.value = { overtaker: null, overtaken: null };
+    overtakingSelection.value = [];
     
     infoMessage.value = t('bet_placed_successfully');
     infoNotificationVisible.value = true;
@@ -2207,12 +2152,16 @@ const stopAction = () => {
 // ==============================
 
 
+// Исправленная инициализация menuButtons
 const menuButtons = ref(
-  Array.from({ length: 49 }, (_, index) => ({
-    id: index,
-    selected: false
-  }))
-);
+  Array.from({ length: 49 }, (_, index) => 
+    reactive({
+      id: index,
+      selected: false,
+      confirmed: false,
+      betAmount: 0
+    })
+));
 
 // Обновленные кнопки победы
 const winButtons = ref([
@@ -2251,15 +2200,16 @@ const diagonalButtons = computed(() => {
 });
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
-    // Используем единое название переменной row для всех вкладок
-   const row = Math.floor(btn.id / 7); 
-    if (activeTab.value === 'result') {
+  const row = Math.floor(btn.id / 7); 
+  
+  if (activeTab.value === 'result') {
     btn.selected = !btn.selected; 
   } else if (activeTab.value === 'overtaking') {
     const bugId = row;
     
     // Проверяем наличие в массиве
     const index = overtakingSelection.value.indexOf(bugId);
+    
     if (index !== -1) {
       // Удаляем из массива
       overtakingSelection.value.splice(index, 1);
@@ -2271,7 +2221,6 @@ const toggleMenuButton = (btn) => {
     }
   }
 };
-
 
 // ==============================
 // МЕТОДЫ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ

@@ -386,7 +386,7 @@
   
   <!-- Блок для суммы ставки -->
 <div v-if="btn.confirmed" class="confirmed-bet-amount">
-    {{ btn.pendingBetAmount }}₽
+    {{ btn.pendingBetAmount || btn.betAmount }}₽
 </div>
   
   <!-- Старое отображение (для неподтвержденных кнопок) -->
@@ -946,7 +946,7 @@ const placeSectionBet = () => {
   // Сохраняем информацию о ставке для отображения
   const button = winButtons.value.find(b => b.id === selectedTrap.value);
   if (button) {
-    button.betAmount = currentBet.value;
+    button.betAmount = btn.pendingBetAmount || currentBet.value;
   }
 };
 // Добавляем новую функцию для сброса выделения
@@ -1059,6 +1059,7 @@ const checkBetsResults = () => {
   menuButtons.value.forEach(b => {
     b.selected = false;
     b.confirmed = false;
+    b.pendingBetAmount = 0; // Добавлено
     b.betAmount = 0;
   });
   betHistory.value.push(...currentRaceBets.value);
@@ -1223,18 +1224,14 @@ const resetAllBets = () => {
     clearPendingBetsSound.value.volume = soundVolume.value;
     clearPendingBetsSound.value.play().catch(e => console.error("Clear sound error:", e));
   }
+  
+  // Сбрасываем только ставки, не трогая выбор кнопок
   selectedWinnerBugIds.value = [];
   undoStack.value.push({
     type: 'reset',
     prevBet: currentBet.value
   });
   currentBet.value = 25;
-
-  menuButtons.value.forEach(btn => {
-    btn.selected = false;
-    btn.confirmed = false;
-    btn.pendingBetAmount = 0;
-});
 };
 
 // Удвоение ставки
@@ -2037,17 +2034,21 @@ const decrementBet = () => {
   const newBet = currentBet.value - betStep;
   currentBet.value = Math.max(newBet, minBet);
 }
-
-// Функция для сброса ставки к нулю
-const handleOtmenaButtonClick = () => {
+// Новая функция для сброса только текущей ставки
+const resetCurrentBet = () => {
   if (cancelPendingBetSound.value && userInteracted.value) {
     cancelPendingBetSound.value.currentTime = 0;
     cancelPendingBetSound.value.volume = soundVolume.value;
     cancelPendingBetSound.value.play().catch(e => console.error("Cancel sound error:", e));
   }
-  stopAction(); // Останавливаем любые активные интервалы
-  saveCurrentBet(); // Сохраняем текущее значение
- const currentBet = ref(25); // Было 0
+  
+  if (undoStack.value.length > 0) {
+    const lastAction = undoStack.value.pop();
+    currentBet.value = lastAction.prevBet;
+  }
+};
+const handleOtmenaButtonClick = () => {
+  resetCurrentBet();
   
   // Анимация
   const otmenaBtn = document.querySelector('.otmena-button');
@@ -2055,7 +2056,6 @@ const handleOtmenaButtonClick = () => {
     otmenaBtn.classList.add('otmena-clicked');
     setTimeout(() => otmenaBtn.classList.remove('otmena-clicked'), 300);
   }
-  resetAllBets(); 
 };
 // Новое состояние для выбранной пары тараканов (обгоняющий, обгоняемый)
 const overtakingSelection = ref([]);
@@ -2189,9 +2189,19 @@ const toggleMenuButton = (btn) => {
   } 
   
   if (activeTab.value === 'result') {
-    btn.selected = !btn.selected; 
-    btn.pendingBetAmount = currentBet.value;
-  }
+    // Проверка блокировки
+    if (lockedBugsArray.value.includes(Math.floor(btn.id / 7))) {
+        return;
+    }
+    
+    // Инвертируем состояние выбора
+    btn.selected = !btn.selected;
+    
+    // Если кнопка теперь выбрана, сохраняем текущую ставку
+    if (btn.selected) {
+        btn.pendingBetAmount = currentBet.value;
+    }
+}
 };
 
 // ==============================

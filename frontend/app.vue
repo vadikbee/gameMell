@@ -248,9 +248,11 @@
   <!-- Удалено старое отображение -->
   <!-- Новое расположение элементов -->
   <div v-if="btn.confirmed" class="confirmed-content">
-    <div class="confirmed-coefficient">2.23</div>
-    
+  <div class="confirmed-coefficient">2.23</div>
+  <div class="confirmed-bet-amount">
+    {{ btn.betAmount }}₽ <!-- Используем сохраненную сумму -->
   </div>
+</div>
   
   <div v-else>
     
@@ -958,11 +960,11 @@ const resetWinButtonSelection = () => {
 const checkBetsResults = () => {
   const winningBets = [];
   const losingBets = [];
-  resetWinMenu(); // Добавлен вызов сброса меню
+  resetWinMenu();
   let totalWin = 0;
   let totalLose = 0;
 
-   const finishedBugs = bugs.value
+  const finishedBugs = bugs.value
     .filter(bug => bug.finished)
     .sort((a, b) => a.finishTime - b.finishTime)
     .map((bug, index) => ({
@@ -971,59 +973,45 @@ const checkBetsResults = () => {
     }));
 
   currentRaceBets.value.forEach(bet => {
-    if (bet.result !== 'pending') return;
-    
-    // 2. Обработка ставки на ОБГОН
     if (bet.type === 'overtaking') {
       const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
       const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
-      
-      // Условия выигрыша:
-      let isWin = false;
-      if (overtakerResult && !overtakenResult) {
-        // Обгоняющий финишировал, обгоняемый - нет
-        isWin = true;
-      } else if (overtakerResult && overtakenResult) {
-        // Оба финишировали, сравниваем позиции
-        isWin = overtakerResult.position < overtakenResult.position;
-      }
-    }
-    // 3. Обработка ставки на СЕКЦИЮ (НОВЫЙ ТИП)
-    else if (bet.type === 'section') {
-      const button = winButtons.value.find(b => b.id === bet.trapId);
-      
-      if (!button) {
-        // Кнопка не найдена - проигрыш
-        losingBets.push({
-          ...bet,
-          loseAmount: bet.amount,
-          bugColors: bet.bugs.map(id => bugColors.value[id-1])
-        });
-        totalLose += bet.amount;
-        bet.result = 'lose';
-        return;
-      }
 
-      // Проверяем, есть ли хотя бы один выбранный таракан в списке пришедших на кнопку
-      const isWin = bet.bugs.some(bugId => button.bugs.includes(bugId));
-      
-      if (isWin) {
-        const winAmount = bet.amount * 2; // Коэффициент 2:1
+      // Условия выигрыша
+      const isOvertakerFinished = overtakerResult !== undefined;
+      const isOvertakenFinished = overtakenResult !== undefined;
+      const isOvertakerAhead = isOvertakerFinished && 
+                              (!isOvertakenFinished || 
+                               overtakerResult.position < overtakenResult.position);
+
+      if (isOvertakerAhead) {
+        // Выигрыш
+        const winAmount = bet.amount * 2;
         totalWin += winAmount;
         balance.value += winAmount;
         playIncomeSound();
+        
         winningBets.push({
           ...bet,
           winAmount,
-          bugColors: bet.bugs.map(id => bugColors.value[id-1])
+          bugColors: [
+            bugColors.value[bet.overtaker],
+            bugColors.value[bet.overtaken]
+          ]
         });
+        
         bet.result = 'win';
       } else {
+        // Проигрыш
         losingBets.push({
           ...bet,
           loseAmount: bet.amount,
-          bugColors: bet.bugs.map(id => bugColors.value[id-1])
+          bugColors: [
+            bugColors.value[bet.overtaker],
+            bugColors.value[bet.overtaken]
+          ]
         });
+        
         totalLose += bet.amount;
         bet.result = 'lose';
       }
@@ -1276,168 +1264,125 @@ const showBetPlacedNotification = () => {
 };
 // Добавляем сброс при начале гонки
 
+
+// ... предыдущий код ...
+
 const placeBet = () => {
   playBetClick();
+  
+  // Блок для ставок OVERTAKING
   if (activeTab.value === 'overtaking') {
-    // Проверяем, что выбран обгоняющий и хотя бы один обгоняемый
-    if (overtakingSelection.value.length < 2) {
-      infoMessage.value = t('select_at_least_one_bug_to_overtake');
+    const overtaker = overtakingSelection.value[0];
+    const overtaken = overtakingSelection.value.slice(1);
+
+    if (!overtaker || overtaken.length === 0) {
+      infoMessage.value = t('select_bug_to_overtake');
       infoNotificationVisible.value = true;
       setTimeout(() => infoNotificationVisible.value = false, 3000);
       return;
     }
 
-    const overtaker = overtakingSelection.value[0];
-    const overtakenBugs = overtakingSelection.value.slice(1);
-    
-    // Создаем ставки для всех комбинаций
-    overtakenBugs.forEach(overtaken => {
-      const bet = {
-        type: 'overtaking',
-        overtaker,
-        overtaken,
-        amount: currentBet.value / overtakenBugs.length,
-        timestamp: new Date().toISOString(),
-        result: 'pending'
-      };
-      betHistory.value.push(bet);
-      nextRaceBets.value.push(bet);
-    });
-    
-    // Блокируем выбранных тараканов
-    lockedBugsArray.value = [...lockedBugsArray.value, ...overtakingSelection.value];
-  }
-  // Блокируем выбранных тараканов
-// Блокировка тараканов для вкладки Result
-  if (activeTab.value === 'result') {
-    const newLocked = [...lockedBugsArray.value];
-    // ИСПРАВЛЕНИЕ: Заменяем selectedButtons на получение выбранных кнопок
-    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
-    
-    selectedButtons.forEach(button => {
-      const row = Math.floor(button.id / 7);
-      if (!newLocked.includes(row)) newLocked.push(row);
-    });
-    lockedBugsArray.value = newLocked;
-  }
-  // Блокировка для ставок на обгон
-  else if (activeTab.value === 'overtaking') {
-    const { overtaker, overtaken } = overtakingSelection.value;
-    if (overtaker !== null) lockedBugs.value.add(overtaker);
-    if (overtaken !== null) lockedBugs.value.add(overtaken);
-  }
-  
-  if (currentBet.value <= 0) {
-    infoMessage.value = t('enter_bet_amount');
-    infoNotificationVisible.value = true;
-    setTimeout(() => infoNotificationVisible.value = false, 3000);
-    return;
-  }
-
-  let betsPlaced = false;
-  const totalBetAmount = currentBet.value;
-  
-  // Ставки на конкретные места (вкладка Result)
-  if (activeTab.value === 'result') {
-    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
-    
-    if (selectedButtons.length > 0) {
-      // Проверка баланса
-      if (totalBetAmount > balance.value) {
-        infoMessage.value = t('insufficient_funds');
-        infoNotificationVisible.value = true;
-        setTimeout(() => infoNotificationVisible.value = false, 3000);
-        return;
-      }
-
-      // Списание средств
-      balance.value -= totalBetAmount;
-      showBetPlacedNotification();
-      playOutcomeSound(); // Add this line
-      
-      // Создаем ставки
-      selectedButtons.forEach(button => {
-        const row = Math.floor(button.id / 7); // 0-6 = bugId
-        const col = button.id % 7;             // 0-6 = место (col + 1)
-        const position = col + 1;
-        
-        const bet = {
-          type: 'position',
-          bugId: row,
-          position: position,
-          amount: totalBetAmount / selectedButtons.length,
-          timestamp: new Date().toISOString(),
-          result: 'pending'
-        };
-        
-        betHistory.value.push(bet);
-        nextRaceBets.value.push(bet);
-      });
-      
-      betsPlaced = true;
-      selectedButtons.forEach(button => {
-      button.betAmount = totalBetAmount / selectedButtons.length;
-      button.confirmed = true; // Помечаем кнопку как подтвержденную
-    });
-    }
-     
-  }
-   // Ставки на обгон (вкладка Overtaking)
-  else if (activeTab.value === 'overtaking') {
-    const { overtaker, overtaken } = overtakingSelection.value;
-    
-    
-
-    if (totalBetAmount > balance.value) {
+    if (currentBet.value > balance.value) {
       infoMessage.value = t('insufficient_funds');
       infoNotificationVisible.value = true;
       setTimeout(() => infoNotificationVisible.value = false, 3000);
       return;
     }
 
-    balance.value -= totalBetAmount;
-    
-    const bet = {
-      type: 'overtaking',
-      overtaker: overtaker, // id обгоняющего таракана
-      overtaken: overtaken, // id обгоняемого таракана
-      amount: totalBetAmount,
-      timestamp: new Date().toISOString(),
-      result: 'pending'
-    };
+    // Создаем ставки
+    overtaken.forEach(overtakenId => {
+      const bet = {
+        type: 'overtaking',
+        overtaker: overtaker,
+        overtaken: overtakenId,
+        amount: currentBet.value,
+        timestamp: new Date().toISOString(),
+        result: 'pending'
+      };
+      
+      betHistory.value.push(bet);
+      nextRaceBets.value.push(bet);
+    });
 
-    betHistory.value.push(bet);
-    nextRaceBets.value.push(bet);
-    
-    // Сброс выбора
+    // Блокируем тараканов
+    const bugsToLock = [overtaker, ...overtaken];
+    lockedBugsArray.value = [...lockedBugsArray.value, ...bugsToLock];
+
+    // Списание средств
+    balance.value -= currentBet.value * overtaken.length;
+    playOutcomeSound();
+    showBetPlacedNotification();
+    resetAllBets();
     menuButtons.value.forEach(b => b.selected = false);
     overtakingSelection.value = [];
+    return; // Выходим из функции после обработки
+  }
+
+  // В блоке для вкладки Result
+if (activeTab.value === 'result') {
+    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
     
-    infoMessage.value = t('bet_placed_successfully');
-    infoNotificationVisible.value = true;
-    setTimeout(() => infoNotificationVisible.value = false, 3000);
-    betsPlaced = true;
-  }
-  
-  if (betsPlaced) {
-    resetAllBets();
-  } else {
-    // Уведомление если не выбрана ставка
-    infoMessage.value = t('select_bet_option');
-    infoNotificationVisible.value = true;
-    setTimeout(() => infoNotificationVisible.value = false, 3000);
-  }
-if (betsPlaced) {
-    // Помечаем выбранные кнопки как подтвержденные
-    menuButtons.value.forEach(btn => {
-      if (btn.selected) {
-        btn.confirmed = true;
-      }
-    });
-    
-    resetAllBets();
-  }
+    if (selectedButtons.length > 0) {
+        // Рассчитываем общую сумму ставки
+        const totalBetAmount = currentBet.value * selectedButtons.length;
+        
+        if (totalBetAmount > balance.value) {
+            infoMessage.value = t('insufficient_funds');
+            infoNotificationVisible.value = true;
+            setTimeout(() => infoNotificationVisible.value = false, 3000);
+            return;
+        }
+
+        // Блокируем тараканов
+        const newLocked = [...lockedBugsArray.value];
+        selectedButtons.forEach(button => {
+            const row = Math.floor(button.id / 7);
+            if (!newLocked.includes(row)) newLocked.push(row);
+        });
+        lockedBugsArray.value = newLocked;
+
+        // Списание средств
+        balance.value -= totalBetAmount;
+        playOutcomeSound();
+        showBetPlacedNotification();
+        
+        // Создаем ставки с фиксированной суммой для каждой кнопки
+        selectedButtons.forEach(button => {
+            const row = Math.floor(button.id / 7);
+            const col = button.id % 7;
+            const position = col + 1;
+            
+            // Запоминаем ставку для этой кнопки
+            button.betAmount = currentBet.value;
+            
+            const bet = {
+                type: 'position',
+                bugId: row,
+                position: position,
+                amount: button.betAmount, // Фиксируем сумму для этой кнопки
+                timestamp: new Date().toISOString(),
+                result: 'pending'
+            };
+            
+            betHistory.value.push(bet);
+            nextRaceBets.value.push(bet);
+        });
+        
+        // Обновляем UI
+        selectedButtons.forEach(button => {
+            button.confirmed = true;
+        });
+        
+        // НЕ сбрасываем текущую ставку!
+    } else {
+        infoMessage.value = t('select_bet_option');
+        infoNotificationVisible.value = true;
+        setTimeout(() => infoNotificationVisible.value = false, 3000);
+    }
+}
 };
+
+// ... остальной код ...
 // Автоматическое обновление меню после гонки
 const resetWinMenu = () => {
   centerWinMenuVisible.value = false;
@@ -2200,25 +2145,44 @@ const diagonalButtons = computed(() => {
 });
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
-  const row = Math.floor(btn.id / 7); 
+  
+  if (activeTab.value === 'overtaking') {
+    const row = Math.floor(btn.id / 7);
+    const col = btn.id % 7;
+    
+    // Пропускаем диагональные кнопки
+    if (row === col) return;
+
+    // Проверка блокировки
+    if (lockedBugsArray.value.includes(row) || lockedBugsArray.value.includes(col)) {
+      return;
+    }
+
+    // Выбор обгоняющего (левая колонка)
+    if (col === 0) {
+      // Сбрасываем предыдущий выбор
+      menuButtons.value.forEach(b => b.selected = false);
+      overtakingSelection.value = [row];
+      btn.selected = true;
+    } 
+    // Выбор обгоняемых (остальные колонки)
+    else if (overtakingSelection.value.length > 0) {
+      const selectedIndex = overtakingSelection.value.indexOf(col);
+      
+      if (selectedIndex === -1) {
+        // Добавляем если не выбран
+        overtakingSelection.value.push(col);
+        btn.selected = true;
+      } else {
+        // Удаляем если уже выбран
+        overtakingSelection.value.splice(selectedIndex, 1);
+        btn.selected = false;
+      }
+    }
+  } 
   
   if (activeTab.value === 'result') {
     btn.selected = !btn.selected; 
-  } else if (activeTab.value === 'overtaking') {
-    const bugId = row;
-    
-    // Проверяем наличие в массиве
-    const index = overtakingSelection.value.indexOf(bugId);
-    
-    if (index !== -1) {
-      // Удаляем из массива
-      overtakingSelection.value.splice(index, 1);
-      btn.selected = false;
-    } else {
-      // Добавляем в массив
-      overtakingSelection.value.push(bugId);
-      btn.selected = true;
-    }
   }
 };
 

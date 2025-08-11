@@ -230,21 +230,20 @@
     <!-- app.vue -->
   <!-- Обновленный блок menu-buttons-container -->
 <div class="menu-buttons-container">
-  <!-- Обновите шаблон для menu-button -->
-<div 
-  v-for="btn in menuButtons" 
-  :key="btn.id"
-  class="menu-button"
-  :class="{
-    'selected': btn.selected,
-    'confirmed': btn.confirmed,
-    'text-button': activeTab === 'result' || activeTab === 'overtaking',
-    'button-visible': isButtonVisible(btn),
-    'has-bet': btn.betAmount > 0,
-    'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
-  }"
-  @click="toggleMenuButton(btn)"
->
+  <div 
+    v-for="btn in (activeTab === 'result' ? resultButtons : overtakingButtons)" 
+    :key="btn.id"
+    class="menu-button"
+    :class="{
+      'selected': btn.selected,
+      'confirmed': btn.confirmed,
+      'text-button': activeTab === 'result' || activeTab === 'overtaking',
+      'button-visible': isButtonVisible(btn),
+      'has-bet': btn.betAmount > 0,
+      'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
+    }"
+    @click="toggleMenuButton(btn)"
+  >
   <!-- Удалено старое отображение -->
   <!-- Новое расположение элементов -->
   <div v-if="btn.confirmed" class="confirmed-content">
@@ -361,47 +360,8 @@
 </div>
           </div> 
           
-          <!-- Кнопки меню -->
-       <!-- Обновленный второй контейнер menu-buttons-container -->
-<!-- Второй контейнер для кнопок -->
-<div class="menu-buttons-container">
-  <div 
-  v-for="btn in menuButtons" 
-  :key="btn.id"
-  class="menu-button"
-  :class="{
-    'selected': btn.selected,
-    'confirmed': btn.confirmed,
-    'text-button': activeTab === 'result' || activeTab === 'overtaking',
-    'button-visible': isButtonVisible(btn),
-    'has-bet': btn.betAmount > 0,
-    'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
-  }"
-  @click="toggleMenuButton(btn)"
->
-  <!-- Блок для коэффициента -->
-  <div v-if="btn.confirmed" class="confirmed-coefficient">
-    2.23
-  </div>
-  
-  <!-- Блок для суммы ставки -->
-<div v-if="btn.confirmed" class="confirmed-bet-amount">
-  {{ btn.betAmount }}₽
-</div>
-  
-  <!-- Старое отображение (для неподтвержденных кнопок) -->
-  <div v-if="!btn.confirmed">
-    
-    <div 
-      v-if="(activeTab === 'result' || activeTab === 'overtaking') && isButtonVisible(btn) && !btn.betAmount" 
-      class="coefficient-container"
-    >
-      <div class="coefficient-bg"></div>
-      <div class="coefficient-text">2.23</div>
-    </div>
-  </div>
-</div>
-</div>
+
+
         </div>
         
         <!-- Верхняя панель баланса -->
@@ -700,6 +660,7 @@ const infoMessage = ref('');
 const raceStartSound = ref(null);
 const nextRaceBets = ref([]);
 // Состояния для уведомлений
+
 // Добавляем новый массив для ставок текущей гонки
 const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
@@ -713,6 +674,7 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+
 watch(lastGameMenuVisible, (visible) => {
   if (visible) loadGameHistory();
 });
@@ -1095,7 +1057,6 @@ const stavkiButtons = ref([
   { id: '500', amount: 500 },
 ]);
 // Добавление ставки
-// Обновленная функция добавления ставки
 const addToBet = (amount) => {
   playStakeActionClick();
   const maxAllowed = Math.min(balance.value, 10000);
@@ -1109,10 +1070,17 @@ const addToBet = (amount) => {
     });
     currentBet.value = newBet;
   }
-  // Сбрасываем выбор кнопок при изменении ставки
-  menuButtons.value.forEach(btn => {
-    btn.selected = false;
-  });
+  
+  // Сбрасываем выбор кнопок на активной вкладке
+  if (activeTab.value === 'result') {
+    resultButtons.value.forEach(btn => {
+      btn.selected = false;
+    });
+  } else if (activeTab.value === 'overtaking') {
+    overtakingButtons.value.forEach(btn => {
+      btn.selected = false;
+    });
+  }
 };
 const winMenuCenterRef = ref(null);
 const buttonWinContainerRefs = ref({});
@@ -1236,6 +1204,20 @@ const resetAllBets = () => {
     prevBet: currentBet.value
   });
   currentBet.value = 25;
+// Сбрасываем кнопки на обеих вкладках
+  resultButtons.value.forEach(b => {
+    b.selected = false;
+    b.confirmed = false;
+    b.pendingBetAmount = 0;
+    b.betAmount = 0;
+  });
+  
+  overtakingButtons.value.forEach(b => {
+    b.selected = false;
+    b.confirmed = false;
+    b.pendingBetAmount = 0;
+    b.betAmount = 0;
+  });
 };
 
 // Удвоение ставки
@@ -1254,8 +1236,10 @@ const multiplyBet = () => {
       currentBet.value = newBet;
     }
   }
-  if (activeTab.value === 'result') {
-    resetSelectedMenuButtons();
+   if (activeTab.value === 'result') {
+    resultButtons.value.forEach(btn => btn.selected = false);
+  } else {
+    overtakingButtons.value.forEach(btn => btn.selected = false);
   }
   menuButtons.value.forEach(btn => {
     btn.selected = false;
@@ -1278,16 +1262,29 @@ const showBetPlacedNotification = () => {
 // Добавляем сброс при начале гонки
 
 
-// ... предыдущий код ...
 const resetSelectedMenuButtons = () => {
-  menuButtons.value.forEach(btn => {
-    if (btn.selected) {
-      btn.selected = false;
-      btn.pendingBetAmount = 0;
-    }
-  });
+  if (activeTab.value === 'result') {
+    resultButtons.value.forEach(btn => {
+      if (btn.selected) {
+        btn.selected = false;
+        btn.pendingBetAmount = 0;
+      }
+    });
+  } else {
+    overtakingButtons.value.forEach(btn => {
+      if (btn.selected) {
+        btn.selected = false;
+        btn.pendingBetAmount = 0;
+      }
+    });
+  }
 };
 const placeBet = () => {
+  const workingButtons = activeTab.value === 'result' 
+    ? resultButtons.value 
+    : overtakingButtons.value;
+    
+  const selectedButtons = workingButtons.filter(btn => btn.selected);
   playBetClick();
   
   // Блок для ставок OVERTAKING
@@ -1333,14 +1330,14 @@ const placeBet = () => {
     playOutcomeSound();
     showBetPlacedNotification();
     resetAllBets();
-    menuButtons.value.forEach(b => b.selected = false);
+    overtakingButtons.value.forEach(b => b.selected = false);
     overtakingSelection.value = [];
-    return; // Выходим из функции после обработки
+    return;
   }
 
   // В блоке для вкладки Result
 if (activeTab.value === 'result') {
-    const selectedButtons = menuButtons.value.filter(btn => btn.selected);
+    const selectedButtons = resultButtons.value.filter(btn => btn.selected);
     
     if (selectedButtons.length > 0) {
         // Рассчитываем общую сумму ставки
@@ -1481,22 +1478,22 @@ const lastGames = ref([
 
 const setActiveTab = (tab) => {
   playStakeActionClick();
-  // Сбрасываем выделение со всех кнопок
-   menuButtons.value.forEach(btn => btn.selected = false);
-  selectedWinnerBugIds.value = [];
-  activeTab.value = tab;
-  menuButtons.value.forEach(btn => {
-    btn.selected = false;
-  });
   
-  // Сбрасываем выбранных тараканов-победителей (только для вкладки Result)
-  selectedWinnerBugIds.value = [];
+  // Сбрасываем выделение на текущей активной вкладке
+  if (activeTab.value === 'result') {
+    resultButtons.value.forEach(btn => btn.selected = false);
+  } else if (activeTab.value === 'overtaking') {
+    overtakingButtons.value.forEach(btn => btn.selected = false);
+  }
   
   // Устанавливаем новую вкладку
   activeTab.value = tab;
-
-if (tab === 'overtaking') {
-    // Инициализируем как пустой массив
+  
+  // Сбрасываем выбранных тараканов-победителей
+  selectedWinnerBugIds.value = [];
+  
+  // Если переключаемся на Overtaking, сбрасываем выбор обгона
+  if (tab === 'overtaking') {
     overtakingSelection.value = [];
   }
 };
@@ -2133,16 +2130,28 @@ const stopAction = () => {
 
 
 // Исправленная инициализация menuButtons
-const menuButtons = ref(
+// Заменяем старый menuButtons на два независимых массива:
+const resultButtons = ref(
   Array.from({ length: 49 }, (_, index) => 
     reactive({
       id: index,
       selected: false,
       confirmed: false,
-      
       betAmount: 0
     })
-));
+  )
+);
+
+const overtakingButtons = ref(
+  Array.from({ length: 49 }, (_, index) => 
+    reactive({
+      id: index,
+      selected: false,
+      confirmed: false,
+      betAmount: 0
+    })
+  )
+);
 
 // Обновленные кнопки победы
 const winButtons = ref([
@@ -2181,7 +2190,11 @@ const diagonalButtons = computed(() => {
 });
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
-  
+  // Определяем рабочий массив кнопок в зависимости от вкладки
+  const workingButtons = activeTab.value === 'result' 
+    ? resultButtons.value 
+    : overtakingButtons.value;
+
   if (activeTab.value === 'overtaking') {
     const row = Math.floor(btn.id / 7);
     const col = btn.id % 7;

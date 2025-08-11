@@ -567,11 +567,11 @@ const clearPendingBetsSound = ref(null);
 const cancelPendingBetSound = ref(null);
 const stakeActionClickSound = ref(null);
 
+// Добавим функцию unlockAllBugs, если её нет
 const unlockAllBugs = () => {
   lockedBugs.value = new Set();
-  lockedBugsArray.value = [];
+  lockedBugsArray.value = []; // Очищаем массив заблокированных
 };
-
 
 const switchLanguage = () => {
   const newLang = locale.value === 'en' ? 'ru' : 'en';
@@ -979,7 +979,7 @@ const checkBetsResults = () => {
       }
     }
   });
-
+  unlockAllBugs();
   // Показ уведомления о выигрыше
   if (winningBets.length > 0) {
     winData.value = {
@@ -1021,12 +1021,15 @@ const checkBetsResults = () => {
   menuButtons.value.forEach(b => {
     b.selected = false;
     b.confirmed = false;
-    b.pendingBetAmount = 0; // Добавлено
+    b.pendingBetAmount = 0;
     b.betAmount = 0;
   });
+  
+  // Снимаем блокировку ВСЕХ тараканов
+  unlockAllBugs();
+  
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
-  unlockAllBugs();
 };
 
 // Обновленная функция resetBugSelections
@@ -1218,6 +1221,7 @@ const resetAllBets = () => {
     b.pendingBetAmount = 0;
     b.betAmount = 0;
   });
+  
 };
 
 // Удвоение ставки
@@ -1669,6 +1673,7 @@ const handleVisibilityChange = () => {
   }
 };
 const saveGameResults = async () => {
+  
     // Собираем только финишировавших тараканов и сортируем по времени финиша
     const finishedBugs = bugs.value
         .filter(bug => bug.finished)
@@ -1706,6 +1711,12 @@ const saveGameResults = async () => {
   
   // Сбрасываем выбор тараканов
   resetBugSelections();
+   // Снимаем блокировку после сохранения результатов
+  unlockAllBugs();
+// Проверяем результаты ставок
+  setTimeout(() => {
+    checkBetsResults();
+  }, 1000);
 };
 
 // Добавляем состояние для анимации взрыва
@@ -3705,8 +3716,41 @@ document.removeEventListener('click', firstInteractionHandler);
   }
 }
 
+/* Добавляем стили для заблокированных тараканов */
+.bug-button.locked {
+  opacity: 0.5;
+  filter: grayscale(100%) brightness(0.7);
+}
 
+/* Убираем эффекты при наведении на заблокированных */
+.bug-button.locked:hover {
+  transform: scale(1) !important;
+  filter: grayscale(100%) brightness(0.7) !important;
+}
 
+/* Отключаем анимацию клика для заблокированных */
+.bug-button.locked.bug-button-clicked {
+  animation: none !important;
+}
+
+/* Затемняем изображение таракана */
+.bug-button.locked .bug-image {
+  filter: brightness(0.6);
+}
+/* Иконка замка для заблокированных тараканов */
+.bug-button.locked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background-image: url('/images/icons/lock.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+}
 /* Стили для черной менюшки */
 .panel-up {
   position: relative;

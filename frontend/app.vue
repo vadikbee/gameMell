@@ -386,7 +386,7 @@
   
   <!-- Блок для суммы ставки -->
 <div v-if="btn.confirmed" class="confirmed-bet-amount">
-    {{ btn.pendingBetAmount || btn.betAmount }}₽
+  {{ btn.betAmount }}₽
 </div>
   
   <!-- Старое отображение (для неподтвержденных кнопок) -->
@@ -1109,6 +1109,10 @@ const addToBet = (amount) => {
     });
     currentBet.value = newBet;
   }
+  // Сбрасываем выбор кнопок при изменении ставки
+  menuButtons.value.forEach(btn => {
+    btn.selected = false;
+  });
 };
 const winMenuCenterRef = ref(null);
 const buttonWinContainerRefs = ref({});
@@ -1250,6 +1254,12 @@ const multiplyBet = () => {
       currentBet.value = newBet;
     }
   }
+  if (activeTab.value === 'result') {
+    resetSelectedMenuButtons();
+  }
+  menuButtons.value.forEach(btn => {
+    btn.selected = false;
+  });
 };
 
 // Добавьте вычисляемое свойство
@@ -1269,7 +1279,14 @@ const showBetPlacedNotification = () => {
 
 
 // ... предыдущий код ...
-
+const resetSelectedMenuButtons = () => {
+  menuButtons.value.forEach(btn => {
+    if (btn.selected) {
+      btn.selected = false;
+      btn.pendingBetAmount = 0;
+    }
+  });
+};
 const placeBet = () => {
   playBetClick();
   
@@ -1298,7 +1315,7 @@ const placeBet = () => {
         type: 'overtaking',
         overtaker: overtaker,
         overtaken: overtakenId,
-        amount: currentBet.value,
+         amount: button.pendingBetAmount, // Используем сохраненную сумму
         timestamp: new Date().toISOString(),
         result: 'pending'
       };
@@ -1327,7 +1344,8 @@ if (activeTab.value === 'result') {
     
     if (selectedButtons.length > 0) {
         // Рассчитываем общую сумму ставки
-        const totalBetAmount = selectedButtons.reduce((sum, button) => sum + button.pendingBetAmount, 0);
+           const totalBetAmount = currentBet.value * selectedButtons.length;
+      
         
         if (totalBetAmount > balance.value) {
             infoMessage.value = t('insufficient_funds');
@@ -1349,26 +1367,32 @@ if (activeTab.value === 'result') {
         playOutcomeSound();
         showBetPlacedNotification();
         
+        if (selectedButtons.length > 0) {
+              // Используем текущую ставку для всех выбранных кнопок
+              const betAmount = currentBet.value;
+
         // Создаем ставки с фиксированной суммой для каждой кнопки
         selectedButtons.forEach(button => {
             const row = Math.floor(button.id / 7);
             const col = button.id % 7;
             const position = col + 1;
             
-            // Запоминаем ставку для этой кнопки
-            button.betAmount = currentBet.value;
+            
+              button.betAmount = betAmount;
+              button.confirmed = true;
             
             const bet = {
                 type: 'position',
                 bugId: row,
                 position: position,
-                amount: button.pendingBetAmount, // Используем сохраненную сумму
+                amount: betAmount, // Используем сохраненную сумму
                 timestamp: new Date().toISOString(),
                 result: 'pending'
             };
             
             betHistory.value.push(bet);
             nextRaceBets.value.push(bet);
+            
         });
         
         // Обновляем UI
@@ -1376,12 +1400,13 @@ if (activeTab.value === 'result') {
             button.confirmed = true;
         });
         
-        // НЕ сбрасываем текущую ставку!
+    }    // НЕ сбрасываем текущую ставку!
     } else {
         infoMessage.value = t('select_bet_option');
         infoNotificationVisible.value = true;
         setTimeout(() => infoNotificationVisible.value = false, 3000);
     }
+    
 }
 };
 
@@ -2046,9 +2071,13 @@ const resetCurrentBet = () => {
     const lastAction = undoStack.value.pop();
     currentBet.value = lastAction.prevBet;
   }
+  // Сбрасываем выбранные кнопки
+  if (activeTab.value === 'result') {
+    resetSelectedMenuButtons();
+  }
 };
 const handleOtmenaButtonClick = () => {
-  resetCurrentBet();
+  resetAllBets();
   
   // Анимация
   const otmenaBtn = document.querySelector('.otmena-button');
@@ -2080,7 +2109,7 @@ const startAction = (action) => {
 };
 
 const startIncrement = () => startAction(incrementBet);
-const startDecrement = () => startAction(decrementBet);
+
 
 const stopAction = () => {
   if (actionTimeout.value) {
@@ -2110,7 +2139,7 @@ const menuButtons = ref(
       id: index,
       selected: false,
       confirmed: false,
-      pendingBetAmount: 0, // Добавлено
+      
       betAmount: 0
     })
 ));
@@ -2188,11 +2217,18 @@ const toggleMenuButton = (btn) => {
     }
   } 
   
-  if (activeTab.value === 'result') {
+    if (activeTab.value === 'result') {
     // Проверка блокировки
     if (lockedBugsArray.value.includes(Math.floor(btn.id / 7))) {
-        return;
+      return;
     }
+    
+    // Если кнопка уже подтверждена, не позволяем выбирать
+    if (btn.confirmed) {
+      return;
+    }
+    
+    
     
     // Инвертируем состояние выбора
     btn.selected = !btn.selected;

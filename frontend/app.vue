@@ -385,9 +385,9 @@
   </div>
   
   <!-- Блок для суммы ставки -->
-  <div v-if="btn.confirmed" class="confirmed-bet-amount">
-    {{ btn.betAmount }}₽
-  </div>
+<div v-if="btn.confirmed" class="confirmed-bet-amount">
+    {{ btn.pendingBetAmount }}₽
+</div>
   
   <!-- Старое отображение (для неподтвержденных кнопок) -->
   <div v-if="!btn.confirmed">
@@ -1229,6 +1229,12 @@ const resetAllBets = () => {
     prevBet: currentBet.value
   });
   currentBet.value = 25;
+
+  menuButtons.value.forEach(btn => {
+    btn.selected = false;
+    btn.confirmed = false;
+    btn.pendingBetAmount = 0;
+});
 };
 
 // Удвоение ставки
@@ -1324,7 +1330,7 @@ if (activeTab.value === 'result') {
     
     if (selectedButtons.length > 0) {
         // Рассчитываем общую сумму ставки
-        const totalBetAmount = currentBet.value * selectedButtons.length;
+        const totalBetAmount = selectedButtons.reduce((sum, button) => sum + button.pendingBetAmount, 0);
         
         if (totalBetAmount > balance.value) {
             infoMessage.value = t('insufficient_funds');
@@ -1359,7 +1365,7 @@ if (activeTab.value === 'result') {
                 type: 'position',
                 bugId: row,
                 position: position,
-                amount: button.betAmount, // Фиксируем сумму для этой кнопки
+                amount: button.pendingBetAmount, // Используем сохраненную сумму
                 timestamp: new Date().toISOString(),
                 result: 'pending'
             };
@@ -2104,6 +2110,7 @@ const menuButtons = ref(
       id: index,
       selected: false,
       confirmed: false,
+      pendingBetAmount: 0, // Добавлено
       betAmount: 0
     })
 ));
@@ -2183,6 +2190,7 @@ const toggleMenuButton = (btn) => {
   
   if (activeTab.value === 'result') {
     btn.selected = !btn.selected; 
+    btn.pendingBetAmount = currentBet.value;
   }
 };
 

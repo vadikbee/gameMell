@@ -1340,7 +1340,7 @@ const placeBet = () => {
     
     if (overtakerButton) {
       overtakerButton.confirmed = true;
-      overtakerButton.betAmount = currentBet.value * overtakenArray.length;
+      overtakerButton.betAmount = overtakerButton.betAmount = currentBet.value;
     }
     
     overtakenArray.forEach(id => {

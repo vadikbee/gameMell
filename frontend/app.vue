@@ -676,7 +676,34 @@ const centerMenuRef = ref(null);
 const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
+// Добавляем эти функции
+const startDecrement = () => startAction(decrementBet);
+const startIncrement = () => startAction(incrementBet);
 
+const decrementBet = () => {
+  playStakeActionClick();
+  if (!actionInterval.value && !actionTimeout.value) {
+    saveCurrentBet();
+  }
+  const newBet = currentBet.value - betStep;
+  currentBet.value = Math.max(newBet, minBet);
+}
+
+const incrementBet = () => {
+  playStakeActionClick();
+  if (!actionInterval.value && !actionTimeout.value) {
+    saveCurrentBet();
+  }
+  const newBet = currentBet.value + betStep;
+  currentBet.value = Math.min(newBet, maxBet, balance.value);
+}
+
+const saveCurrentBet = () => {
+  undoStack.value.push({
+    type: 'change',
+    prevBet: currentBet.value
+  });
+}
 watch(lastGameMenuVisible, (visible) => {
   if (visible) loadGameHistory();
 });
@@ -855,10 +882,9 @@ const playOutcomeSound = () => {
     console.error("Outcome sound error:", e);
   }
 };
-// Обработчик ставки на секцию
 const placeSectionBet = () => {
-  playBetClick(); // Добавляем звук
-   // Блокируем выбранных тараканов
+  playBetClick();
+  // Блокируем выбранных тараканов
   const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
   lockedBugsArray.value = newLocked;
 
@@ -867,7 +893,7 @@ const placeSectionBet = () => {
     return;
   }
 
- // Проверка минимальной ставки
+  // Проверка минимальной ставки
   const minBet = 25;
   if (currentBet.value < minBet) {
     alert(`Минимальная ставка: ${minBet}₽`);
@@ -875,43 +901,35 @@ const placeSectionBet = () => {
   }
 
   // Проверка достаточности средств
-  if (currentBet.value > balance.value) {
+  if (currentBet.value * selectedBugs.value.length > balance.value) {
     alert('Недостаточно средств на балансе');
     return;
   }
 
   // Списание средств
-  balance.value -= currentBet.value;
+  balance.value -= currentBet.value * selectedBugs.value.length;
   showBetPlacedNotification();
-  playOutcomeSound(); // Add this line
+  playOutcomeSound();
 
- // Создаем объект ставки
-  const bet = {
-    type: 'section',
-    trapId: selectedTrap.value,
-    bugs: [...selectedBugs.value],
-    amount: currentBet.value,
-    timestamp: new Date().toISOString(),
-    result: 'pending'
-  };
+  // Создаем ставки для каждого выбранного таракана
+  selectedBugs.value.forEach(bugId => {
+    nextRaceBets.value.push({
+      type: 'section',
+      trapId: selectedTrap.value,
+      bugId: bugId,
+      amount: currentBet.value
+    });
+  });
 
-  // Всегда добавляем ставку в nextRaceBets
-  nextRaceBets.value.push(bet);
-  
-  // Всегда показываем уведомление о ставке на следующую гонку
-  showNotification(t('next_round_bet'), false);
-  
-  // Сбрасываем текущий выбор
-  resetBugSelections();
-  
-  // Закрываем меню
-  resetWinButtonSelection();
-  centerWinMenuVisible.value = false;
-  // Сохраняем информацию о ставке для отображения
+  // Обновляем отображение суммы ставки на кнопке
   const button = winButtons.value.find(b => b.id === selectedTrap.value);
   if (button) {
-    button.betAmount = btn.pendingBetAmount || currentBet.value;
+    button.betAmount = (button.betAmount || 0) + currentBet.value * selectedBugs.value.length;
   }
+
+  resetBugSelections();
+  resetWinButtonSelection();
+  centerWinMenuVisible.value = false;
 };
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
@@ -922,62 +940,114 @@ const resetWinButtonSelection = () => {
 };
 
 const checkBetsResults = () => {
+   // Правильный расчет позиций:
+const finishedBugs = bugs.value
+  .filter(bug => bug.finished)
+  .sort((a, b) => a.finishTime - b.finishTime) // Сортировка по времени финиша
+  .map((bug, index) => ({
+    ...bug,
+    position: index + 1 // Присваиваем позицию по порядку финиша
+  }));
+  
   const winningBets = [];
   const losingBets = [];
   resetWinMenu();
   let totalWin = 0;
   let totalLose = 0;
 
-  const finishedBugs = bugs.value
-    .filter(bug => bug.finished)
-    .sort((a, b) => a.finishTime - b.finishTime)
-    .map((bug, index) => ({
-      id: bug.id,
-      position: index + 1
-    }));
+// Создаем объект для быстрого доступа к позициям тараканов
+  const bugPositions = {};
+  finishedBugs.forEach((bug, index) => {
+    bugPositions[bug.id] = index + 1; // позиция (место)
+  });
+
+
+
 
    currentRaceBets.value.forEach(bet => {
     if (bet.type === 'overtaking') {
-      const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
-      const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
-      
-      // Условия выигрыша
-      const isWin = overtakerResult && overtakenResult && 
-                   overtakerResult.position < overtakenResult.position;
+        const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
+        const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
+        
+        // Исправленное условие выигрыша
+        const isWin = overtakerResult && 
+               (!overtakenResult || overtakerResult.position < overtakenResult.position);
 
-      if (isOvertakerAhead) {
-        // Выигрыш
-        const winAmount = bet.amount * 2;
+        if (isWin) {
+            // Выигрыш
+            const winAmount = bet.amount * 2;
+            totalWin += winAmount;
+            balance.value += winAmount;
+            playIncomeSound();
+            
+            winningBets.push({
+                ...bet,
+                winAmount,
+                bugColors: [
+                    bugColors.value[bet.overtaker],
+                    bugColors.value[bet.overtaken]
+                ]
+            });
+            
+            bet.result = 'win';
+        } else {
+            // Проигрыш
+            losingBets.push({
+                ...bet,
+                loseAmount: bet.amount,
+                bugColors: [
+                    bugColors.value[bet.overtaker],
+                    bugColors.value[bet.overtaken]
+                ]
+            });
+            
+            totalLose += bet.amount;
+            bet.result = 'lose';
+        }
+    }
+
+// Добавляем обработку для ставок типа "position" (result)
+    else if (bet.type === 'position') {
+      const bugId = bet.bugId;
+      const finishedPosition = bugPositions[bugId];
+
+      // Таракан не финишировал - ставка проиграла
+      if (finishedPosition === undefined) {
+        totalLose += bet.amount;
+        losingBets.push({
+          ...bet,
+          loseAmount: bet.amount,
+          bugColors: [bugColors.value[bugId]]
+        });
+        bet.result = 'lose';
+      } 
+      // Таракан финишировал на указанном месте - ставка выиграла
+      else if (finishedPosition === bet.position) {
+        const winAmount = bet.amount * 2.23; // Коэффициент 2.23
         totalWin += winAmount;
         balance.value += winAmount;
         playIncomeSound();
         
         winningBets.push({
           ...bet,
-          winAmount,
-          bugColors: [
-            bugColors.value[bet.overtaker],
-            bugColors.value[bet.overtaken]
-          ]
+          winAmount: winAmount,
+          bugColors: [bugColors.value[bugId]]
         });
-        
         bet.result = 'win';
-      } else {
-        // Проигрыш
+      } 
+      // Таракан финишировал, но не на указанном месте - ставка проиграла
+      else {
+        totalLose += bet.amount;
         losingBets.push({
           ...bet,
           loseAmount: bet.amount,
-          bugColors: [
-            bugColors.value[bet.overtaker],
-            bugColors.value[bet.overtaken]
-          ]
+          bugColors: [bugColors.value[bugId]]
         });
-        
-        totalLose += bet.amount;
         bet.result = 'lose';
       }
     }
   });
+
   unlockAllBugs();
   // Показ уведомления о выигрыше
   if (winningBets.length > 0) {
@@ -1369,21 +1439,21 @@ if (activeTab.value === 'result') {
 
         // Создаем ставки с фиксированной суммой для каждой кнопки
         selectedButtons.forEach(button => {
-            const row = Math.floor(button.id / 7);
-            const col = button.id % 7;
-            const position = col + 1;
+            const bugId = Math.floor(button.id / 7); // Строка = таракан
+            const position = (button.id % 7) + 1; // Колонка = место
             
             
               button.betAmount = betAmount;
               button.confirmed = true;
             
+            // Исправленный код:
             const bet = {
-                type: 'position',
-                bugId: row,
-                position: position,
-                amount: betAmount, // Используем сохраненную сумму
-                timestamp: new Date().toISOString(),
-                result: 'pending'
+              type: 'position',
+              bugId: bugId, // Используем существующую переменную
+              position: position,
+              amount: betAmount,
+              timestamp: new Date().toISOString(),
+              result: 'pending'
             };
             
             betHistory.value.push(bet);
@@ -1642,13 +1712,13 @@ const menuBugs = ref([
 ]);
 // В секции <script setup>
 const bugColors = ref([
-  '#FFFF00', // Желтый (1)
-  '#FFA500', // Оранжевый (2)
-  '#FF0000', // Красный (3)
-  '#0000FF', // Синий (4)
-  '#8B0000', // Темно-красный (5)
-  '#800080', // Фиолетовый (6)
-  '#00FF00'  // Зеленый (7)
+  '#FFFF00', // 1. Желтый
+  '#FFA500', // 2. Оранжевый
+  '#8B0000', // 3. Темно-оранжевый
+  '#0000FF', // 4. Синий
+  '#FF0000', // 5. Красный
+  '#800080', // 6. Фиолетовый
+  '#00FF00'  // 7. Зеленый
 ]);
 // ===2. Упрощенная функция обработки видимости===
 // 2. Упрощенный обработчик видимости вкладки
@@ -1834,6 +1904,7 @@ const animate = () => {
           bug.bluePointProgress = 0;
           bug.finishTime = now;
           
+          
           // Добавляем таракана в кнопку (максимум 2)
           const button = winButtons.value.find(b => b.id === zone.buttonId);
           if (button && button.bugs.length < 4) {
@@ -1875,7 +1946,9 @@ else if (bug.phase === 'to_blue_point') {
       button.occupied = true;
       button.finishedBugId = bug.id;
       bug.finishTime = now; // Сохраняем время финиша
+      bug.trapId = bug.targetButtonId; // Сохраняем ID секции
     }
+
   }
 }
   });
@@ -1975,9 +2048,7 @@ watch(centerMenuVisible, (newVal) => {
   }
 });
 
-const saveCurrentBet = () => {
-  betHistory.value.push(currentBet.value);
-};
+
 
 // Восстанавливаем предыдущую ставку из истории
 const restorePreviousBet = () => {
@@ -2044,24 +2115,8 @@ const handleX2ButtonClick = () => {
 
 
 
-// Обновленные функции изменения ставки с сохранением состояния
-const incrementBet = () => {
-  playStakeActionClick();
-  if (!actionInterval.value && !actionTimeout.value) {
-    saveCurrentBet();
-  }
-  const newBet = currentBet.value + betStep;
-  currentBet.value = Math.min(newBet, maxBet, balance.value);
-}
 
-const decrementBet = () => {
-  playStakeActionClick();
-  if (!actionInterval.value && !actionTimeout.value) {
-    saveCurrentBet();
-  }
-  const newBet = currentBet.value - betStep;
-  currentBet.value = Math.max(newBet, minBet);
-}
+
 // Новая функция для сброса только текущей ставки
 const resetCurrentBet = () => {
   if (cancelPendingBetSound.value && userInteracted.value) {
@@ -2094,17 +2149,10 @@ const overtakingSelection = ref({
   overtaker: null,
   overtaken: new Set()
 });
-// Функции для управления зажатием кнопок
 const startAction = (action) => {
-  // Первое срабатывание сразу
   action();
-  
-  // Задержка перед началом быстрого повторения
   actionTimeout.value = setTimeout(() => {
-    // Быстрое повторение
     actionInterval.value = setInterval(action, actionSpeed.value);
-    
-    // Ускорение с течением времени
     speedUpInterval.value = setInterval(() => {
       actionSpeed.value = Math.max(50, actionSpeed.value - 50);
       clearInterval(actionInterval.value);
@@ -2113,7 +2161,7 @@ const startAction = (action) => {
   }, 500);
 };
 
-const startIncrement = () => startAction(incrementBet);
+
 
 
 const stopAction = () => {

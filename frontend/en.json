@@ -14,5 +14,14 @@
   "bet_lost": "Bet lost",
   "bet_number": "Bet #{0}",
   "currency": "$",
-  "who_reaches_section": "who reaches which section?"
+  "who_reaches_section": "who reaches which section?",
+
+  "bet_placed": "Bet placed!",
+  "information": "Information",
+  "enable_sound_hint": "Please enable sound in your browser settings",
+  "personal_account_coming_soon": "Personal account coming soon",
+  "winning_amount": "Winning amount",
+  "losing_amount": "Loss amount",
+  "press_for_more": "Tap for details",
+  "close": "Close"
 }

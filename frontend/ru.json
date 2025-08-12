@@ -14,5 +14,14 @@
   "bet_lost": "Ставка проиграла",
   "bet_number": "Ставка #{0}",
   "currency": "₽",
-  "who_reaches_section": "кто достигнет этой ячейки?"
+  "who_reaches_section": "кто достигнет этой ячейки?",
+
+  "bet_placed": "Ставка принята!",
+  "information": "Информация",
+  "enable_sound_hint": "Пожалуйста, включите звук в настройках браузера",
+  "personal_account_coming_soon": "Личный кабинет скоро будет доступен",
+  "winning_amount": "Сумма выигрыша",
+  "losing_amount": "Сумма проигрыша",
+  "press_for_more": "Нажмите для подробностей",
+  "close": "Закрыть"
 }

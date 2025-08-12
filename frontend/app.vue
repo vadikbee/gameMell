@@ -2211,26 +2211,29 @@ const toggleMenuButton = (btn) => {
   const col = btn.id % 7;
 
   if (activeTab.value === 'overtaking') {
-    // Safely access overtakingSelection values
-    const overtaker = overtakingSelection.value?.overtaker ?? null;
-    const overtaken = overtakingSelection.value?.overtaken ?? new Set();
-
-    // Rest of the code remains the same
-    
     if (lockedBugsArray.value.includes(row) || lockedBugsArray.value.includes(col)) return;
     
-    if (overtaker === null || overtaker !== row) {
-      resetOvertakingSelection();
-      overtakingSelection.value.overtaker = row;
-      overtakingButtons.value[row * 7].selected = true;
-    }
+    const { overtaker, overtaken } = overtakingSelection.value;
     
-    if (overtaken.has(col)) {
-      overtakingSelection.value.overtaken.delete(col);
-      btn.selected = false;
-    } else {
+    if (overtaker === null || overtaker !== row) {
+      // Сбрасываем ВСЕ выделения
+      resetOvertakingSelection();
+      
+      // Устанавливаем только текущий выбор
+      overtakingSelection.value.overtaker = row;
       overtakingSelection.value.overtaken.add(col);
+      
+      // Выделяем ТОЛЬКО текущую кнопку
       btn.selected = true;
+    } else {
+      // Только переключение текущей кнопки
+      if (overtaken.has(col)) {
+        overtakingSelection.value.overtaken.delete(col);
+        btn.selected = false;
+      } else {
+        overtakingSelection.value.overtaken.add(col);
+        btn.selected = true;
+      }
     }
   }
 

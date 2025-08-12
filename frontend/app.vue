@@ -1050,7 +1050,7 @@ const finishedBugs = bugs.value
     }
   });
 
-  unlockAllBugs();
+  
   // Показ уведомления о выигрыше
   if (winningBets.length > 0) {
     winData.value = {
@@ -1088,23 +1088,9 @@ const finishedBugs = bugs.value
       }
     }, 3000);
   }
-  // Сбрасываем состояния кнопок после проверки ставок
-resultButtons.value.forEach(b => {
-  b.selected = false;
-  b.confirmed = false;
-  b.pendingBetAmount = 0;
-  b.betAmount = 0;
-});
-
-overtakingButtons.value.forEach(b => {
-  b.selected = false;
-  b.confirmed = false;
-  b.pendingBetAmount = 0;
-  b.betAmount = 0;
-});
   
-  // Снимаем блокировку ВСЕХ тараканов
-  unlockAllBugs();
+  
+  
   
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
@@ -1794,8 +1780,7 @@ const saveGameResults = async () => {
   
   // Сбрасываем выбор тараканов
   resetBugSelections();
-   // Снимаем блокировку после сохранения результатов
-  unlockAllBugs();
+   
 // Проверяем результаты ставок
   setTimeout(() => {
     checkBetsResults();
@@ -2411,6 +2396,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+  unlockAllBugs();
   resetOvertakingSelection();
 // Сбрасываем блокировку тараканов
   lockedBugs.value = new Set();
@@ -2426,7 +2412,20 @@ playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
     currentRaceBets.value = [...nextRaceBets.value];
     nextRaceBets.value = [];
   }
-  
+  // Сбрасываем состояния кнопок после проверки ставок
+resultButtons.value.forEach(b => {
+  b.selected = false;
+  b.confirmed = false;
+  b.pendingBetAmount = 0;
+  b.betAmount = 0;
+});
+
+overtakingButtons.value.forEach(b => {
+  b.selected = false;
+  b.confirmed = false;
+  b.pendingBetAmount = 0;
+  b.betAmount = 0;
+});
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;

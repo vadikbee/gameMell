@@ -659,7 +659,10 @@ const infoMessage = ref('');
 const raceStartSound = ref(null);
 const nextRaceBets = ref([]);
 // Состояния для уведомлений
-
+// Добавляем состояние для хранения выделений по строкам
+const overtakingSelections = ref({});
+// Добавляем реактивное состояние текущей строки
+const currentOvertakerRow = ref(null);
 // Добавляем новый массив для ставок текущей гонки
 const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
@@ -933,17 +936,14 @@ const checkBetsResults = () => {
       position: index + 1
     }));
 
-  currentRaceBets.value.forEach(bet => {
+   currentRaceBets.value.forEach(bet => {
     if (bet.type === 'overtaking') {
       const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
       const overtakenResult = finishedBugs.find(b => b.id === bet.overtaken);
-
+      
       // Условия выигрыша
-      const isOvertakerFinished = overtakerResult !== undefined;
-      const isOvertakenFinished = overtakenResult !== undefined;
-      const isOvertakerAhead = isOvertakerFinished && 
-                              (!isOvertakenFinished || 
-                               overtakerResult.position < overtakenResult.position);
+      const isWin = overtakerResult && overtakenResult && 
+                   overtakerResult.position < overtakenResult.position;
 
       if (isOvertakerAhead) {
         // Выигрыш
@@ -1297,16 +1297,15 @@ const placeBet = () => {
   const selectedButtons = workingButtons.filter(btn => btn.selected);
   playBetClick();
   
-  if (activeTab.value === 'overtaking') {
-  const { overtaker, overtaken } = overtakingSelection.value; // Используем деструктуризацию
-  
-  // Заменяем overtakenArray на overtaken
-  if (overtaker === null || overtaken.size === 0) {
-    infoMessage.value = t('select_bug_to_overtake');
-    infoNotificationVisible.value = true;
-    setTimeout(() => infoNotificationVisible.value = false, 3000);
-    return;
-  }
+   if (activeTab.value === 'overtaking') {
+    const { overtaker, overtaken } = overtakingSelection.value;
+    
+    if (overtaker === null || overtaken.size === 0) {
+      infoMessage.value = t('select_bug_to_overtake');
+      infoNotificationVisible.value = true;
+      setTimeout(() => infoNotificationVisible.value = false, 3000);
+      return;
+    }
     
     // Создаем ставки для каждой пары
     overtaken.forEach(overtakenId => {
@@ -1323,21 +1322,22 @@ const placeBet = () => {
       nextRaceBets.value.push(bet);
     });
     
+    // Списание средств
+    balance.value -= currentBet.value * overtaken.size;
     
-  // Списание средств
-  balance.value -= currentBet.value * overtaken.size;
-  
-  // Отмечаем кнопки как подтвержденные
-  overtaken.forEach(id => {
-    const button = overtakingButtons.value.find(b => b.id === overtaker * 7 + id);
-    if (button) {
-      button.confirmed = true;
-      button.betAmount = currentBet.value;
-    }
-  });
+    // Отмечаем кнопки как подтвержденные
+    overtaken.forEach(id => {
+      const button = overtakingButtons.value.find(
+        b => b.id === overtaker * 7 + id
+      );
+      if (button) {
+        button.confirmed = true;
+        button.betAmount = currentBet.value;
+      }
+    });
 
-  resetOvertakingSelection();
-}
+    resetOvertakingSelection();
+  }
 
 
   // В блоке для вкладки Result
@@ -2172,18 +2172,8 @@ const winButtons = ref([
   { id: 1, bugs: [], hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
 // В функции resetOvertakingSelection:
+// Сброс выбора обгона
 const resetOvertakingSelection = () => {
-  // Сбрасываем только текущие выделения, не трогая других
-  const currentOvertaker = overtakingSelection.value.overtaker;
-  
-  if (currentOvertaker !== null) {
-    overtakingButtons.value.forEach(b => {
-      if (Math.floor(b.id / 7) === currentOvertaker) {
-        b.selected = false;
-      }
-    });
-  }
-  
   overtakingSelection.value = {
     overtaker: null,
     overtaken: new Set()
@@ -2214,6 +2204,8 @@ const diagonalButtons = computed(() => {
   }
   return diagonals;
 });
+
+// Обработчик выбора кнопки в меню
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
   
@@ -2221,33 +2213,40 @@ const toggleMenuButton = (btn) => {
   const col = btn.id % 7;
 
   if (activeTab.value === 'overtaking') {
-    if (lockedBugsArray.value.includes(row) || lockedBugsArray.value.includes(col)) return;
+    // Пропускаем диагональные кнопки
+    if (row === col) return;
     
+    // Проверка блокировки
+    if (lockedBugsArray.value.includes(row) || 
+        lockedBugsArray.value.includes(col)) {
+      return;
+    }
+
     const { overtaker, overtaken } = overtakingSelection.value;
     
-    // Если это новый обгоняющий - сбрасываем только его предыдущий выбор
+    // Если выбран новый обгоняющий
     if (overtaker !== row) {
-      // Удаляем предыдущие выделения только для старого обгоняющего
+      // Сбрасываем предыдущий выбор
       overtakingButtons.value.forEach(b => {
-        if (Math.floor(b.id / 7) === overtaker) {
-          b.selected = false;
-        }
+        b.selected = false;
       });
       
       // Устанавливаем нового обгоняющего
       overtakingSelection.value.overtaker = row;
       overtakingSelection.value.overtaken = new Set([col]);
-      
       btn.selected = true;
-    } else {
-      // Для существующего обгоняющего - переключаем конкретную кнопку
-      if (overtaken.has(col)) {
-        overtakingSelection.value.overtaken.delete(col);
+    } 
+    // Тот же обгоняющий - добавляем/удаляем обгоняемого
+    else {
+      const newSet = new Set(overtaken);
+      if (newSet.has(col)) {
+        newSet.delete(col);
         btn.selected = false;
       } else {
-        overtakingSelection.value.overtaken.add(col);
+        newSet.add(col);
         btn.selected = true;
       }
+      overtakingSelection.value.overtaken = newSet;
     }
   }
 
@@ -2346,6 +2345,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
+  resetOvertakingSelection();
 // Сбрасываем блокировку тараканов
   lockedBugs.value = new Set();
 countdownPlayed.value = false; // Сбрасываем флаг

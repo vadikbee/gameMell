@@ -27,7 +27,7 @@
       :stavkiButtons="stavkiButtons"
       context="win"
       @win-bet-click="placeSectionBet"
-      @otmena-click="resetAllBets"
+      @otmena-click="resetCurrentBet"
       @reset-click="undoLastBet"
       @decrement-start="startDecrement"
       @increment-start="startIncrement"
@@ -292,7 +292,7 @@
                 src="/images/buttons/otmena.png" 
                 alt="Otmena"
                 class="otmena-button"
-                @click="handleOtmenaButtonClick"
+                @click="resetCurrentBet"
               >
               <img 
                 src="/images/buttons/reset.png" 
@@ -2118,14 +2118,11 @@ const resetCurrentBet = () => {
     cancelPendingBetSound.value.play().catch(e => console.error("Cancel sound error:", e));
   }
   
-  if (undoStack.value.length > 0) {
-    const lastAction = undoStack.value.pop();
-    currentBet.value = lastAction.prevBet;
-  }
-  // Сбрасываем выбранные кнопки
-  if (activeTab.value === 'result') {
-    resetSelectedMenuButtons();
-  }
+  // Сбрасываем ставку к минимальному значению 25
+  currentBet.value = 25;
+  
+  // Очищаем стек отмены
+  undoStack.value = [];
 };
 const handleOtmenaButtonClick = () => {
   resetAllBets();

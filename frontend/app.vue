@@ -2173,11 +2173,21 @@ const winButtons = ref([
 ]);
 // В функции resetOvertakingSelection:
 const resetOvertakingSelection = () => {
+  // Сбрасываем только текущие выделения, не трогая других
+  const currentOvertaker = overtakingSelection.value.overtaker;
+  
+  if (currentOvertaker !== null) {
+    overtakingButtons.value.forEach(b => {
+      if (Math.floor(b.id / 7) === currentOvertaker) {
+        b.selected = false;
+      }
+    });
+  }
+  
   overtakingSelection.value = {
     overtaker: null,
     overtaken: new Set()
   };
-  overtakingButtons.value.forEach(btn => btn.selected = false);
 };
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
@@ -2215,18 +2225,22 @@ const toggleMenuButton = (btn) => {
     
     const { overtaker, overtaken } = overtakingSelection.value;
     
-    if (overtaker === null || overtaker !== row) {
-      // Сбрасываем ВСЕ выделения
-      resetOvertakingSelection();
+    // Если это новый обгоняющий - сбрасываем только его предыдущий выбор
+    if (overtaker !== row) {
+      // Удаляем предыдущие выделения только для старого обгоняющего
+      overtakingButtons.value.forEach(b => {
+        if (Math.floor(b.id / 7) === overtaker) {
+          b.selected = false;
+        }
+      });
       
-      // Устанавливаем только текущий выбор
+      // Устанавливаем нового обгоняющего
       overtakingSelection.value.overtaker = row;
-      overtakingSelection.value.overtaken.add(col);
+      overtakingSelection.value.overtaken = new Set([col]);
       
-      // Выделяем ТОЛЬКО текущую кнопку
       btn.selected = true;
     } else {
-      // Только переключение текущей кнопки
+      // Для существующего обгоняющего - переключаем конкретную кнопку
       if (overtaken.has(col)) {
         overtakingSelection.value.overtaken.delete(col);
         btn.selected = false;

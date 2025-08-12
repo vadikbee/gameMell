@@ -942,7 +942,7 @@ const resetWinButtonSelection = () => {
 };
 
 const checkBetsResults = () => {
-   // Правильный расчет позиций:
+  
 const finishedBugs = bugs.value
   .filter(bug => bug.finished)
   .sort((a, b) => a.finishTime - b.finishTime) // Сортировка по времени финиша
@@ -1271,20 +1271,17 @@ const resetAllBets = () => {
     prevBet: currentBet.value
   });
   currentBet.value = 25;
-// Сбрасываем кнопки на обеих вкладках
+ // Полный сброс только для confirmed ставок
   resultButtons.value.forEach(b => {
-    b.selected = false;
     b.confirmed = false;
-    b.pendingBetAmount = 0;
     b.betAmount = 0;
   });
   
   overtakingButtons.value.forEach(b => {
-    b.selected = false;
     b.confirmed = false;
-    b.pendingBetAmount = 0;
     b.betAmount = 0;
   });
+  
   
 };
 
@@ -1391,6 +1388,7 @@ const placeBet = () => {
       if (button) {
         button.confirmed = true;
         button.betAmount = currentBet.value;
+        button.selected = false; // Снимаем выделение после подтверждения
       }
     });
 
@@ -1452,6 +1450,7 @@ if (activeTab.value === 'result') {
         // Обновляем UI
         selectedButtons.forEach(button => {
             button.confirmed = true;
+            button.selected = false; // Снимаем выделение после подтверждения
         });
         
     }    // НЕ сбрасываем текущую ставку!
@@ -2413,18 +2412,19 @@ playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
     nextRaceBets.value = [];
   }
   // Сбрасываем состояния кнопок после проверки ставок
+// Стало: сбрасываем только confirmed кнопки
 resultButtons.value.forEach(b => {
-  b.selected = false;
-  b.confirmed = false;
-  b.pendingBetAmount = 0;
-  b.betAmount = 0;
+  if (b.confirmed) {
+    b.confirmed = false;
+    b.betAmount = 0;
+  }
 });
 
 overtakingButtons.value.forEach(b => {
-  b.selected = false;
-  b.confirmed = false;
-  b.pendingBetAmount = 0;
-  b.betAmount = 0;
+  if (b.confirmed) {
+    b.confirmed = false;
+    b.betAmount = 0;
+  }
 });
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);

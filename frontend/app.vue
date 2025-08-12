@@ -1138,16 +1138,7 @@ const addToBet = (amount) => {
     currentBet.value = newBet;
   }
   
-  // Сбрасываем выбор кнопок на активной вкладке
-  if (activeTab.value === 'result') {
-    resultButtons.value.forEach(btn => {
-      btn.selected = false;
-    });
-  } else if (activeTab.value === 'overtaking') {
-    overtakingButtons.value.forEach(btn => {
-      btn.selected = false;
-    });
-  }
+  
 };
 const winMenuCenterRef = ref(null);
 const buttonWinContainerRefs = ref({});
@@ -2083,7 +2074,7 @@ const handleResetClick = () => {
     clearPendingBetsSound.value.play().catch(e => console.error("Clear sound error:", e));
   }
   stopAction(); // Останавливаем любые активные интервалы
-  restorePreviousBet();
+  resetCurrentBet(); // Теперь просто сбрасывает ставку без побочных эффектов
   
   // Анимация
   const resetBtn = document.querySelector('.reset-button');

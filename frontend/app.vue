@@ -230,20 +230,19 @@
     <!-- app.vue -->
   <!-- Обновленный блок menu-buttons-container -->
 <div class="menu-buttons-container">
-  <div 
-    v-for="btn in (activeTab === 'result' ? resultButtons : overtakingButtons)" 
-    :key="btn.id"
-    class="menu-button"
-    :class="{
-      'selected': btn.selected,
-      'confirmed': btn.confirmed,
-      'text-button': activeTab === 'result' || activeTab === 'overtaking',
-      'button-visible': isButtonVisible(btn),
-      'has-bet': btn.betAmount > 0,
-      'locked': lockedBugsArray.includes(Math.floor(btn.id / 7))
-    }"
-    @click="toggleMenuButton(btn)"
-  >
+<div 
+  v-for="btn in (activeTab === 'result' ? resultButtons : overtakingButtons)" 
+  :key="btn.id"
+  class="menu-button"
+  :class="{
+    'selected': btn.selected,
+    'confirmed': btn.confirmed,
+    'text-button': activeTab === 'result' || activeTab === 'overtaking',
+    'button-visible': isButtonVisible(btn),
+    'has-bet': btn.betAmount > 0
+  }"
+  @click="toggleMenuButton(btn)"
+>
   <!-- Удалено старое отображение -->
   <!-- Новое расположение элементов -->
  <div v-if="btn.confirmed" class="confirmed-content">
@@ -535,7 +534,7 @@
 
 <script setup>
 
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, reactive  } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
@@ -1298,19 +1297,19 @@ const placeBet = () => {
   const selectedButtons = workingButtons.filter(btn => btn.selected);
   playBetClick();
   
-   if (activeTab.value === 'overtaking') {
-    const { overtaker, overtaken } = overtakingSelection.value;
-    const overtakenArray = Array.from(overtaken);
-    
-    if (overtaker === null || overtakenArray.length === 0) {
-      infoMessage.value = t('select_bug_to_overtake');
-      infoNotificationVisible.value = true;
-      setTimeout(() => infoNotificationVisible.value = false, 3000);
-      return;
-    }
+  if (activeTab.value === 'overtaking') {
+  const { overtaker, overtaken } = overtakingSelection.value; // Используем деструктуризацию
+  
+  // Заменяем overtakenArray на overtaken
+  if (overtaker === null || overtaken.size === 0) {
+    infoMessage.value = t('select_bug_to_overtake');
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
+    return;
+  }
     
     // Создаем ставки для каждой пары
-    overtakenArray.forEach(overtakenId => {
+    overtaken.forEach(overtakenId => {
       const bet = {
         type: 'overtaking',
         overtaker: overtaker,
@@ -1324,39 +1323,22 @@ const placeBet = () => {
       nextRaceBets.value.push(bet);
     });
     
-    // Блокируем тараканов
-    const bugsToLock = [overtaker, ...overtakenArray];
-    lockedBugsArray.value = [...lockedBugsArray.value, ...bugsToLock];
     
-    // Списание средств
-    balance.value -= currentBet.value * overtakenArray.length;
-    playOutcomeSound();
-    showBetPlacedNotification();
-    
-    // Отмечаем кнопки как подтвержденные
-    const overtakerButton = overtakingButtons.value.find(
-      b => b.id === overtaker * 7
-    );
-    
-    if (overtakerButton) {
-      overtakerButton.confirmed = true;
-      overtakerButton.betAmount = overtakerButton.betAmount = currentBet.value;
+  // Списание средств
+  balance.value -= currentBet.value * overtaken.size;
+  
+  // Отмечаем кнопки как подтвержденные
+  overtaken.forEach(id => {
+    const button = overtakingButtons.value.find(b => b.id === overtaker * 7 + id);
+    if (button) {
+      button.confirmed = true;
+      button.betAmount = currentBet.value;
     }
-    
-    overtakenArray.forEach(id => {
-      const button = overtakingButtons.value.find(
-        b => b.id === overtaker * 7 + id
-      );
-      if (button) {
-        button.confirmed = true;
-        button.betAmount = currentBet.value;
-      }
-    });
-    
-    // Сбрасываем выбор
-    resetOvertakingSelection();
-    return;
-  }
+  });
+
+  resetOvertakingSelection();
+}
+
 
   // В блоке для вкладки Result
 if (activeTab.value === 'result') {
@@ -1374,13 +1356,7 @@ if (activeTab.value === 'result') {
             return;
         }
 
-        // Блокируем тараканов
-        const newLocked = [...lockedBugsArray.value];
-        selectedButtons.forEach(button => {
-            const row = Math.floor(button.id / 7);
-            if (!newLocked.includes(row)) newLocked.push(row);
-        });
-        lockedBugsArray.value = newLocked;
+        
 
         // Списание средств
         balance.value -= totalBetAmount;
@@ -2115,10 +2091,9 @@ const handleOtmenaButtonClick = () => {
 };
 // Новое состояние для выбранной пары тараканов (обгоняющий, обгоняемый)
 const overtakingSelection = ref({
-  overtaker: null,      // ID обгоняющего таракана
-  overtaken: new Set()  // Множество ID обгоняемых тараканов
+  overtaker: null,
+  overtaken: new Set()
 });
-
 // Функции для управления зажатием кнопок
 const startAction = (action) => {
   // Первое срабатывание сразу
@@ -2196,15 +2171,13 @@ const winButtons = ref([
   { id: 2, bugs: [], hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
   { id: 1, bugs: [], hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
+// В функции resetOvertakingSelection:
 const resetOvertakingSelection = () => {
-  // Сбрасываем все выбранные кнопки
-  overtakingButtons.value.forEach(b => b.selected = false);
-  
-  // Очищаем выбор
   overtakingSelection.value = {
     overtaker: null,
     overtaken: new Set()
   };
+  overtakingButtons.value.forEach(btn => btn.selected = false);
 };
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
@@ -2237,53 +2210,25 @@ const toggleMenuButton = (btn) => {
   const row = Math.floor(btn.id / 7);
   const col = btn.id % 7;
 
-  if (activeTab.value === 'result') {
-    // ... существующая логика для ставок на результат ...
-  } 
-  else if (activeTab.value === 'overtaking') {
-    // Пропускаем диагональные кнопки (ставка на самого себя)
-    if (row === col) return;
+  if (activeTab.value === 'overtaking') {
+    // Safely access overtakingSelection values
+    const overtaker = overtakingSelection.value?.overtaker ?? null;
+    const overtaken = overtakingSelection.value?.overtaken ?? new Set();
+
+    // Rest of the code remains the same
     
-    // Проверка блокировки
-    if (lockedBugsArray.value.includes(row) || lockedBugsArray.value.includes(col)) {
-      return;
-    }
+    if (lockedBugsArray.value.includes(row) || lockedBugsArray.value.includes(col)) return;
     
-    // Если обгоняющий не выбран
-    if (overtakingSelection.value.overtaker === null) {
-      // Устанавливаем обгоняющего
-      overtakingSelection.value.overtaker = row;
-      btn.selected = true;
-      return;
-    }
-    
-    // Если кликнули на обгоняющего повторно - снимаем выбор
-    if (overtakingSelection.value.overtaker === row && col === 0) {
-      resetOvertakingSelection();
-      return;
-    }
-    
-    // Если кликнули на другого обгоняющего - меняем выбор
-    if (overtakingSelection.value.overtaker !== row) {
+    if (overtaker === null || overtaker !== row) {
       resetOvertakingSelection();
       overtakingSelection.value.overtaker = row;
-      
-      // Находим кнопку обгоняющего и выделяем ее
-      const overtakerButton = overtakingButtons.value.find(
-        b => Math.floor(b.id / 7) === row && b.id % 7 === 0
-      );
-      if (overtakerButton) overtakerButton.selected = true;
-      
-      return;
+      overtakingButtons.value[row * 7].selected = true;
     }
     
-    // Обработка выбора обгоняемого
-    if (overtakingSelection.value.overtaken.has(col)) {
-      // Снимаем выбор
+    if (overtaken.has(col)) {
       overtakingSelection.value.overtaken.delete(col);
       btn.selected = false;
     } else {
-      // Добавляем в выбор
       overtakingSelection.value.overtaken.add(col);
       btn.selected = true;
     }

@@ -529,6 +529,8 @@
  <audio ref="betClickSound" src="/sounds/betClick.mp3"></audio>
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
  <audio ref="dizzySound" src="/sounds/star.mp3"></audio>
+ <audio ref="explosionSound" src="/sounds/bax.mp3"></audio>
+
 </template>
 
 
@@ -554,7 +556,7 @@ const initialAnimationActive = ref(true);
 // Добавьте новый ref
 const lastGameMenuVisible = ref(false);
 const countdownSound = ref(null);
-
+const explosionSound = ref(null);
 const lockedBugsArray = ref([]);
 
 // Добавьте переменную для отслеживания состояния звука
@@ -948,7 +950,7 @@ const finishedBugs = bugs.value
     ...bug,
     position: index + 1 // Присваиваем позицию по порядку финиша
   }));
-  
+
   const winningBets = [];
   const losingBets = [];
   resetWinMenu();
@@ -1594,6 +1596,22 @@ const explodeAllBugs = (raceEndTime) => {
     }
   });
 
+  // Воспроизведение звука для каждого взрыва
+  bugs.value.forEach(bug => {
+    if (!bug.finished) {
+      // Для тараканов, которые не финишировали - воспроизводим звук
+      if (userInteracted.value && explosionSound.value && soundEnabled.value) {
+        try {
+          explosionSound.value.currentTime = 0;
+          explosionSound.value.volume = soundVolume.value;
+          explosionSound.value.play().catch(e => console.error("Explosion sound error:", e));
+        } catch (e) {
+          console.error("Explosion playback error:", e);
+        }
+      }
+    }
+  });
+  
   startExplosionAnimation();
 };
 // Add this method after the selectTrap function
@@ -2584,8 +2602,21 @@ const startExplosionAnimation = () => {
   if (!isTabActive.value) return;
   if (explosionActive.value) return;
   
+  // Воспроизведение звука взрыва
+  if (userInteracted.value && explosionSound.value && soundEnabled.value) {
+    try {
+      explosionSound.value.currentTime = 0;
+      explosionSound.value.volume = soundVolume.value;
+      explosionSound.value.play().catch(e => console.error("Explosion sound error:", e));
+    } catch (e) {
+      console.error("Explosion playback error:", e);
+    }
+  }
+  
   explosionActive.value = true;
   const explosionStartTime = performance.now();
+
+  
   
   const animateExplosion = (timestamp) => {
     const elapsed = timestamp - explosionStartTime;

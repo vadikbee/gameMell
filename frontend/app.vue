@@ -911,50 +911,51 @@ const placeSectionBet = async () => {
       return;
     }
 
-    // Списание средств
-    balance.value -= currentBet.value * selectedBugs.value.length;
+    // Создаем ОДНУ ставку для всех выбранных тараканов
+    const totalAmount = currentBet.value * selectedBugs.value.length;
+    
+    // Списание общей суммы
+    balance.value -= totalAmount;
     showBetPlacedNotification();
     playOutcomeSound();
 
-    // Создаем ставки для каждого выбранного таракана
-    selectedBugs.value.forEach(bugId => {
-      nextRaceBets.value.push({
-        type: 'section',
-        trapId: selectedTrap.value,
-        bugId: bugId,
-        amount: currentBet.value
-      });
+    // Добавляем одну ставку в массив
+    nextRaceBets.value.push({
+      type: 'section',
+      trapId: selectedTrap.value,
+      bugIds: [...selectedBugs.value], // Массив ID тараканов
+      amount: totalAmount
     });
 
     // Обновляем отображение суммы ставки на кнопке
     const button = winButtons.value.find(b => b.id === selectedTrap.value);
     if (button) {
-      button.betAmount = (button.betAmount || 0) + currentBet.value * selectedBugs.value.length;
+      button.betAmount = (button.betAmount || 0) + totalAmount;
     }
 
-    // Сохраняем ставки на сервере
-    for (const bugId of selectedBugs.value) {
-      const response = await fetch('/api/save-bet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: 1,
-          amount: currentBet.value,
-          type: 'trap', // Тип ставки на секцию
-          selection: selectedBugs.value, // ID тараканов
-          color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
-          time: new Date().toTimeString().split(' ')[0]
-        })
-      });
-      if (!response.ok) throw new Error('Failed to save section bet');
-    }
+    // Отправка на бэкенд
+    const response = await fetch('/api/save-bet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: 1,
+        amount: totalAmount,
+        type: 'trap',
+        selection: selectedBugs.value, // Массив ID тараканов
+        color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
+        time: new Date().toTimeString().split(' ')[0]
+      })
+    });
+    
+     if (!response.ok) throw new Error('Failed to save section bet');
     
     fetchBetHistory();
+  } catch (error) {
+    console.error('Error saving section bet:', error);
+  } finally {
     resetBugSelections();
     resetWinButtonSelection();
     centerWinMenuVisible.value = false;
-  } catch (error) {
-    console.error('Error saving section bet:', error);
   }
 };
 // Добавляем новую функцию для сброса выделения

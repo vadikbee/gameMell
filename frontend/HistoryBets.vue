@@ -58,13 +58,7 @@ const formatTime = (timeString) => {
   return timeString.split(':').slice(0, 2).join(':');
 };
 
-// Тип ставки на основе данных
-const getBetType = (bet) => {
-  if (bet.type === 'win') return t('position_bet');
-  if (bet.type === 'place') return t('overtaking_bet');
-  if (bet.type === 'trap') return t('section_bet');
-  return t('bet');
-};
+
 
 // Цвета для индикаторов
 
@@ -89,10 +83,25 @@ const getMultiplier = (bet) => {
 };
 
 // Общая сумма ставки
+// Обновленная функция для расчета общей суммы
 const calculateTotal = (bet) => {
-  return bet.amount * getMultiplier(bet);
+  // Для ставок на секцию показываем общую сумму
+  if (bet.type === 'trap') {
+    return bet.amount;
+  }
+  
+  // Для других типов ставок - старая логика
+  return bet.amount * (bet.selection?.length || 1);
 };
-
+// Обновленная функция для описания ставки
+const getBetType = (bet) => {
+  if (bet.type === 'win') return t('position_bet');
+  if (bet.type === 'place') return t('overtaking_bet');
+  if (bet.type === 'trap') {
+    return t('section_bet') + ` (${bet.selection.length} ${t('bugs')})`;
+  }
+  return t('bet');
+};
 // В секции <script>
 const formattedBets = computed(() => {
   const allBets = [...(props.bets || [])];

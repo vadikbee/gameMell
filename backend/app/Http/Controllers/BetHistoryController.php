@@ -14,14 +14,14 @@ class BetHistoryController extends Controller
     public function saveBet(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'user_id' => 'required|integer',
-                'amount' => 'required|numeric',
-                'type' => 'required|in:win,place,trap',
-                'selection' => 'required|array',
-                'color' => 'required|string',
-                'time' => 'required|date_format:H:i:s'
-            ]);
+        $validated = $request->validate([
+            'user_id' => 'required|integer',
+            'amount' => 'required|numeric',
+            'type' => 'required|in:win,place,trap',
+            'selection' => 'required|array', // Теперь это массив ID
+            'color' => 'required|string',
+            'time' => 'required|date_format:H:i:s'
+        ]);
             // Для ставок на секцию сохраняем ID тараканов
         if ($validated['type'] === 'trap') {
             $validated['selection'] = $request->input('selection'); // ID тараканов

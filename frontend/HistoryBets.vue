@@ -36,7 +36,16 @@ const props = defineProps({
   title: String,
   bugColors: Object // Добавляем новый пропс
 });
-
+// Объект соответствия ID тараканов и их цветов
+const bugColorMap = computed(() => ({
+  1: '#FFFF00', // Желтый
+  3: '#8B0000', // Темно-оранжевый
+  2: '#FFA500', // Оранжевый
+  4: '#0000FF', // Синий
+  5: '#FF0000', // Красный
+  6: '#800080', // Фиолетовый
+  7: '#00FF00'  // Зеленый
+}));
 // Позиционирование компонента
 const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center';
@@ -58,11 +67,11 @@ const getBetType = (bet) => {
 };
 
 // Цвета для индикаторов
-// Обновленная функция для получения цветов
+
 const getBetColors = (bet) => {
   // Для ставок на секцию (trap) - возвращаем все цвета выбранных тараканов
   if (bet.type === 'trap') {
-    return bet.selection.map(id => props.bugColors[id] || '#FFFFFF');
+    return bet.selection.map(id => bugColorMap.value[id] || '#FFFFFF');
   }
   
   // Для других типов ставок - старая логика

@@ -18,7 +18,7 @@
       :isCenterMenuOpen="centerMenuVisible" 
       :bets="betHistoryFromApi"
       :title="t('history_bets')"
-      :bug-colors="bugColors"
+      
       class="outside-center"
     />
       <!-- Центральное фиксированное меню -->
@@ -278,7 +278,7 @@
             :insideCenter="true"
             :title="t('history_bets')"
             :bets="betHistoryFromApi"
-            :bug-colors="bugColors"
+            
             class="inside-center"
           />
           

@@ -941,7 +941,8 @@ const placeSectionBet = async () => {
         user_id: 1,
         amount: totalAmount,
         type: 'trap',
-        selection: selectedBugs.value, // Массив ID тараканов
+        selection: selectedBugs.value,
+        trapId: selectedTrap.value, // Добавляем ID секции
         color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
         time: new Date().toTimeString().split(' ')[0]
       })

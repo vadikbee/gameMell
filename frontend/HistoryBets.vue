@@ -15,7 +15,10 @@
           ></div>
         </div>
         <div class="bet-info">
-          <div class="bet-description">{{ getBetType(bet) }}</div>
+          <div class="bet-description">
+            <!-- Обновлено: номер секции интегрирован в текст -->
+            {{ getBetType(bet) }}
+          </div>
           <div class="bet-amount">{{ bet.amount }}₽ × {{ getMultiplier(bet) }} = {{ calculateTotal(bet) }}₽</div>
         </div>
         <div class="bet-time">{{ formatTime(bet.time) }}</div>
@@ -23,7 +26,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { computed, defineProps } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -46,6 +48,7 @@ const bugColorMap = computed(() => ({
   6: '#800080', // Фиолетовый
   7: '#00FF00'  // Зеленый
 }));
+
 // Позиционирование компонента
 const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center';
@@ -98,7 +101,8 @@ const getBetType = (bet) => {
   if (bet.type === 'win') return t('position_bet');
   if (bet.type === 'place') return t('overtaking_bet');
   if (bet.type === 'trap') {
-    return t('section_bet') + ` (${bet.selection.length} ${t('bugs')})`;
+    // Интегрируем номер секции в текст
+    return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
   return t('bet');
 };

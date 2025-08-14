@@ -19,6 +19,7 @@ class BetHistoryController extends Controller
             'amount' => 'required|numeric',
             'type' => 'required|in:win,place,trap',
             'selection' => 'required|array', // Теперь это массив ID
+            'trapId' => 'required_if:type,trap|integer', // Добавляем поле trapId
             'color' => 'required|string',
             'time' => 'required|date_format:H:i:s'
         ]);

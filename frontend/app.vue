@@ -886,70 +886,71 @@ const playOutcomeSound = () => {
 };
 const placeSectionBet = async () => {
   try {
-  playBetClick();
-  // Блокируем выбранных тараканов
-  const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
-  lockedBugsArray.value = newLocked;
+    playBetClick();
+    // Блокируем выбранных тараканов
+    const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
+    lockedBugsArray.value = newLocked;
 
-  if (!selectedTrap.value || selectedBugs.value.length === 0) {
-    alert('Выберите тараканов для ставки');
-    return;
-  }
+    if (!selectedTrap.value || selectedBugs.value.length === 0) {
+      alert('Выберите тараканов для ставки');
+      return;
+    }
 
-  // Проверка минимальной ставки
-  const minBet = 25;
-  if (currentBet.value < minBet) {
-    alert(`Минимальная ставка: ${minBet}₽`);
-    return;
-  }
+    // Проверка минимальной ставки
+    const minBet = 25;
+    if (currentBet.value < minBet) {
+      alert(`Минимальная ставка: ${minBet}₽`);
+      return;
+    }
 
-  // Проверка достаточности средств
-  if (currentBet.value * selectedBugs.value.length > balance.value) {
-    alert('Недостаточно средств на балансе');
-    return;
-  }
+    // Проверка достаточности средств
+    if (currentBet.value * selectedBugs.value.length > balance.value) {
+      alert('Недостаточно средств на балансе');
+      return;
+    }
 
-  // Списание средств
-  balance.value -= currentBet.value * selectedBugs.value.length;
-  showBetPlacedNotification();
-  playOutcomeSound();
+    // Списание средств
+    balance.value -= currentBet.value * selectedBugs.value.length;
+    showBetPlacedNotification();
+    playOutcomeSound();
 
-  // Создаем ставки для каждого выбранного таракана
-  selectedBugs.value.forEach(bugId => {
-    nextRaceBets.value.push({
-      type: 'section',
-      trapId: selectedTrap.value,
-      bugId: bugId,
-      amount: currentBet.value
+    // Создаем ставки для каждого выбранного таракана
+    selectedBugs.value.forEach(bugId => {
+      nextRaceBets.value.push({
+        type: 'section',
+        trapId: selectedTrap.value,
+        bugId: bugId,
+        amount: currentBet.value
+      });
     });
-  });
 
-  // Обновляем отображение суммы ставки на кнопке
-  const button = winButtons.value.find(b => b.id === selectedTrap.value);
-  if (button) {
-    button.betAmount = (button.betAmount || 0) + currentBet.value * selectedBugs.value.length;
-  }
+    // Обновляем отображение суммы ставки на кнопке
+    const button = winButtons.value.find(b => b.id === selectedTrap.value);
+    if (button) {
+      button.betAmount = (button.betAmount || 0) + currentBet.value * selectedBugs.value.length;
+    }
 
-  resetBugSelections();
-  resetWinButtonSelection();
-  centerWinMenuVisible.value = false;
-// app.vue
-const response = await fetch('/api/save-bet', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    user_id: 1,
-    amount: currentBet.value,
-    type: activeTab.value === 'result' ? 'win' : 'place',
-    selection: selectedButtons.map(btn => btn.id),
-    color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
-    time: new Date().toTimeString().split(' ')[0]
-  })
-});
-    
-    if (!response.ok) throw new Error('Failed to save section bet');
+    // Сохраняем ставки на сервере
+    for (const bugId of selectedBugs.value) {
+      const response = await fetch('/api/save-bet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1,
+          amount: currentBet.value,
+          type: 'trap', // Тип ставки на секцию
+          selection: [bugId],
+          color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
+          time: new Date().toTimeString().split(' ')[0]
+        })
+      });
+      if (!response.ok) throw new Error('Failed to save section bet');
+    }
     
     fetchBetHistory();
+    resetBugSelections();
+    resetWinButtonSelection();
+    centerWinMenuVisible.value = false;
   } catch (error) {
     console.error('Error saving section bet:', error);
   }
@@ -2034,23 +2035,21 @@ const unhoverBug = () => {
 
 const betHistoryFromApi = ref([]);
 
-// В функции fetchBetHistory
 const fetchBetHistory = async () => {
-    try {
-        const response = await fetch('/api/v1/gameplay/games/bets/cockroaches-space-maze/latest');
-        if (!response.ok) {
-            // Если ответ не 200, используем fallback данные
-            console.warn('Using fallback bet history');
-            betHistoryFromApi.value = []; // Или демо-данные
-            return;
-        }
-        
-        const data = await response.json();
-        betHistoryFromApi.value = data.bets || [];
-    } catch (error) {
-        console.error('Error fetching bet history:', error);
-        betHistoryFromApi.value = []; // Fallback
-    }
+  try {
+    const response = await fetch('/api/get-bets');
+    const data = await response.json();
+    
+    // Преобразование данных к нужному формату
+    betHistoryFromApi.value = data.map(item => ({
+      ...item.data,
+      time: item.data.time || item.timestamp.split(' ')[1] // Используем время из данных
+    }));
+    
+  } catch (error) {
+    console.error('Error fetching bet history:', error);
+    betHistoryFromApi.value = [];
+  }
 };
 
 // Вызывать при открытии окна

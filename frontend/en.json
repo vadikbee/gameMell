@@ -23,5 +23,10 @@
   "winning_amount": "Winning amount",
   "losing_amount": "Loss amount",
   "press_for_more": "Tap for details",
-  "close": "Close"
+  "close": "Close",
+
+   "position_bet": "Position Bet",
+   "overtaking_bet": "Overtaking Bet",
+   "section_bet": "Section Bet"
+   
 }

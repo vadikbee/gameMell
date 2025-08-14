@@ -884,7 +884,8 @@ const playOutcomeSound = () => {
     console.error("Outcome sound error:", e);
   }
 };
-const placeSectionBet = () => {
+const placeSectionBet = async () => {
+  try {
   playBetClick();
   // Блокируем выбранных тараканов
   const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
@@ -932,6 +933,26 @@ const placeSectionBet = () => {
   resetBugSelections();
   resetWinButtonSelection();
   centerWinMenuVisible.value = false;
+// app.vue
+const response = await fetch('/api/save-bet', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    user_id: 1,
+    amount: currentBet.value,
+    type: activeTab.value === 'result' ? 'win' : 'place',
+    selection: selectedButtons.map(btn => btn.id),
+    color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
+    time: new Date().toTimeString().split(' ')[0]
+  })
+});
+    
+    if (!response.ok) throw new Error('Failed to save section bet');
+    
+    fetchBetHistory();
+  } catch (error) {
+    console.error('Error saving section bet:', error);
+  }
 };
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
@@ -1335,7 +1356,8 @@ const resetSelectedMenuButtons = () => {
     });
   }
 };
-const placeBet = () => {
+const placeBet = async () => {
+    try {
   const workingButtons = activeTab.value === 'result' 
     ? resultButtons.value 
     : overtakingButtons.value;
@@ -1452,6 +1474,28 @@ if (activeTab.value === 'result') {
     }
     
 }
+    const response = await fetch('/api/save-bet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: 1, // ID пользователя (временное решение)
+        amount: currentBet.value,
+        type: activeTab.value === 'result' ? 'win' : 'place',
+        selection: selectedButtons.map(btn => btn.id),
+        color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)', // Пример градиента
+        time: new Date().toTimeString().split(' ')[0] // Текущее время HH:MM:SS
+      })
+    });
+    
+    if (!response.ok) throw new Error('Failed to save bet');
+    
+    // Обновляем историю ставок
+    fetchBetHistory();
+  } catch (error) {
+    console.error('Error saving bet:', error);
+  }
 };
 
 // ... остальной код ...
@@ -1990,16 +2034,23 @@ const unhoverBug = () => {
 
 const betHistoryFromApi = ref([]);
 
+// В функции fetchBetHistory
 const fetchBetHistory = async () => {
-  try {
-    const response = await fetch('/api/v1/gameplay/games/bets/cockroaches-space-maze/latest');
-    if (!response.ok) throw new Error('Failed to fetch bet history');
-    const data = await response.json();
-    betHistoryFromApi.value = data.bets || [];
-  } catch (error) {
-    console.error('Error fetching bet history:', error);
-    betHistoryFromApi.value = [];
-  }
+    try {
+        const response = await fetch('/api/v1/gameplay/games/bets/cockroaches-space-maze/latest');
+        if (!response.ok) {
+            // Если ответ не 200, используем fallback данные
+            console.warn('Using fallback bet history');
+            betHistoryFromApi.value = []; // Или демо-данные
+            return;
+        }
+        
+        const data = await response.json();
+        betHistoryFromApi.value = data.bets || [];
+    } catch (error) {
+        console.error('Error fetching bet history:', error);
+        betHistoryFromApi.value = []; // Fallback
+    }
 };
 
 // Вызывать при открытии окна

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameHistoryController;
+use App\Http\Controllers\BetHistoryController;
 
 require_once base_path('path_generator/PathGenerator.php');
 require_once base_path('path_generator/a_star.php');
@@ -13,7 +14,35 @@ $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
 
+// Добавьте этот блок перед Route::post('/api/save-bet')
+Route::options('/api/save-bet', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
 
+// Существующий POST-роут
+Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);
+// Добавим новые маршруты
+Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);
+Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
+Route::get('/get-bets', [BetHistoryController::class, 'getLatestBets']);
+
+// Обновим OPTIONS для новых эндпоинтов
+Route::options('/save-bet', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
+Route::options('/get-bets', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
 ///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
 // Эндпоинт получения данных игрового аккаунта
 Route::get('/api/v1/gameplay/games/accounts/{code}/{session}', function ($code, $session) {
@@ -263,3 +292,5 @@ Route::get('/gameplay/games/sessions/{code}/last', [GameHistoryController::class
 
 
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+// Добавьте в конец файла
+Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);

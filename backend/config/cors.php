@@ -15,7 +15,7 @@ return [
     |
     */
 
-   'paths' => ['api/*'],
+    'paths' => ['api/*', 'api/save-bet'], // Добавьте явный путь
     'allowed_methods' => ['*'],
     'allowed_origins' => ['*'],
     'allowed_origins_patterns' => [],

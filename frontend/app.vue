@@ -18,6 +18,7 @@
       :isCenterMenuOpen="centerMenuVisible" 
       :bets="betHistoryFromApi"
       :title="t('history_bets')"
+      :bug-colors="bugColors"
       class="outside-center"
     />
       <!-- Центральное фиксированное меню -->
@@ -277,6 +278,7 @@
             :insideCenter="true"
             :title="t('history_bets')"
             :bets="betHistoryFromApi"
+            :bug-colors="bugColors"
             class="inside-center"
           />
           
@@ -939,7 +941,7 @@ const placeSectionBet = async () => {
           user_id: 1,
           amount: currentBet.value,
           type: 'trap', // Тип ставки на секцию
-          selection: [bugId],
+          selection: selectedBugs.value, // ID тараканов
           color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
           time: new Date().toTimeString().split(' ')[0]
         })

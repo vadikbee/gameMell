@@ -33,7 +33,8 @@ const props = defineProps({
   bets: Array,
   isCenterMenuOpen: Boolean,
   insideCenter: Boolean,
-  title: String
+  title: String,
+  bugColors: Object // Добавляем новый пропс
 });
 
 // Позиционирование компонента
@@ -57,7 +58,14 @@ const getBetType = (bet) => {
 };
 
 // Цвета для индикаторов
+// Обновленная функция для получения цветов
 const getBetColors = (bet) => {
+  // Для ставок на секцию (trap) - возвращаем все цвета выбранных тараканов
+  if (bet.type === 'trap') {
+    return bet.selection.map(id => props.bugColors[id] || '#FFFFFF');
+  }
+  
+  // Для других типов ставок - старая логика
   const colors = [];
   if (bet.color) {
     const matches = bet.color.match(/#[0-9A-Fa-f]{6}/g);
@@ -76,9 +84,10 @@ const calculateTotal = (bet) => {
   return bet.amount * getMultiplier(bet);
 };
 
-// Обратный порядок ставок
+// В секции <script>
 const formattedBets = computed(() => {
-  return [...(props.bets || [])].reverse();
+  const allBets = [...(props.bets || [])];
+  return allBets.slice(0, 10); // Показываем только 10 последних
 });
 </script>
 
@@ -152,7 +161,8 @@ const formattedBets = computed(() => {
 
 .bet-colors {
   display: flex;
-  margin-right: 8px;
+  flex-wrap: wrap; /* Разрешаем перенос цветов */
+  max-width: 60px; /* Ограничиваем ширину */
 }
 
 .color-indicator {
@@ -161,6 +171,7 @@ const formattedBets = computed(() => {
   border-radius: 2px;
   border: 1px solid #FFFFFF;
   margin-right: 2px;
+  margin-bottom: 2px; /* Добавляем отступ снизу */
 }
 
 .bet-info {

@@ -1453,7 +1453,7 @@ if (activeTab.value === 'result') {
             // Исправленный код:
             const bet = {
               type: 'position',
-              bugId: bugId, // Используем существующую переменную
+              bugId: bugId + 1, // Используем существующую переменную
               position: position,
               amount: betAmount,
               timestamp: new Date().toISOString(),

@@ -1642,11 +1642,20 @@ const explodeAllBugs = (raceEndTime) => {
 // Add this method after the selectTrap function
 // В секции script
 const toggleBugSelection = (bugId) => {
+  console.log("Selected bug ID:", bugId); // Для отладки
   if (lockedBugsArray.value.includes(bugId)) return;
   playStakeActionClick();
    // Логирование с указанием позиции и цвета
   const positions = ["первый", "второй", "третий", "четвёртый", "пятый", "шестой", "седьмой"];
-  const colors = ["жёлтый", "тёмно-оранжевый", "оранжевый", "синий", "красный", "фиолетовый", "зелёный"];
+  const colors = [
+  "жёлтый",        // ID 1
+  "оранжевый",     // ID 2
+  "тёмно-оранжевый", // ID 3
+  "синий",         // ID 4
+  "красный",       // ID 5
+  "фиолетовый",    // ID 6
+  "зелёный"        // ID 7
+];
 
    console.log(`Выбран ${positions[bugId-1]} таракан (${colors[bugId-1]})`);
   
@@ -1753,10 +1762,10 @@ const gap = 0.5; // % расстояния между кнопками
 const menuBugs = ref([
   // Желтый (1)
   { id: 1, left: 5, top: 25, width: 12, height: 50 },
-  // Темно-оранжевый (3)
-  { id: 3, left: 18 + gap, top: 25, width: 12, height: 50 },
-  // Оранжевый (2)
-  { id: 2, left: 31 + gap * 2, top: 25, width: 12, height: 50 },
+  // Оранжевый (2) - ID 2
+  { id: 2, left: 18 + gap, top: 25, width: 12, height: 50 },
+  // Темно-оранжевый (3) - ID 3
+  { id: 3, left: 31 + gap * 2, top: 25, width: 12, height: 50 },
   // Синий (4)
   { id: 4, left: 44 + gap * 3, top: 25, width: 12, height: 50 },
   // Красный (5)
@@ -1769,8 +1778,8 @@ const menuBugs = ref([
 // В секции <script setup>
 const bugColors = ref([
   '#FFFF00', // 1. Жёлтый
-  '#8B0000', // 2. Тёмно-оранжевый
-  '#FFA500', // 3. Оранжевый
+  '#FFA500', // 2. Оранжевый
+  '#8B0000', // 3. Тёмно-оранжевый
   '#0000FF', // 4. Синий
   '#FF0000', // 5. Красный
   '#800080', // 6. Фиолетовый

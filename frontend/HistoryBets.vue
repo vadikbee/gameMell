@@ -40,13 +40,13 @@ const props = defineProps({
 });
 // Объект соответствия ID тараканов и их цветов
 const bugColorMap = computed(() => ({
-  1: '#FFFF00', // Желтый
-  3: '#8B0000', // Темно-оранжевый
-  2: '#FFA500', // Оранжевый
+  1: '#FFFF00', // Жёлтый
+  2: '#FFA500', // Оранжевый -> ID 2
+  3: '#8B0000', // Тёмно-оранжевый -> ID 3
   4: '#0000FF', // Синий
   5: '#FF0000', // Красный
   6: '#800080', // Фиолетовый
-  7: '#00FF00'  // Зеленый
+  7: '#00FF00'  // Зелёный
 }));
 
 // Позиционирование компонента
@@ -65,13 +65,22 @@ const formatTime = (timeString) => {
 
 // Цвета для индикаторов
 
+// Обновленная функция для цветов ставки
 const getBetColors = (bet) => {
-  // Для ставок на секцию (trap) - возвращаем все цвета выбранных тараканов
+  // Для ставок на секцию (trap)
   if (bet.type === 'trap') {
     return bet.selection.map(id => bugColorMap.value[id] || '#FFFFFF');
   }
   
-  // Для других типов ставок - старая логика
+  // Для ставок на обгон (place) - возвращаем два цвета
+  if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
+    return [
+      bugColorMap.value[bet.selection[0]],
+      bugColorMap.value[bet.selection[1]]
+    ];
+  }
+  
+  // Для других типов ставок
   const colors = [];
   if (bet.color) {
     const matches = bet.color.match(/#[0-9A-Fa-f]{6}/g);
@@ -99,12 +108,27 @@ const calculateTotal = (bet) => {
 // Обновленная функция для описания ставки
 const getBetType = (bet) => {
   if (bet.type === 'win') return t('position_bet');
-  if (bet.type === 'place') return t('overtaking_bet');
+  if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
+    // Отображаем "Цвет1 or Цвет2"
+    return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
+  }
   if (bet.type === 'trap') {
-    // Интегрируем номер секции в текст
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
   return t('bet');
+};
+// Функция для получения имени таракана по ID
+const getBugName = (id) => {
+  const names = {
+    1: t('yellow'),
+    2: t('orange'),
+    3: t('dark_orange'),
+    4: t('blue'),
+    5: t('red'),
+    6: t('purple'),
+    7: t('green')
+  };
+  return names[id] || t('unknown');
 };
 // В секции <script>
 const formattedBets = computed(() => {

@@ -1,5 +1,3 @@
-[file name]: HistoryBets.vue
-[file content]
 <template>
   <div class="history-bets" :class="positionClass">
     <div class="history-header">
@@ -8,23 +6,8 @@
     
     <div class="bets-list">
       <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
-        <!-- Обновленный блок для ставок на результат -->
-        <div v-if="bet.type === 'position'" class="position-bet-container">
-          <div class="bug-color-indicator" :style="{ background: bugColorMap[bet.bugId] }"></div>
-          <div class="position-indicators">
-            <div 
-              v-for="n in 7" 
-              :key="n"
-              class="position-indicator"
-              :class="{ 'active': n === bet.position }"
-            >
-              {{ n }}
-            </div>
-          </div>
-        </div>
-        
-        <!-- Ставки на секцию (оставляем как было) -->
-        <div v-else class="bet-colors">
+        <!-- Для ставок на секцию и обгон оставляем цветные индикаторы -->
+        <div v-if="bet.type === 'trap' || bet.type === 'place'" class="bet-colors">
           <div 
             v-for="(color, i) in getBetColors(bet)" 
             :key="i"
@@ -58,42 +41,35 @@ const props = defineProps({
   bugColors: Object
 });
 
-// Объект соответствия ID тараканов и их цветов
 const bugColorMap = {
-  1: '#FFFF00', // Жёлтый
-  2: '#FFA500', // Оранжевый
-  3: '#8B0000', // Тёмно-оранжевый
-  4: '#0000FF', // Синий
-  5: '#FF0000', // Красный
-  6: '#800080', // Фиолетовый
-  7: '#00FF00'  // Зелёный
+  1: '#FFFF00',
+  2: '#FFA500',
+  3: '#8B0000',
+  4: '#0000FF',
+  5: '#FF0000',
+  6: '#800080',
+  7: '#00FF00'
 };
 
-// Позиционирование компонента
 const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center';
   return props.isCenterMenuOpen ? 'top-right' : 'bottom-right';
 });
 
-// Форматирование времени (HH:MM)
 const formatTime = (timeString) => {
   if (!timeString) return '';
   return timeString.split(':').slice(0, 2).join(':');
 };
 
-// Обновленная функция для цветов ставки
 const getBetColors = (bet) => {
-  // Для ставок на позицию (result) - теперь обрабатываются отдельно
-  if (bet.type === 'position') {
+  if (bet.type === 'win' && bet.bugId) {
     return [bugColorMap[bet.bugId]];
   }
   
-  // Для ставок на секцию (trap)
   if (bet.type === 'trap') {
     return bet.selection.map(id => bugColorMap[id] || '#FFFFFF');
   }
   
-  // Для ставок на обгон (place) - возвращаем два цвета
   if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
     return [
       bugColorMap[bet.selection[0]],
@@ -101,7 +77,6 @@ const getBetColors = (bet) => {
     ];
   }
   
-  // Для других типов ставок
   const colors = [];
   if (bet.color) {
     const matches = bet.color.match(/#[0-9A-Fa-f]{6}/g);
@@ -110,39 +85,35 @@ const getBetColors = (bet) => {
   return colors.length > 0 ? colors : ['#FFFFFF'];
 };
 
-// Множитель ставки
 const getMultiplier = (bet) => {
-  return bet.type === 'win' ? 1 : bet.selection?.length || 1;
-};
+  return bet.type === 'win' ? 2.23 : bet.selection?.length || 1;
+}
 
-// Общая сумма ставки
 const calculateTotal = (bet) => {
-  // Для ставок на секцию показываем общую сумму
-  if (bet.type === 'trap') {
-    return bet.amount;
+  if (bet.type === 'win') {
+    return bet.amount * 2.23;
   }
   
-  // Для других типов ставок
   return bet.amount * (bet.selection?.length || 1);
 };
 
-// Обновленная функция для описания ставки
 const getBetType = (bet) => {
-  if (bet.type === 'win') return t('position_bet');
+  if (bet.type === 'win') {
+    return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+  }
   if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
     return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
   }
   if (bet.type === 'trap') {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
-  // Для ставок на позицию
-  if (bet.type === 'position') {
+  
+  if (bet.bugId && bet.position) {
     return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
   }
-  return t('bet');
+  return t('position_bet');
 };
 
-// Функция для получения имени таракана по ID
 const getBugName = (id) => {
   const names = {
     1: t('yellow'),
@@ -156,10 +127,17 @@ const getBugName = (id) => {
   return names[id] || t('unknown');
 };
 
-// В секции <script>
 const formattedBets = computed(() => {
-  const allBets = [...(props.bets || [])];
-  return allBets.slice(0, 10); // Показываем только 10 последних
+  return (props.bets || []).slice(0, 10).map(bet => {
+    if (bet.type === 'win' && bet.selection?.length >= 2) {
+      return {
+        ...bet,
+        bugId: bet.selection[0],
+        position: bet.selection[1]
+      }
+    }
+    return bet;
+  });
 });
 </script>
 
@@ -176,7 +154,6 @@ const formattedBets = computed(() => {
   overflow: hidden;
 }
 
-/* Позиционирование */
 .bottom-right {
   left: 36.15%;
   right: 2.31%;
@@ -247,49 +224,6 @@ const formattedBets = computed(() => {
   margin-bottom: 2px;
 }
 
-/* Новые стили для ставок на позицию */
-.position-bet-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 5px;
-}
-
-.bug-color-indicator {
-  width: 24px;
-  height: 12px;
-  border-radius: 2px;
-  border: 1px solid #FFFFFF;
-  margin-bottom: 2px;
-}
-
-/* Обновленные стили для индикаторов мест */
-.position-indicators {
-  display: flex;
-  flex-wrap: wrap;
-  width: 60px;
-}
-
-.position-indicator {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 1px;
-}
-
-.position-indicator.active {
-  background: #4CAF50;
-  color: white;
-  box-shadow: 0 0 5px #4CAF50;
-}
-
 .bet-info {
   flex-grow: 1;
   display: flex;
@@ -320,7 +254,6 @@ const formattedBets = computed(() => {
   text-align: center;
 }
 
-/* Адаптация для мобильных устройств */
 @media (max-width: 768px) {
   .history-bets {
     transform: scale(0.85);
@@ -339,22 +272,5 @@ const formattedBets = computed(() => {
     left: auto;
     right: 10px;
   }
-  
-  /* Адаптация индикаторов мест */
-  .position-indicators {
-    width: 50px;
-  }
-  
-  .position-indicator {
-    width: 12px;
-    height: 12px;
-    font-size: 6px;
-  }
-  
-  .bug-color-indicator {
-    width: 20px;
-    height: 10px;
-  }
 }
 </style>
-[file content end]

@@ -2065,7 +2065,9 @@ const fetchBetHistory = async () => {
   try {
     const response = await fetch('/api/get-bets');
     const data = await response.json();
-    
+     // Логирование полученных данных
+    console.log("Bet history data:", data);
+
     // Преобразование данных к нужному формату
     betHistoryFromApi.value = data.map(item => ({
       ...item.data,

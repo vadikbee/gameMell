@@ -63,14 +63,22 @@ const formatTime = (timeString) => {
 
 const getBetColors = (bet) => {
    // Для ставок на позицию: один цвет таракана
-  if (bet.type === 'position' && bet.bugId) {
+ // Для ставок на позицию
+  if (bet.type === 'position') {
     return [bugColorMap[bet.bugId]];
   }
-  
-  if (bet.type === 'win' && bet.bugId) {
-    return [bugColorMap[bet.bugId]];
+  // Для ставок на секцию
+  if (bet.type === 'section') {
+    return bet.selection.map(id => bugColorMap[id]);
   }
   
+   if (bet.type === 'overtaking') {
+    return [
+      bugColorMap[bet.overtaker],
+      bugColorMap[bet.overtaken]
+    ];
+  }
+
   if (bet.type === 'trap') {
     return bet.selection.map(id => bugColorMap[id] || '#FFFFFF');
   }
@@ -93,24 +101,37 @@ return colors.length > 0 ? colors : ['#FFFFFF'];
 };
 
 const getMultiplier = (bet) => {
-  return bet.type === 'win' ? 2.23 : bet.selection?.length || 1;
+  return bet.type === 'position' ? 2.23 : 1;
 }
 
 const calculateTotal = (bet) => {
-  if (bet.type === 'win') {
+  if (bet.type === 'position') {
     return bet.amount * 2.23;
   }
   
-  return bet.amount * (bet.selection?.length || 1);
+  return bet.amount;
 };
 
+
 const getBetType = (bet) => {
-  if (bet.type === 'position') {
+  // В функции getBetType
+ // Для ставок на позицию
+  if (bet.type === 'position' || bet.type === 'win') {
     return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
   }
-  
-  if (bet.type === 'win') {
-    return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+
+  // Для ставок на позицию
+  if (bet.type === 'position' || bet.type === 'win') {
+    // Извлекаем данные из selection для старых форматов
+    if (bet.selection && bet.selection.length >= 2) {
+      const bugId = bet.selection[0];
+      const position = bet.selection[1];
+      return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
+    }
+    // Для новых форматов
+    else if (bet.bugId && bet.position) {
+      return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+    }
   }
   if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
     return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
@@ -118,23 +139,22 @@ const getBetType = (bet) => {
   if (bet.type === 'trap') {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
-  
-  if (bet.bugId && bet.position) {
-    return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
+  // Для ставок на секцию
+  if (bet.type === 'section') {
+    return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
 
-  return t('position_bet');
-  console.log(`Formatting bet: type=${bet.type}, bugId=${bet.bugId}, position=${bet.position}, selection=`, bet.selection);
-};
-const saveBetToServer = async (bet) => {
-  try {
-    console.log("Saving bet to server:", bet);
-    // Реальная реализация будет здесь
-    // await fetch('/api/save-bet', {...});
-  } catch (error) {
-    console.error('Error saving bet:', error);
+  if (bet.bugId && bet.position) {
+    return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
+
+    
   }
+
+  
+  console.log(`Formatting bet: type=${bet.type}, bugId=${bet.bugId}, position=${bet.position}, selection=`, bet.selection);
+return t('position_bet');
 };
+
 // HistoryBets.vue
 const getBugName = (id) => {
   if (!id) return t('unknown');
@@ -152,15 +172,62 @@ const getBugName = (id) => {
 };
 
 const formattedBets = computed(() => {
-  return (props.bets || []).slice(0, 10).map(bet => {
-    if (bet.type === 'win' && bet.selection?.length >= 2) {
+  return (props.bets || []).slice(0, 10).map(item => {
+    const bet = item.data || item;
+    
+    // Для ставок на позицию
+    // Нормализация данных для ставок на позицию
+    if (bet.type === 'position' || bet.type === 'win' || bet.type === 'place') {
+      let bugId, position;
+      
+      // Обработка нового формата
+      if (bet.bugId !== undefined) {
+        bugId = bet.bugId;
+        position = bet.position;
+      }
+      // Обработка старого формата
+      else if (bet.selection && bet.selection.length >= 2) {
+        bugId = bet.selection[0];
+        position = bet.selection[1];
+      }
+      // Обработка выигрышных ставок
+      else if (bet.type === 'win' && bet.selection && bet.selection.length === 1) {
+        bugId = bet.selection[0];
+        position = 1;
+      }
+      
       return {
         ...bet,
+        type: 'position',
+        bugId: bugId,
+        position: position
+      };
+    }
+    
+    // Для ставок на победу (win)
+    if (bet.type === 'win' && bet.selection?.length === 1) {
+      return {
+        ...bet,
+        displayType: bet.type, // Сохраняем оригинальный тип для отображения
         bugId: bet.selection[0],
-        position: bet.selection[1]
+        position: 1
       }
     }
-    return bet;
+    
+  // Нормализация данных ставки
+    return {
+      id: bet.id,
+      type: bet.type,
+      amount: bet.amount,
+      time: bet.time,
+      bugId: bet.bugId || (bet.selection?.[0]),
+      position: bet.position || (bet.selection?.[1]),
+      overtaker: bet.overtaker,
+      overtaken: bet.overtaken,
+      trapId: bet.trapId,
+      selection: bet.selection
+    };
+    
   });
 });
 </script>

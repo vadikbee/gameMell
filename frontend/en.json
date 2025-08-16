@@ -39,6 +39,11 @@
   "red": "Red",
   "purple": "Purple",
   "green": "Green",
-  "unknown": "Unknown"
+  "unknown": "Unknown",
+  "or": "or",
+
+  "overcomes": "overcomes",
+  
+  "unknown_bet_type": "Unknown bet type"
    
 }

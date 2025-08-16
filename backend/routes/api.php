@@ -14,16 +14,41 @@ $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
 
-// Добавьте этот блок перед Route::post('/api/save-bet')
-Route::options('/api/save-bet', function () {
-    return response('', 204)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+Route::post('/api/save-bet', function (Request $request) {
+    try {
+          $data = $request->validate([
+            'user_id' => 'required|integer',
+            'amount' => 'required|numeric',
+            'type' => 'required|in:position,overtaking,section', // Обновленные типы
+            'bugId' => 'required_if:type,position|integer',
+            'position' => 'required_if:type,position|integer',
+            'overtaker' => 'required_if:type,overtaking|integer',
+            'overtaken' => 'required_if:type,overtaking|integer',
+            'selection' => 'required_if:type,section|array',
+            'trapId' => 'required_if:type,section|integer',
+            'color' => 'nullable|string',
+            'time' => 'nullable|string'
+        ]);
+
+        // Сохранение ставки в базу данных или файл
+        $bet = [
+            'id' => uniqid(),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'data' => $data
+        ];
+
+        // Логирование данных ставки
+        Log::info('Bet saved: ', $bet);
+
+        return response()->json(['status' => 'success', 'bet_id' => $bet['id']]);
+        
+    } catch (\Exception $e) {
+        Log::error('Save bet error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 });
 
-// Существующий POST-роут
-Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);
+
 // Добавим новые маршруты
 Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);
 Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
@@ -293,4 +318,3 @@ Route::get('/gameplay/games/sessions/{code}/last', [GameHistoryController::class
 
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
 // Добавьте в конец файла
-Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);

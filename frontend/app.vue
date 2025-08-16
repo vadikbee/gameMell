@@ -1376,20 +1376,36 @@ const getBugName = (id) => {
 // В секции <script setup> app.vue
 const saveBetToServer = async (bet) => {
   try {
-    console.log("Saving bet to server:", bet);
+    // Для ставок на позицию используем тип 'win' для первого места, 'place' для других
+    const serverType = bet.type === 'position' 
+      ? (bet.position === 1 ? 'win' : 'place')
+      : bet.type;
+
+    // Добавляем обязательное поле user_id
+    const betData = {
+      user_id: 1, // Обязательное поле
+      amount: bet.amount,
+      type: serverType, // Исправленный тип
+      selection: bet.type === 'position' ? [bet.bugId, bet.position] : [bet.bugId],
+      color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
+      time: new Date().toTimeString().split(' ')[0]
+    };
+
     const response = await fetch('/api/save-bet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...bet,
-        user_id: 1,
-        time: new Date().toTimeString().split(' ')[0]
-      })
+      body: JSON.stringify(betData)
     });
-    if (!response.ok) throw new Error('Failed to save bet');
-    fetchBetHistory();
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to save bet: ${errorText}`);
+    }
+    
+    return await response.json();
   } catch (error) {
     console.error('Error saving bet:', error);
+    throw error;
   }
 };
 const placeBet = async () => {
@@ -1445,8 +1461,7 @@ const placeBet = async () => {
   }
 
 
-  // В блоке для вкладки Result
-if (activeTab.value === 'result') {
+  if (activeTab.value === 'result') {
     const selectedButtons = resultButtons.value.filter(btn => btn.selected);
     
     if (selectedButtons.length > 0) {
@@ -1465,12 +1480,12 @@ if (activeTab.value === 'result') {
         playOutcomeSound();
         showBetPlacedNotification();
         
-        // Создаем отдельную ставку для каждой выбранной позиции
-        selectedButtons.forEach(button => {
-            const row = Math.floor(button.id / 7);
-            const col = button.id % 7;
-            const bugId = row + 1;
-            const position = col + 1;
+        // Для каждой выбранной кнопки создаем отдельную ставку
+      selectedButtons.forEach(button => {
+        const row = Math.floor(button.id / 7);
+        const col = button.id ;
+        const bugId = row + 1;
+        const position = col + 1;
             
             // Детальное логирование
         console.log(`Placing bet: 
@@ -1490,12 +1505,14 @@ if (activeTab.value === 'result') {
                 timestamp: new Date().toISOString()
             };
             
-            // Добавляем ставку в историю
-            betHistory.value.push(bet);
-            nextRaceBets.value.push(bet);
-            
-            // Отправка на сервер (добавьте логику отправки)
-            saveBetToServer(bet);
+             betHistory.value.push(bet);
+        nextRaceBets.value.push(bet);
+        saveBetToServer({
+  type: 'position',
+  bugId: bugId,
+  position: position,
+  amount: currentBet.value
+});
         });
         
         // Обновляем UI
@@ -1509,20 +1526,7 @@ if (activeTab.value === 'result') {
         setTimeout(() => infoNotificationVisible.value = false, 3000);
     }
 }
-    const response = await fetch('/api/save-bet', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        user_id: 1, // ID пользователя (временное решение)
-        amount: currentBet.value,
-        type: activeTab.value === 'result' ? 'win' : 'place',
-        selection: selectedButtons.map(btn => btn.id),
-        color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)', // Пример градиента
-        time: new Date().toTimeString().split(' ')[0] // Текущее время HH:MM:SS
-      })
-    });
+    
     
     if (!response.ok) throw new Error('Failed to save bet');
     
@@ -2093,6 +2097,9 @@ const betHistoryFromApi = ref([]);
 
 const fetchBetHistory = async () => {
   try {
+    // Добавляем задержку между запросами
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     const response = await fetch('/api/get-bets');
     const data = await response.json();
      // Логирование полученных данных

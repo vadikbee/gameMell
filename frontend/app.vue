@@ -1395,12 +1395,13 @@ const saveBetToServer = async (bet) => {
       };
     } 
     // Для ставок на обгон используем серверный тип 'trap'
+    // Для ставок на обгон
     else if (bet.type === 'overtaking') {
-      serverType = 'trap';
       payload = {
         ...payload,
-        type: serverType,
-        selection: [bet.overtaker, bet.overtaken]
+        type: 'trap',
+        selection: [bet.overtaker, bet.overtaken],
+        trapId: 0 // Добавляем trapId для прохождения валидации
       };
     }
 

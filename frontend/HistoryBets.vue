@@ -62,6 +62,11 @@ const formatTime = (timeString) => {
 };
 
 const getBetColors = (bet) => {
+   // Для ставок на позицию: один цвет таракана
+  if (bet.type === 'position' && bet.bugId) {
+    return [bugColorMap[bet.bugId]];
+  }
+  
   if (bet.type === 'win' && bet.bugId) {
     return [bugColorMap[bet.bugId]];
   }
@@ -82,7 +87,9 @@ const getBetColors = (bet) => {
     const matches = bet.color.match(/#[0-9A-Fa-f]{6}/g);
     if (matches) colors.push(...matches.slice(0, 2));
   }
-  return colors.length > 0 ? colors : ['#FFFFFF'];
+  
+  console.log(`Getting colors for bet: type=${bet.type}, bugId=${bet.bugId}, color=`, bugColorMap[bet.bugId]);
+return colors.length > 0 ? colors : ['#FFFFFF'];
 };
 
 const getMultiplier = (bet) => {
@@ -98,6 +105,10 @@ const calculateTotal = (bet) => {
 };
 
 const getBetType = (bet) => {
+  if (bet.type === 'position') {
+    return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+  }
+  
   if (bet.type === 'win') {
     return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
   }
@@ -111,10 +122,23 @@ const getBetType = (bet) => {
   if (bet.bugId && bet.position) {
     return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
   }
-  return t('position_bet');
-};
 
+  return t('position_bet');
+  console.log(`Formatting bet: type=${bet.type}, bugId=${bet.bugId}, position=${bet.position}, selection=`, bet.selection);
+};
+const saveBetToServer = async (bet) => {
+  try {
+    console.log("Saving bet to server:", bet);
+    // Реальная реализация будет здесь
+    // await fetch('/api/save-bet', {...});
+  } catch (error) {
+    console.error('Error saving bet:', error);
+  }
+};
+// HistoryBets.vue
 const getBugName = (id) => {
+  if (!id) return t('unknown');
+  
   const names = {
     1: t('yellow'),
     2: t('orange'),

@@ -1360,6 +1360,37 @@ const resetSelectedMenuButtons = () => {
       }
     });
   }
+};// app.vue
+const getBugName = (id) => {
+  const names = {
+    1: t('yellow'),
+    2: t('orange'),
+    3: t('dark_orange'),
+    4: t('blue'),
+    5: t('red'),
+    6: t('purple'),
+    7: t('green')
+  };
+  return names[id] || t('unknown');
+};
+// В секции <script setup> app.vue
+const saveBetToServer = async (bet) => {
+  try {
+    console.log("Saving bet to server:", bet);
+    const response = await fetch('/api/save-bet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...bet,
+        user_id: 1,
+        time: new Date().toTimeString().split(' ')[0]
+      })
+    });
+    if (!response.ok) throw new Error('Failed to save bet');
+    fetchBetHistory();
+  } catch (error) {
+    console.error('Error saving bet:', error);
+  }
 };
 const placeBet = async () => {
     try {
@@ -1420,8 +1451,7 @@ if (activeTab.value === 'result') {
     
     if (selectedButtons.length > 0) {
         // Рассчитываем общую сумму ставки
-           const totalBetAmount = currentBet.value * selectedButtons.length;
-      
+        const totalBetAmount = currentBet.value * selectedButtons.length;
         
         if (totalBetAmount > balance.value) {
             infoMessage.value = t('insufficient_funds');
@@ -1430,54 +1460,54 @@ if (activeTab.value === 'result') {
             return;
         }
 
-        
-
         // Списание средств
         balance.value -= totalBetAmount;
         playOutcomeSound();
         showBetPlacedNotification();
         
-        if (selectedButtons.length > 0) {
-              // Используем текущую ставку для всех выбранных кнопок
-              const betAmount = currentBet.value;
-
-        // Создаем ставки с фиксированной суммой для каждой кнопки
+        // Создаем отдельную ставку для каждой выбранной позиции
         selectedButtons.forEach(button => {
-            const bugId = Math.floor(button.id / 7); // Строка = таракан
-            const position = (button.id % 7) + 1; // Колонка = место
+            const row = Math.floor(button.id / 7);
+            const col = button.id % 7;
+            const bugId = row + 1;
+            const position = col + 1;
             
+            // Детальное логирование
+        console.log(`Placing bet: 
+          Button ID: ${button.id}
+          Row: ${row}, Col: ${col}
+          Bug: ${getBugName(bugId)} (ID: ${bugId})
+          Position: ${position}
+          Amount: ${currentBet.value}₽`);
+
+            console.log(`Placing bet: bugId=${bugId} (${getBugName(bugId)}), position=${position}, amount=${currentBet.value}`);
             
-              button.betAmount = betAmount;
-              button.confirmed = true;
-            
-            // Исправленный код:
             const bet = {
-              type: 'position',
-              bugId: bugId + 1, // Используем существующую переменную
-              position: position,
-              amount: betAmount,
-              timestamp: new Date().toISOString(),
-              result: 'pending'
+                type: 'position',
+                bugId: bugId,
+                position: position,
+                amount: currentBet.value,
+                timestamp: new Date().toISOString()
             };
             
+            // Добавляем ставку в историю
             betHistory.value.push(bet);
             nextRaceBets.value.push(bet);
             
+            // Отправка на сервер (добавьте логику отправки)
+            saveBetToServer(bet);
         });
         
         // Обновляем UI
         selectedButtons.forEach(button => {
             button.confirmed = true;
-            button.selected = false; // Снимаем выделение после подтверждения
+            button.selected = false;
         });
-        
-    }    // НЕ сбрасываем текущую ставку!
     } else {
         infoMessage.value = t('select_bet_option');
         infoNotificationVisible.value = true;
         setTimeout(() => infoNotificationVisible.value = false, 3000);
     }
-    
 }
     const response = await fetch('/api/save-bet', {
       method: 'POST',
@@ -2327,7 +2357,7 @@ const toggleMenuButton = (btn) => {
   
   const row = Math.floor(btn.id / 7);
   const col = btn.id % 7;
-
+  console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
   if (activeTab.value === 'overtaking') {
     // Пропускаем диагональные кнопки
     if (row === col) return;
@@ -2389,6 +2419,8 @@ const toggleMenuButton = (btn) => {
         btn.pendingBetAmount = currentBet.value;
     }
 }
+console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
+
 };
 
 // ==============================

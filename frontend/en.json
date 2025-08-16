@@ -27,6 +27,18 @@
 
    "position_bet": "Position Bet",
    "overtaking_bet": "Overtaking Bet",
-   "section_bet": "Section Bet"
+   "section_bet": "Section Bet",
+
+  "section": "Section",
+  "bugs": "bugs",
+  "place": "place",
+  "yellow": "Yellow",
+  "orange": "Orange",
+  "dark_orange": "Dark Orange",
+  "blue": "Blue",
+  "red": "Red",
+  "purple": "Purple",
+  "green": "Green",
+  "unknown": "Unknown"
    
 }

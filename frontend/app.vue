@@ -1376,25 +1376,38 @@ const getBugName = (id) => {
 // В секции <script setup> app.vue
 const saveBetToServer = async (bet) => {
   try {
-    // Для ставок на позицию используем тип 'win' для первого места, 'place' для других
-    const serverType = bet.type === 'position' 
-      ? (bet.position === 1 ? 'win' : 'place')
-      : bet.type;
-
-    // Добавляем обязательное поле user_id
-    const betData = {
-      user_id: 1, // Обязательное поле
+    let serverType = bet.type;
+    let payload = {
+      user_id: 1,
       amount: bet.amount,
-      type: serverType, // Исправленный тип
-      selection: bet.type === 'position' ? [bet.bugId, bet.position] : [bet.bugId],
+      type: serverType,
       color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
       time: new Date().toTimeString().split(' ')[0]
     };
 
+    // Для ставок на позицию используем серверный тип 'place'
+    if (bet.type === 'position') {
+      serverType = 'place';
+      payload = {
+        ...payload,
+        type: serverType,
+        selection: [bet.bugId, bet.position]
+      };
+    } 
+    // Для ставок на обгон используем серверный тип 'trap'
+    else if (bet.type === 'overtaking') {
+      serverType = 'trap';
+      payload = {
+        ...payload,
+        type: serverType,
+        selection: [bet.overtaker, bet.overtaken]
+      };
+    }
+
     const response = await fetch('/api/save-bet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(betData)
+      body: JSON.stringify(payload)
     });
     
     if (!response.ok) {
@@ -1410,131 +1423,133 @@ const saveBetToServer = async (bet) => {
 };
 const placeBet = async () => {
     try {
-  const workingButtons = activeTab.value === 'result' 
-    ? resultButtons.value 
-    : overtakingButtons.value;
-    
-  const selectedButtons = workingButtons.filter(btn => btn.selected);
-  playBetClick();
-  
-   if (activeTab.value === 'overtaking') {
-    const { overtaker, overtaken } = overtakingSelection.value;
-    
-    if (overtaker === null || overtaken.size === 0) {
-      infoMessage.value = t('select_bug_to_overtake');
-      infoNotificationVisible.value = true;
-      setTimeout(() => infoNotificationVisible.value = false, 3000);
-      return;
-    }
-    
-    // Создаем ставки для каждой пары
-    overtaken.forEach(overtakenId => {
-      const bet = {
-        type: 'overtaking',
-        overtaker: overtaker,
-        overtaken: overtakenId,
-        amount: currentBet.value,
-        timestamp: new Date().toISOString(),
-        result: 'pending'
-      };
-      
-      betHistory.value.push(bet);
-      nextRaceBets.value.push(bet);
-    });
-    
-    // Списание средств
-    balance.value -= currentBet.value * overtaken.size;
-    
-    // Отмечаем кнопки как подтвержденные
-    overtaken.forEach(id => {
-      const button = overtakingButtons.value.find(
-        b => b.id === overtaker * 7 + id
-      );
-      if (button) {
-        button.confirmed = true;
-        button.betAmount = currentBet.value;
-        button.selected = false; // Снимаем выделение после подтверждения
-      }
-    });
-
-    resetOvertakingSelection();
-  }
-
-
-  if (activeTab.value === 'result') {
-    const selectedButtons = resultButtons.value.filter(btn => btn.selected);
-    
-    if (selectedButtons.length > 0) {
-        // Рассчитываем общую сумму ставки
-        const totalBetAmount = currentBet.value * selectedButtons.length;
+        const workingButtons = activeTab.value === 'result' 
+            ? resultButtons.value 
+            : overtakingButtons.value;
+            
+        const selectedButtons = workingButtons.filter(btn => btn.selected);
+        playBetClick();
         
-        if (totalBetAmount > balance.value) {
-            infoMessage.value = t('insufficient_funds');
-            infoNotificationVisible.value = true;
-            setTimeout(() => infoNotificationVisible.value = false, 3000);
-            return;
+        // Для ставок на обгон
+        if (activeTab.value === 'overtaking') {
+            const { overtaker, overtaken } = overtakingSelection.value;
+            
+            if (overtaker === null || overtaken.size === 0) {
+                infoMessage.value = t('select_bug_to_overtake');
+                infoNotificationVisible.value = true;
+                setTimeout(() => infoNotificationVisible.value = false, 3000);
+                return;
+            }
+            
+            // Создаем ставки для каждой пары
+            overtaken.forEach(overtakenId => {
+                const bet = {
+                    type: 'overtaking',
+                    overtaker: overtaker,
+                    overtaken: overtakenId,
+                    amount: currentBet.value,
+                    timestamp: new Date().toISOString(),
+                    result: 'pending'
+                };
+                
+                betHistory.value.push(bet);
+                nextRaceBets.value.push(bet);
+                
+                // Сохраняем на сервере
+                saveBetToServer({
+                    type: 'overtaking',
+                    overtaker: overtaker,
+                    overtaken: overtakenId,
+                    amount: currentBet.value
+                });
+            });
+            
+            // Списание средств
+            balance.value -= currentBet.value * overtaken.size;
+            playOutcomeSound();
+            showBetPlacedNotification();
+            
+            // Отмечаем кнопки как подтвержденные
+            overtaken.forEach(id => {
+                const button = overtakingButtons.value.find(
+                    b => b.id === overtaker * 7 + id
+                );
+                if (button) {
+                    button.confirmed = true;
+                    button.betAmount = currentBet.value;
+                    button.selected = false;
+                }
+            });
+
+            resetOvertakingSelection();
         }
 
-        // Списание средств
-        balance.value -= totalBetAmount;
-        playOutcomeSound();
-        showBetPlacedNotification();
-        
-        // Для каждой выбранной кнопки создаем отдельную ставку
-      selectedButtons.forEach(button => {
-        const row = Math.floor(button.id / 7);
-        const col = button.id ;
-        const bugId = row + 1;
-        const position = col + 1;
+        // Для ставок на результат (позицию)
+        if (activeTab.value === 'result') {
+            const selectedButtons = resultButtons.value.filter(btn => btn.selected);
             
-            // Детальное логирование
-        console.log(`Placing bet: 
-          Button ID: ${button.id}
-          Row: ${row}, Col: ${col}
-          Bug: ${getBugName(bugId)} (ID: ${bugId})
-          Position: ${position}
-          Amount: ${currentBet.value}₽`);
+            if (selectedButtons.length > 0) {
+                // Рассчитываем общую сумму ставки
+                const totalBetAmount = currentBet.value * selectedButtons.length;
+                
+                if (totalBetAmount > balance.value) {
+                    infoMessage.value = t('insufficient_funds');
+                    infoNotificationVisible.value = true;
+                    setTimeout(() => infoNotificationVisible.value = false, 3000);
+                    return;
+                }
 
-            console.log(`Placing bet: bugId=${bugId} (${getBugName(bugId)}), position=${position}, amount=${currentBet.value}`);
-            
-            const bet = {
-                type: 'position',
-                bugId: bugId,
-                position: position,
-                amount: currentBet.value,
-                timestamp: new Date().toISOString()
-            };
-            
-             betHistory.value.push(bet);
-        nextRaceBets.value.push(bet);
-        saveBetToServer({
-  type: 'position',
-  bugId: bugId,
-  position: position,
-  amount: currentBet.value
-});
-        });
+                // Списание средств
+                balance.value -= totalBetAmount;
+                playOutcomeSound();
+                showBetPlacedNotification();
+                
+                // Для каждой выбранной кнопки создаем отдельную ставку
+                selectedButtons.forEach(button => {
+                    const row = Math.floor(button.id / 7);
+                    const col = button.id % 7;
+                    const bugId = row + 1;
+                    const position = col + 1;
+                    
+                    const bet = {
+                        type: 'position',
+                        bugId: bugId,
+                        position: position,
+                        amount: currentBet.value,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    betHistory.value.push(bet);
+                    nextRaceBets.value.push(bet);
+                    
+                    // Сохраняем на сервере
+                    saveBetToServer({
+                        type: 'position',
+                        bugId: bugId,
+                        position: position,
+                        amount: currentBet.value
+                    });
+                });
+                
+                // Обновляем UI
+                selectedButtons.forEach(button => {
+                    button.confirmed = true;
+                    button.betAmount = currentBet.value;
+                    button.selected = false;
+                });
+            } else {
+                infoMessage.value = t('select_bet_option');
+                infoNotificationVisible.value = true;
+                setTimeout(() => infoNotificationVisible.value = false, 3000);
+            }
+        }
         
-        // Обновляем UI
-        selectedButtons.forEach(button => {
-            button.confirmed = true;
-            button.selected = false;
-        });
-    } else {
-        infoMessage.value = t('select_bet_option');
-        infoNotificationVisible.value = true;
-        setTimeout(() => infoNotificationVisible.value = false, 3000);
+        // Обновляем историю ставок
+        fetchBetHistory();
+        
+    } catch (error) {
+        console.error('Error saving bet:', error);
     }
-}
-    
-    
-    if (!response.ok) throw new Error('Failed to save bet');
-    
-    // Обновляем историю ставок
-    fetchBetHistory();
-  } catch (error) {
-    console.error('Error saving bet:', error);
-  }
 };
 
 // ... остальной код ...

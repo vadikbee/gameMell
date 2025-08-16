@@ -115,6 +115,11 @@ const calculateTotal = (bet) => {
 
 const getBetType = (bet) => {
   // В функции getBetType
+ // Для ставок на обгон
+  if (bet.type === 'overtaking') {
+    return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
+  }
+
  // Для ставок на позицию
   if (bet.type === 'position' || bet.type === 'win') {
     return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
@@ -176,6 +181,14 @@ const formattedBets = computed(() => {
     const bet = item.data || item;
     
     // Для ставок на позицию
+    if (bet.type === 'overtaking') {
+  return {
+    ...bet,
+    displayType: bet.type,
+    overtaker: bet.overtaker,
+    overtaken: bet.overtaken
+  };
+}
     // Нормализация данных для ставок на позицию
     if (bet.type === 'position' || bet.type === 'win' || bet.type === 'place') {
       let bugId, position;
@@ -204,14 +217,30 @@ const formattedBets = computed(() => {
       };
     }
     
-    // Для ставок на победу (win)
+     // Конвертация ставок из серверного формата в клиентский
     if (bet.type === 'win' && bet.selection?.length === 1) {
       return {
         ...bet,
-        displayType: bet.type, // Сохраняем оригинальный тип для отображения
+        type: 'position',
         bugId: bet.selection[0],
         position: 1
-      }
+      };
+    }
+    else if (bet.type === 'place' && bet.selection?.length === 2) {
+      return {
+        ...bet,
+        type: 'position',
+        bugId: bet.selection[0],
+        position: bet.selection[1]
+      };
+    }
+    else if (bet.type === 'trap' && bet.selection?.length === 2) {
+      return {
+        ...bet,
+        type: 'overtaking',
+        overtaker: bet.selection[0],
+        overtaken: bet.selection[1]
+      };
     }
     
   // Нормализация данных ставки

@@ -9,34 +9,38 @@ use App\Http\Controllers\BetHistoryController;
 require_once base_path('path_generator/PathGenerator.php');
 require_once base_path('path_generator/a_star.php');
 
+
 // Кешированная конфигурация сетки
 $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
 
 Route::post('/api/save-bet', function (Request $request) {
-    try {
-          $data = $request->validate([
-            'user_id' => 'required|integer',
-            'amount' => 'required|numeric',
-            'type' => 'required|in:position,overtaking,section', // Обновленные типы
-            'bugId' => 'required_if:type,position|integer',
-            'position' => 'required_if:type,position|integer',
-            'overtaker' => 'required_if:type,overtaking|integer',
-            'overtaken' => 'required_if:type,overtaking|integer',
-            'selection' => 'required_if:type,section|array',
-            'trapId' => 'required_if:type,section|integer',
-            'color' => 'nullable|string',
-            'time' => 'nullable|string'
-        ]);
-
+    
+      try {
+    $data = $request->validate([
+      'user_id' => 'required|integer',
+      'amount' => 'required|numeric',
+      'type' => 'required|in:win,place,trap,position,overtaking,section',
+      // Условные параметры
+      'bugId' => 'required_if:type,position|integer',
+      'position' => 'required_if:type,position|integer',
+      'overtaker' => 'required_if:type,overtaking|integer',
+      'overtaken' => 'required_if:type,overtaking|integer',
+      'selection' => 'required_if:type,section|array',
+      'trapId' => 'required_if:type,section|integer',
+      'color' => 'nullable|string',
+      'time' => 'nullable|string'
+    ]);
+        
         // Сохранение ставки в базу данных или файл
         $bet = [
             'id' => uniqid(),
             'timestamp' => now()->format('Y-m-d H:i:s'),
             'data' => $data
+            
         ];
-
+        
         // Логирование данных ставки
         Log::info('Bet saved: ', $bet);
 

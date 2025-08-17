@@ -1363,13 +1363,13 @@ const resetSelectedMenuButtons = () => {
 };// app.vue
 const getBugName = (id) => {
   const names = {
-    1: t('yellow'),
-    2: t('orange'),
-    3: t('dark_orange'),
-    4: t('blue'),
-    5: t('red'),
-    6: t('purple'),
-    7: t('green')
+    0: t('yellow'),
+    1: t('orange'),
+    2: t('dark_orange'),
+    3: t('blue'),
+    4: t('red'),
+    5: t('purple'),
+    6: t('green')
   };
   return names[id] || t('unknown');
 };
@@ -1446,8 +1446,8 @@ const placeBet = async () => {
             overtaken.forEach(overtakenId => {
                 const bet = {
                     type: 'overtaking',
-                    overtaker: overtaker,
-                    overtaken: overtakenId,
+                    overtaker: Number(overtaker), // Преобразуем в число
+        overtaken: Number(overtakenId), // Преобразуем в число
                     amount: currentBet.value,
                     timestamp: new Date().toISOString(),
                     result: 'pending'
@@ -1459,8 +1459,8 @@ const placeBet = async () => {
                 // Сохраняем на сервере
                 saveBetToServer({
                     type: 'overtaking',
-                    overtaker: overtaker,
-                    overtaken: overtakenId,
+                    overtaker: Number(overtaker), // Преобразуем в число
+        overtaken: Number(overtakenId), // Преобразуем в число
                     amount: currentBet.value
                 });
             });
@@ -2380,6 +2380,8 @@ const toggleMenuButton = (btn) => {
   
   const row = Math.floor(btn.id / 7);
   const col = btn.id % 7;
+  const bugId = row + 1;
+  
   console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
   if (activeTab.value === 'overtaking') {
     // Пропускаем диагональные кнопки

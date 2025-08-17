@@ -42,13 +42,13 @@ const props = defineProps({
 });
 
 const bugColorMap = {
-  1: '#FFFF00',
-  2: '#FFA500',
-  3: '#8B0000',
-  4: '#0000FF',
-  5: '#FF0000',
-  6: '#800080',
-  7: '#00FF00'
+  0: '#FFFF00',
+  1: '#FFA500',
+  2: '#8B0000',
+  3: '#0000FF',
+  4: '#FF0000',
+  5: '#800080',
+  6: '#00FF00'
 };
 
 const positionClass = computed(() => {
@@ -144,36 +144,47 @@ const getBetType = (bet) => {
 };
 
 const getBugName = (id) => {
+  console.groupCollapsed(`[getBugName] Input id:`, id, `(type: ${typeof id})`);
   if (!id) return t('unknown');
+  if (!id) {
+    console.warn('ID is undefined or null');
+    console.groupEnd();
+    return t('unknown');
+  }
+  // Преобразуем ID в число, если это строка
+      const numId = typeof id === 'number' ? id : parseInt(id, 10);
   
-  const numId = parseInt(id);
-  if (isNaN(numId)) return t('unknown');
   
   const names = {
-    1: t('yellow'),
-    2: t('orange'),
-    3: t('dark_orange'),
-    4: t('blue'),
-    5: t('red'),
-    6: t('purple'),
-    7: t('green')
+    0: t('yellow'),
+    1: t('orange'),
+    2: t('dark_orange'),
+    3: t('blue'),
+    4: t('red'),
+    5: t('purple'),
+    6: t('green')
   };
   
   return names[numId] || t('unknown');
 };
 
 const formattedBets = computed(() => {
+  
+  console.groupCollapsed('[formattedBets] Processing bets');
   return (props.bets || []).slice(0, 10).map(item => {
     const bet = item.data || item;
+
     
-    // Преобразование ставок на обгон
+    
+    // Исправление для ставок на обгон
     if (bet.type === 'overtaking' || 
         (bet.type === 'trap' && bet.selection?.length === 2)) {
       return {
         ...bet,
         type: 'overtaking',
-        overtaker: bet.overtaker || bet.selection?.[0],
-        overtaken: bet.overtaken || bet.selection?.[1]
+        // Убеждаемся, что используем числовые ID
+        overtaker: parseInt(bet.overtaker || bet.selection?.[0], 10),
+        overtaken: parseInt(bet.overtaken || bet.selection?.[1], 10)
       };
     }
     

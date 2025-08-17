@@ -642,6 +642,7 @@ const raceCountdown = ref(12); // отсчет до конца гонки
 let cycleTimer = null;
 let raceTimer = null;
 // Новые состояния для взаимодействия с тараканами в меню
+
 const hoveredBugIndex = ref(null);
 const clickedBugIndex = ref(null);
 const selectedTrap = ref(null);
@@ -1295,12 +1296,18 @@ const resetAllBets = () => {
   });
   
   overtakingButtons.value.forEach(b => {
-    b.confirmed = false;
-    b.betAmount = 0;
+    if (b.confirmed) {
+      b.confirmed = false;
+      b.betAmount = 0;
+      // Сбрасываем выделение только для подтвержденных кнопок
+      b.selected = false;
+    }
+    // Неподтвержденные кнопки остаются выделенными
   });
   
   
 };
+// Восстановление неподтвержденных выделений при открытии меню
 
 // Удвоение ставки
 
@@ -1487,11 +1494,12 @@ const placeBet = async () => {
     if (button) {
       button.confirmed = true;
       button.betAmount = currentBet.value;
-      // Не сбрасываем selected здесь!
+      // Сбрасываем выделение после подтверждения
+      button.selected = false; // <-- ДОБАВЛЕНА ЭТА СТРОКА
     }
   });
 
-  resetOvertakingSelection();
+  clearOvertakingSelections(); // ДОБАВИТЬ
 }
 
         // Для ставок на результат (позицию)
@@ -1651,9 +1659,7 @@ const setActiveTab = (tab) => {
   // Сбрасываем выделение на текущей активной вкладке
   if (activeTab.value === 'result') {
     resultButtons.value.forEach(btn => btn.selected = false);
-  } else if (activeTab.value === 'overtaking') {
-    overtakingButtons.value.forEach(btn => btn.selected = false);
-  }
+  } 
   
   // Устанавливаем новую вкладку
   activeTab.value = tab;
@@ -1665,6 +1671,19 @@ const setActiveTab = (tab) => {
   if (tab === 'overtaking') {
     overtakingSelection.value = [];
   }
+};
+
+// 2. Добавляем метод для восстановления выделений
+const restoreOvertakingSelections = () => {
+  overtakingButtons.value.forEach(btn => {
+    const row = Math.floor(btn.id / 7);
+    const col = btn.id % 7;
+    
+    // Восстанавливаем только неподтвержденные выделения
+    if (!btn.confirmed) {
+      btn.selected = overtakingSelections.value[row]?.has(col) || false;
+    }
+  });
 };
 const explodeAllBugs = (raceEndTime) => {
   if (!isTabActive.value || bugs.value.length === 0) return;
@@ -2188,21 +2207,25 @@ const toggleHistoryBets = () => {
 
 // Закрытие истории при открытии центрального меню
 watch(centerMenuVisible, (newVal) => {
-  if (!newVal && historyBetsInsideCenter.value) {
-    // Закрываем историю при закрытии центрального меню
-    historyBetsVisible.value = false;
-    historyBetsInsideCenter.value = false;
+  if (newVal) {
+    // Восстанавливаем выделения для ставок на обгон
+    restoreOvertakingSelections();
+  
+    
+    // Дополнительно: восстанавливаем активную вкладку
+    if (activeTab.value === 'overtaking') {
+      restoreOvertakingSelections();
+    }
+  }
+});
+
+watch(locale, () => {
+  if (centerMenuVisible.value && activeTab.value === 'overtaking') {
+    restoreOvertakingSelections();
   }
 });
 
 
-
-// Восстанавливаем предыдущую ставку из истории
-const restorePreviousBet = () => {
-  if (betHistory.value.length > 0) {
-    currentBet.value = betHistory.value.pop();
-  }
-};
 // Функция переключения видимости
 const toggleLastGameMenu = () => {
   if (centerMenuVisible.value) return;
@@ -2363,15 +2386,16 @@ const winButtons = ref([
 // Сброс выбора обгона
 
 const resetOvertakingSelection = () => {
-  // Очищаем только выделения, НЕ подтвержденные ставки
-  overtakingSelections.value = {};
-  
-  // Сбрасываем выделение только для неподтвержденных кнопок
+  // Очищаем только подтвержденные ставки
   overtakingButtons.value.forEach(btn => {
-    if (!btn.confirmed) {
+    if (btn.confirmed) {
+      btn.confirmed = false;
+      btn.betAmount = 0;
       btn.selected = false;
     }
   });
+  
+  // НЕ сбрасываем неподтвержденные выделения (selected)
 };
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
@@ -2473,8 +2497,6 @@ const toggleMenuButton = (btn) => {
       return;
     }
     
-    
-    
     // Инвертируем состояние выбора
     btn.selected = !btn.selected;
     
@@ -2482,6 +2504,7 @@ const toggleMenuButton = (btn) => {
     if (btn.selected) {
         btn.pendingBetAmount = currentBet.value;
     }
+    
 }
 console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
 
@@ -2558,7 +2581,7 @@ const generatePaths = async () => {
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
   unlockAllBugs();
-  resetOvertakingSelection();
+  const confirmedBets = [];
 // Сбрасываем блокировку тараканов
   lockedBugs.value = new Set();
 countdownPlayed.value = false; // Сбрасываем флаг
@@ -2575,19 +2598,17 @@ playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
   }
   // Сбрасываем состояния кнопок после проверки ставок
 // Стало: сбрасываем только confirmed кнопки
-resultButtons.value.forEach(b => {
-  if (b.confirmed) {
+  resultButtons.value.forEach(b => {
     b.confirmed = false;
     b.betAmount = 0;
-  }
-});
+  });
 
-overtakingButtons.value.forEach(b => {
-  if (b.confirmed) {
-    b.confirmed = false;
-    b.betAmount = 0;
-  }
-});
+  overtakingButtons.value.forEach(btn => {
+    if (btn.confirmed) {
+      btn.confirmed = false;
+      btn.betAmount = 0;
+    }
+  });
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;
@@ -2683,6 +2704,24 @@ overtakingButtons.value.forEach(b => {
   // В функции generatePaths после получения данных
 // После получения данных генерации
 
+  confirmedBets.forEach(bet => {
+    const btn = overtakingButtons.value.find(b => b.id === bet.id);
+    if (btn) {
+      btn.confirmed = true;
+      btn.betAmount = bet.amount;
+    }
+  });
+};
+const clearOvertakingSelections = () => {
+  // Сбрасываем только НЕподтвержденные выделения
+  overtakingButtons.value.forEach(btn => {
+    if (!btn.confirmed) {
+      btn.selected = false;
+    }
+  });
+  
+  // Очищаем объект выделений
+  overtakingSelections.value = {};
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {
@@ -2902,8 +2941,6 @@ onUnmounted(() => {
 document.removeEventListener('click', firstInteractionHandler);
   document.removeEventListener('touchstart', firstInteractionHandler);
 });
-
-
 
 
 </script>

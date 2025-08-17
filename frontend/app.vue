@@ -664,9 +664,9 @@ const raceStartSound = ref(null);
 const nextRaceBets = ref([]);
 // Состояния для уведомлений
 // Добавляем состояние для хранения выделений по строкам
-const overtakingSelections = ref({});
-// Добавляем реактивное состояние текущей строки
-const currentOvertakerRow = ref(null);
+const overtakingSelection = ref({}); // { row: Set(columns) }
+const overtakingSelections = ref({}); // { row: Set(columns) }
+const currentOvertakerRow = ref(null); // Текущая выбранная строка
 // Добавляем новый массив для ставок текущей гонки
 const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
@@ -1433,58 +1433,66 @@ const placeBet = async () => {
         
         // Для ставок на обгон
         if (activeTab.value === 'overtaking') {
-            const { overtaker, overtaken } = overtakingSelection.value;
             
-            if (overtaker === null || overtaken.size === 0) {
-                infoMessage.value = t('select_bug_to_overtake');
-                infoNotificationVisible.value = true;
-                setTimeout(() => infoNotificationVisible.value = false, 3000);
-                return;
-            }
+            const selectedPairs = [];
             
-            // Создаем ставки для каждой пары
-            // Используем ID как есть (0-6)
-      overtaken.forEach(overtakenId => {
-        const bet = {
-          type: 'overtaking',
-          overtaker: overtaker, // 0-6
-          overtaken: overtakenId, // 0-6
-          amount: currentBet.value,
-          timestamp: new Date().toISOString(),
-          result: 'pending'
-        };
-                
-                betHistory.value.push(bet);
-                nextRaceBets.value.push(bet);
-                
-                // Сохраняем на сервере
-                saveBetToServer({
-                    type: 'overtaking',
-                    overtaker: Number(overtaker), // Преобразуем в число
-        overtaken: Number(overtakenId), // Преобразуем в число
-                    amount: currentBet.value
-                });
-            });
+  for (const [row, columns] of Object.entries(overtakingSelections.value)) {
+    for (const col of columns) {
+      selectedPairs.push({
+        overtaker: Number(row),
+        overtaken: Number(col)
+      });
+    }
+  }
+  
+             if (selectedPairs.length === 0) {
+    infoMessage.value = t('select_bug_to_overtake');
+    infoNotificationVisible.value = true;
+    setTimeout(() => infoNotificationVisible.value = false, 3000);
+    return;
+  }
+  
+  // Создаем ставки для КАЖДОЙ пары
+  selectedPairs.forEach(pair => {
+    const bet = {
+      type: 'overtaking',
+      overtaker: pair.overtaker,
+      overtaken: pair.overtaken,
+      amount: currentBet.value,
+      timestamp: new Date().toISOString(),
+      result: 'pending'
+    };
+    
+    betHistory.value.push(bet);
+    nextRaceBets.value.push(bet);
+    
+    // Сохраняем на сервере
+    saveBetToServer({
+      type: 'overtaking',
+      overtaker: pair.overtaker,
+      overtaken: pair.overtaken,
+      amount: currentBet.value
+    });
+  });
             
             // Списание средств
-            balance.value -= currentBet.value * overtaken.size;
-            playOutcomeSound();
-            showBetPlacedNotification();
+  balance.value -= currentBet.value * selectedPairs.length;
+  playOutcomeSound();
+  showBetPlacedNotification();
             
             // Отмечаем кнопки как подтвержденные
-            overtaken.forEach(id => {
-                const button = overtakingButtons.value.find(
-                    b => b.id === overtaker * 7 + id
-                );
-                if (button) {
-                    button.confirmed = true;
-                    button.betAmount = currentBet.value;
-                    button.selected = false;
-                }
-            });
+  selectedPairs.forEach(pair => {
+    const buttonId = pair.overtaker * 7 + pair.overtaken;
+    const button = overtakingButtons.value.find(b => b.id === buttonId);
+    if (button) {
+      button.confirmed = true;
+      button.betAmount = currentBet.value;
+      // Не сбрасываем selected здесь!
+    }
+  });
 
-            resetOvertakingSelection();
-        }
+  resetOvertakingSelection();
+}
 
         // Для ставок на результат (позицию)
         if (activeTab.value === 'result') {
@@ -1553,6 +1561,20 @@ const placeBet = async () => {
         console.error('Error saving bet:', error);
     }
 };
+watch(activeTab, (newTab) => {
+  if (newTab === 'overtaking') {
+    // Восстанавливаем ВСЕ выделения из overtakingSelections
+    overtakingButtons.value.forEach(btn => {
+      const row = Math.floor(btn.id / 7);
+      const col = btn.id % 7;
+      
+      // Для подтвержденных кнопок не восстанавливаем выделение
+      if (!btn.confirmed) {
+        btn.selected = overtakingSelections.value[row]?.has(col) || false;
+      }
+    });
+  }
+});
 
 // ... остальной код ...
 // Автоматическое обновление меню после гонки
@@ -2266,11 +2288,7 @@ const handleOtmenaButtonClick = () => {
     setTimeout(() => otmenaBtn.classList.remove('otmena-clicked'), 300);
   }
 };
-// Новое состояние для выбранной пары тараканов (обгоняющий, обгоняемый)
-const overtakingSelection = ref({
-  overtaker: null,
-  overtaken: new Set()
-});
+
 const startAction = (action) => {
   action();
   actionTimeout.value = setTimeout(() => {
@@ -2341,13 +2359,19 @@ const winButtons = ref([
   { id: 2, bugs: [], hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
   { id: 1, bugs: [], hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
-// В функции resetOvertakingSelection:
+
 // Сброс выбора обгона
+
 const resetOvertakingSelection = () => {
-  overtakingSelection.value = {
-    overtaker: null,
-    overtaken: new Set()
-  };
+  // Очищаем только выделения, НЕ подтвержденные ставки
+  overtakingSelections.value = {};
+  
+  // Сбрасываем выделение только для неподтвержденных кнопок
+  overtakingButtons.value.forEach(btn => {
+    if (!btn.confirmed) {
+      btn.selected = false;
+    }
+  });
 };
 // ==============================
 // ВЫЧИСЛЯЕМЫЕ СВОЙСТВА
@@ -2387,21 +2411,33 @@ const toggleMenuButton = (btn) => {
   if (activeTab.value === 'overtaking') {
     // Пропускаем диагональные кнопки
     if (row === col) return;
+
+    // Инициализируем строку если нужно
+    if (!overtakingSelections.value[row]) {
+      overtakingSelections.value[row] = new Set();
+    }
+
     
     // Проверка блокировки
     if (lockedBugsArray.value.includes(row) || 
         lockedBugsArray.value.includes(col)) {
       return;
     }
+  // Переключение выбора столбца
+  if (overtakingSelections.value[row].has(col)) {
+    overtakingSelections.value[row].delete(col);
+    btn.selected = false;
+  } else {
+    overtakingSelections.value[row].add(col);
+    btn.selected = true;
+  }
 
     const { overtaker, overtaken } = overtakingSelection.value;
     
     // Если выбран новый обгоняющий
     if (overtaker !== row) {
-      // Сбрасываем предыдущий выбор
-      overtakingButtons.value.forEach(b => {
-        b.selected = false;
-      });
+      
+     
       
       // Устанавливаем нового обгоняющего
       overtakingSelection.value.overtaker = row;
@@ -2419,6 +2455,8 @@ const toggleMenuButton = (btn) => {
         btn.selected = true;
       }
       overtakingSelection.value.overtaken = newSet;
+      // Обновляем текущую строку
+    currentOvertakerRow.value = row;
     }
   }
 

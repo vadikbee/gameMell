@@ -72,8 +72,8 @@ const getBetColors = (bet) => {
   }
   if (bet.type === 'overtaking') {
     return [
-      bugColorMap[normalizeForColor(bet.overtaker)],
-      bugColorMap[normalizeForColor(bet.overtaken)]
+      bugColorMap[normalizeForColor(bet.overtaker + 1)],
+      bugColorMap[normalizeForColor(bet.overtaken + 1)]
     ];
   }
 

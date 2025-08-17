@@ -33,6 +33,7 @@
   "bugs": "bugs",
   "place": "place",
   "yellow": "Yellow",
+  "Yellow": "Yellow",
   "orange": "Orange",
   "dark_orange": "Dark Orange",
   "blue": "Blue",
@@ -41,7 +42,7 @@
   "green": "Green",
   "unknown": "Unknown",
   "or": "or",
-
+  "overtakes": "overtakes",
   "overcomes": "overcomes",
   
   "unknown_bet_type": "Unknown bet type"

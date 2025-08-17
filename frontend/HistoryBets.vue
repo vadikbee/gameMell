@@ -7,7 +7,7 @@
     <div class="bets-list">
       <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
         <!-- Для ставок на секцию и обгон оставляем цветные индикаторы -->
-        <div v-if="bet.type === 'trap' || bet.type === 'place'" class="bet-colors">
+        <div v-if="bet.type === 'trap' || bet.type === 'place' || bet.type === 'overtaking'" class="bet-colors">
           <div 
             v-for="(color, i) in getBetColors(bet)" 
             :key="i"
@@ -62,8 +62,7 @@ const formatTime = (timeString) => {
 };
 
 const getBetColors = (bet) => {
-   // Для ставок на позицию: один цвет таракана
- // Для ставок на позицию
+  // Для ставок на позицию
   if (bet.type === 'position') {
     return [bugColorMap[bet.bugId]];
   }
@@ -72,7 +71,8 @@ const getBetColors = (bet) => {
     return bet.selection.map(id => bugColorMap[id]);
   }
   
-   if (bet.type === 'overtaking') {
+  // Для ставок на обгон
+  if (bet.type === 'overtaking') {
     return [
       bugColorMap[bet.overtaker],
       bugColorMap[bet.overtaken]
@@ -96,8 +96,7 @@ const getBetColors = (bet) => {
     if (matches) colors.push(...matches.slice(0, 2));
   }
   
-  console.log(`Getting colors for bet: type=${bet.type}, bugId=${bet.bugId}, color=`, bugColorMap[bet.bugId]);
-return colors.length > 0 ? colors : ['#FFFFFF'];
+  return colors.length > 0 ? colors : ['#FFFFFF'];
 };
 
 const getMultiplier = (bet) => {
@@ -114,36 +113,24 @@ const calculateTotal = (bet) => {
 
 
 const getBetType = (bet) => {
-  // В функции getBetType
- // Для ставок на обгон
+  // Для ставок на обгон
   if (bet.type === 'overtaking') {
     return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
   }
 
- // Для ставок на позицию
+  // Для ставок на позицию
   if (bet.type === 'position' || bet.type === 'win') {
     return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
   }
 
-  // Для ставок на позицию
-  if (bet.type === 'position' || bet.type === 'win') {
-    // Извлекаем данные из selection для старых форматов
-    if (bet.selection && bet.selection.length >= 2) {
-      const bugId = bet.selection[0];
-      const position = bet.selection[1];
-      return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
-    }
-    // Для новых форматов
-    else if (bet.bugId && bet.position) {
-      return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
-    }
-  }
   if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
     return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
   }
+  
   if (bet.type === 'trap') {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
+  
   // Для ставок на секцию
   if (bet.type === 'section') {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
@@ -151,18 +138,16 @@ const getBetType = (bet) => {
 
   if (bet.bugId && bet.position) {
     return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
-
-    
   }
 
-  
-  console.log(`Formatting bet: type=${bet.type}, bugId=${bet.bugId}, position=${bet.position}, selection=`, bet.selection);
-return t('position_bet');
+  return t('position_bet');
 };
 
-// HistoryBets.vue
 const getBugName = (id) => {
   if (!id) return t('unknown');
+  
+  const numId = parseInt(id);
+  if (isNaN(numId)) return t('unknown');
   
   const names = {
     1: t('yellow'),
@@ -173,22 +158,25 @@ const getBugName = (id) => {
     6: t('purple'),
     7: t('green')
   };
-  return names[id] || t('unknown');
+  
+  return names[numId] || t('unknown');
 };
 
 const formattedBets = computed(() => {
   return (props.bets || []).slice(0, 10).map(item => {
     const bet = item.data || item;
     
-    // Для ставок на позицию
-    if (bet.type === 'overtaking') {
-  return {
-    ...bet,
-    displayType: bet.type,
-    overtaker: bet.overtaker,
-    overtaken: bet.overtaken
-  };
-}
+    // Преобразование ставок на обгон
+    if (bet.type === 'overtaking' || 
+        (bet.type === 'trap' && bet.selection?.length === 2)) {
+      return {
+        ...bet,
+        type: 'overtaking',
+        overtaker: bet.overtaker || bet.selection?.[0],
+        overtaken: bet.overtaken || bet.selection?.[1]
+      };
+    }
+    
     // Нормализация данных для ставок на позицию
     if (bet.type === 'position' || bet.type === 'win' || bet.type === 'place') {
       let bugId, position;
@@ -217,7 +205,7 @@ const formattedBets = computed(() => {
       };
     }
     
-     // Конвертация ставок из серверного формата в клиентский
+    // Конвертация ставок из серверного формата в клиентский
     if (bet.type === 'win' && bet.selection?.length === 1) {
       return {
         ...bet,
@@ -243,7 +231,7 @@ const formattedBets = computed(() => {
       };
     }
     
-  // Нормализация данных ставки
+    // Нормализация данных ставки
     return {
       id: bet.id,
       type: bet.type,
@@ -256,12 +244,12 @@ const formattedBets = computed(() => {
       trapId: bet.trapId,
       selection: bet.selection
     };
-    
   });
 });
 </script>
 
 <style scoped>
+/* Стили остаются без изменений */
 .history-bets {
   position: absolute;
   width: 236px;

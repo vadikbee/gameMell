@@ -6,6 +6,15 @@
     
     <div class="bets-list">
       <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
+
+      <div v-if="bet.type === 'section'" class="bet-colors">
+          <div 
+            v-for="(color, i) in getBetColors(bet)" 
+            :key="i"
+            class="color-indicator"
+            :style="{ background: color }"
+          ></div>
+        </div>
         <!-- Для ставок на секцию и обгон оставляем цветные индикаторы -->
         <div v-if="bet.type === 'trap' || bet.type === 'place' || bet.type === 'overtaking'" class="bet-colors">
           <div 
@@ -67,7 +76,8 @@ const getBetColors = (bet) => {
  if (bet.type === 'position') {
     return [bugColorMap[normalizeForColor(bet.bugId)]];
   }
-  if (bet.type === 'section') {
+  // Для ставок на секцию
+  if (bet.type === 'section' || (bet.type === 'trap' && bet.trapId)) {
     return bet.selection.map(normalizeForColor).map(id => bugColorMap[id]);
   }
   if (bet.type === 'overtaking') {
@@ -111,7 +121,8 @@ const calculateTotal = (bet) => {
 
 
 const getBetType = (bet) => {
-  // Для ставок на обгон
+  
+    // Для ставок на обгон
   if (bet.type === 'overtaking') {
     return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
   }
@@ -125,17 +136,16 @@ const getBetType = (bet) => {
     return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
   }
   
-  if (bet.type === 'trap') {
+   if (bet.type === 'section' || (bet.type === 'trap' && bet.trapId)) {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
-  
-  // Для ставок на секцию
-  if (bet.type === 'section') {
-    return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
+  // Для ставок на позицию
+  if (bet.type === 'position' || bet.type === 'win') {
+    return `${getBugName(bet.bugId - 1)} - ${bet.position} ${t('place')}`;
   }
-
-  if (bet.bugId && bet.position) {
-    return `${getBugName(bet.bugId)} - ${t('place')} ${bet.position}`;
+  // Для ставок на секцию (старое условие с 'trap' - оставляем для совместимости)
+  if (bet.type === 'trap' && bet.selection && bet.selection.length >= 2) {
+    return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
 
   return t('position_bet');
@@ -168,22 +178,16 @@ const getBugName = (id) => {
 
 
 const formattedBets = computed(() => {
-  
-  console.groupCollapsed('[formattedBets] Processing bets');
   return (props.bets || []).slice(0, 10).map(item => {
     const bet = item.data || item;
 
-    
-    
-    // Исправление для ставок на обгон
-    if (bet.type === 'overtaking' || 
-        (bet.type === 'trap' && bet.selection?.length === 2)) {
+    // Для ставок на секцию (включая выбор 2 тараканов)
+    if (bet.type === 'trap' && bet.trapId !== undefined && bet.trapId !== 0) {
       return {
         ...bet,
-        type: 'overtaking',
-        // Убеждаемся, что используем числовые ID
-        overtaker: parseInt(bet.overtaker || bet.selection?.[0], 10),
-        overtaken: parseInt(bet.overtaken || bet.selection?.[1], 10)
+        type: 'section',
+        trapId: bet.trapId,
+        selection: bet.selection
       };
     }
     

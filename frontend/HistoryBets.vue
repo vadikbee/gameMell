@@ -41,14 +41,14 @@ const props = defineProps({
   bugColors: Object
 });
 
-const bugColorMap = {
-  0: '#FFFF00',
-  1: '#FFA500',
-  2: '#8B0000',
-  3: '#0000FF',
-  4: '#FF0000',
-  5: '#800080',
-  6: '#00FF00'
+const bugColorMap = { //тараканы в секции 
+  1: '#FFFF00',
+  2: '#FFA500',
+  3: '#8B0000',
+  4: '#0000FF',
+  5: '#FF0000',
+  6: '#800080',
+  7: '#00FF00'
 };
 
 const positionClass = computed(() => {
@@ -62,20 +62,18 @@ const formatTime = (timeString) => {
 };
 
 const getBetColors = (bet) => {
+   const normalizeForColor = (id) => (id <= 7 ? id : id - 1);
   // Для ставок на позицию
-  if (bet.type === 'position') {
-    return [bugColorMap[bet.bugId]];
+ if (bet.type === 'position') {
+    return [bugColorMap[normalizeForColor(bet.bugId)]];
   }
-  // Для ставок на секцию
   if (bet.type === 'section') {
-    return bet.selection.map(id => bugColorMap[id]);
+    return bet.selection.map(normalizeForColor).map(id => bugColorMap[id]);
   }
-  
-  // Для ставок на обгон
   if (bet.type === 'overtaking') {
     return [
-      bugColorMap[bet.overtaker],
-      bugColorMap[bet.overtaken]
+      bugColorMap[normalizeForColor(bet.overtaker)],
+      bugColorMap[normalizeForColor(bet.overtaken)]
     ];
   }
 
@@ -120,7 +118,7 @@ const getBetType = (bet) => {
 
   // Для ставок на позицию
   if (bet.type === 'position' || bet.type === 'win') {
-    return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+    return `${getBugName(bet.bugId - 1)} - ${bet.position} ${t('place')}`;
   }
 
   if (bet.type === 'place' && bet.selection && bet.selection.length >= 2) {
@@ -145,28 +143,29 @@ const getBetType = (bet) => {
 
 const getBugName = (id) => {
   console.groupCollapsed(`[getBugName] Input id:`, id, `(type: ${typeof id})`);
-  if (!id) return t('unknown');
+  
   if (!id) {
     console.warn('ID is undefined or null');
     console.groupEnd();
-    return t('unknown');
+    
   }
-  // Преобразуем ID в число, если это строка
-      const numId = typeof id === 'number' ? id : parseInt(id, 10);
+   const normalizedId = typeof id === 'number' 
+    ? (id < 7 ? id + 1 : id)
+    : (parseInt(id, 10) || 1);
   
-  
-  const names = {
-    0: t('yellow'),
-    1: t('orange'),
-    2: t('dark_orange'),
-    3: t('blue'),
-    4: t('red'),
-    5: t('purple'),
-    6: t('green')
+  const names = { //overtaking
+    1: t('yellow'),
+    2: t('orange'),
+    3: t('dark_orange'),
+    4: t('blue'),
+    5: t('red'),
+    6: t('purple'),
+    7: t('green')
   };
   
-  return names[numId] || t('unknown');
+  return names[normalizedId] || t('unknown');
 };
+
 
 const formattedBets = computed(() => {
   

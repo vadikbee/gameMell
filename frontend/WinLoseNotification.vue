@@ -23,26 +23,36 @@
       </div>
     </div>
     
-     <div v-if="expanded" class="details">
-      <div class="bets-summary">
-        {{ t('bets_details') }}
-      </div>
-      <div class="bets-list">
-        <div v-for="(bet, index) in bets" :key="index" class="bet-item">
-          <!-- Специальный индикатор для ставок на секцию -->
-          <div v-if="bet.type === 'section'" class="section-indicator">
-            <img :src="`/images/trap-${bet.trapId}.png`" alt="Trap" class="trap-icon">
-          </div>
-          <div v-else class="bet-color-indicator" :style="{ background: bet.color }"></div>
-          
-          <div class="bet-description">
-            {{ formatBetDescription(bet) }}
-          </div>
-          <div class="bet-amount">
-            +{{ new Intl.NumberFormat('ru-RU').format(bet.amount) }}₽
-          </div>
+    <div v-if="expanded" class="details">
+    <div class="bets-summary">
+      {{ t('bets_details') }}
+    </div>
+    <div class="bets-list">
+      <div v-for="(bet, index) in bets" :key="index" class="bet-item">
+        <!-- Индикатор ловушки -->
+        <div class="section-indicator">
+          <img :src="`/images/trap-${bet.trapId}.png`" alt="Trap" class="trap-icon">
+        </div>
+        
+        <!-- Цвета выигравших тараканов -->
+        <!-- WinLoseNotification.vue - в блоке winning-bugs -->
+<div class="winning-bugs">
+  <div 
+    v-for="(bug, bugIndex) in bet.winningBugs" 
+    :key="bugIndex"
+    class="bug-color-indicator"
+    :style="{ background: bug.color }"
+  ></div>
+</div>
+        
+        <div class="bet-description">
+          {{ formatBetDescription(bet) }}
+        </div>
+        <div class="bet-amount">
+          +{{ new Intl.NumberFormat('ru-RU').format(bet.winAmount) }}₽
         </div>
       </div>
+    </div>
       <button class="close-button" @click.stop="close">{{ t('close') }}</button>
     </div>
     
@@ -92,13 +102,18 @@ const updateTime = () => {
 };
 // Добавляем функцию для форматирования описания ставки
 const formatBetDescription = (bet) => {
-  if (bet.type === 'section') {
-    return t('section_bet', { 
-      trap: bet.trapId,
-      count: bet.bugIds.length,
-      bugs: bet.bugIds.join(', ')
-    });
-  }
+  // WinLoseNotification.vue - в функции formatBetDescription
+if (bet.type === 'section') {
+  const bugNames = bet.winningBugs.map(bug => 
+    t(`bug_${bug.id}`)
+  ).join(', ');
+  
+  return t('section_bet_won', { 
+    trap: bet.trapId,
+    count: bet.winningBugs.length,
+    bugs: bugNames
+  });
+}
   return bet.description;
 };
 // Развернуть/свернуть детали
@@ -432,5 +447,18 @@ onUnmounted(() => {
   color: #000000;
   min-width: 100px;
   text-align: right;
+}
+
+.winning-bugs {
+  display: flex;
+  margin-right: 10px;
+}
+
+.bug-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 </style>

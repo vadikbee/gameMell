@@ -3971,7 +3971,7 @@ document.removeEventListener('click', firstInteractionHandler);
   top: 8.1%; /* Точная подстройка позиции сверху */
   left: 0;
   width: 100%; /* Занимает всю ширину родителя */
-  
+  pointer-events: none;
   height: 689px; /* Автоматическая высота */
    /* Сохраняем соотношение сторон 390x689 */
   background-image: url('/images/background/labirint.png');

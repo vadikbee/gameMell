@@ -13,14 +13,13 @@
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
       <HistoryBets 
-      v-if="historyBetsVisible && !historyBetsInsideCenter" 
-      ref="historyBetsRef"
-      :isCenterMenuOpen="centerMenuVisible" 
-      :bets="betHistoryFromApi"
-      :title="t('history_bets')"
-      
-      class="outside-center"
-    />
+  v-if="historyBetsVisible && !historyBetsInsideCenter" 
+  ref="historyBetsRef"
+  :isCenterMenuOpen="centerMenuVisible" 
+  :bets="betHistoryFromApi"
+  :title="t('history_bets')"
+  class="outside-center"
+/>
       <!-- Центральное фиксированное меню -->
       <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100" ref="winMenuCenterRef">
     <StavkiMenu
@@ -188,7 +187,7 @@
           class="button-2" 
           id="Button-2" 
           :class="{ 'initial-animation': initialAnimationActive }"
-          @click="!centerWinMenuVisible && toggleCenterMenu()"
+          @click="toggleCenterMenu"
         >
           <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
         </div>
@@ -197,7 +196,7 @@
           class="button-3" 
           id="Button-3" 
           :class="{ 'initial-animation': initialAnimationActive }"
-          @click="!centerWinMenuVisible && toggleHistoryBets()"
+          @click="toggleHistoryBets"
         >
           <span class="button-text">{{ t('history_bets') }}</span>
         </div>
@@ -271,16 +270,15 @@
           :games="lastGames" 
           class="group-image"
         />
-            <HistoryBets 
-            v-if="historyBetsVisible && historyBetsInsideCenter" 
-            ref="historyBetsRef"
-            :isCenterMenuOpen="centerMenuVisible" 
-            :insideCenter="true"
-            :title="t('history_bets')"
-            :bets="betHistoryFromApi"
-            
-            class="inside-center"
-          />
+<HistoryBets 
+  v-if="historyBetsVisible && centerMenuVisible" 
+  ref="historyBetsRef"
+  :isCenterMenuOpen="centerMenuVisible" 
+  :insideCenter="true"
+  :title="t('history_bets')"
+  :bets="betHistoryFromApi"
+  class="inside-center"
+/>
           
           <!-- Меню ставок -->
           <div class="menu-stavki"> 
@@ -1189,13 +1187,21 @@ const playStakeActionClick = () => {
   }
 };
 const handleDocumentClick = (event) => {
-  if (centerWinMenuVisible.value && activeWinMenuId.value !== null) {
-    const menuEl = winMenuCenterRef.value;
-    const buttonContainerEl = buttonWinContainerRefs.value[activeWinMenuId.value];
+  if (centerMenuVisible.value) {
+    const menuEl = centerMenuRef.value;
+    const buttonEl = button2Ref.value;
+    const historyButtonEl = button3Ref.value; // Добавляем кнопку истории
     
-    if (menuEl && !menuEl.contains(event.target) && 
-        (!buttonContainerEl || !buttonContainerEl.contains(event.target))) {
-      closeWinMenu();
+    if (menuEl && 
+        !menuEl.contains(event.target) && 
+        !buttonEl.contains(event.target) &&
+        !historyButtonEl.contains(event.target)) { // Не закрываем при клике на history button
+      centerMenuVisible.value = false;
+      
+      // При закрытии центрального меню перемещаем историю ставок наружу
+      if (historyBetsVisible.value) {
+        historyBetsInsideCenter.value = false;
+      }
     }
   }
 // Закрытие LastGameMenu (Button-1)
@@ -2183,17 +2189,19 @@ watch(historyBetsVisible, (visible) => {
 });
 
 // Обработчик для кнопки истории ставок
+// app.vue
 const toggleHistoryBets = () => {
-  // Удалить проверку на centerMenuVisible
-  if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
+  // Всегда открываем центральное меню при нажатии на кнопку истории
+  if (!centerMenuVisible.value) {
+    centerMenuVisible.value = true;
+  }
   
+  // Переключаем видимость истории ставок
+  historyBetsVisible.value = !historyBetsVisible.value;
+  
+  // Загружаем историю при открытии
   if (historyBetsVisible.value) {
-    historyBetsVisible.value = false;
-    historyBetsInsideCenter.value = false;
-  } else {
     fetchBetHistory();
-    historyBetsVisible.value = true;
-    historyBetsInsideCenter.value = centerMenuVisible.value;
   }
 };
 
@@ -2508,15 +2516,22 @@ console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBug
 // Переключение кнопки меню
 
 
-// Измененный метод для переключения центрального меню
-// Разрешаем показ меню победы во время гонки
 const toggleCenterMenu = () => {
-  const wasOpen = centerMenuVisible.value;
-  centerMenuVisible.value = !wasOpen;
+  // Закрываем другие меню
+  lastGameMenuVisible.value = false;
+  centerWinMenuVisible.value = false;
   
-  // Разрешаем показ меню победы при открытом нижнем меню
-  if (!wasOpen && centerWinMenuVisible.value) {
-    centerWinMenuVisible.value = false;
+  // Открываем/закрываем центральное меню
+  centerMenuVisible.value = !centerMenuVisible.value;
+  
+  // Автоматически открываем историю ставок при открытии центрального меню
+  if (centerMenuVisible.value) {
+    historyBetsVisible.value = true;
+    historyBetsInsideCenter.value = true;
+    fetchBetHistory();
+  } else {
+    // При закрытии перемещаем историю наружу
+    historyBetsInsideCenter.value = false;
   }
 };
 
@@ -4418,7 +4433,17 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
+.history-bets.inside-center {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 38%;
+  margin-right: 0%;
+  width: 236px;
+  height: 150px;
+  z-index: 15; /* Поверх центрального меню */
+  transform: none;
+}
 .music-icon {
   width: 20px;
   height: 20px;

@@ -403,108 +403,28 @@
     </div>
   </div>
   
-   <transition name="slide-fade">
-  <div 
-    v-if="winNotificationVisible && winData" 
-    class="win-notification"
-    :class="{ expanded: expandedWinDetails }"
-    @click="!expandedWinDetails ? expandedWinDetails = true : null"
-  >
-    <div class="notification-header">
-      <div class="win-icon"></div>
-      <div class="title">You Win</div>
-      <div class="time">
-        <!-- Используем computed свойство для времени -->
-        {{ winData.timestamp ? formatTime(winData.timestamp) : '' }}
-      </div>
-    </div>
-      
-      <div class="notification-body">
-        <div class="win-amount-label">{{ t('winning_amount') }}:</div>
-        <div class="win-amount">{{ winData.amount }} ₽</div>
-      </div>
-      
-      <div v-if="expandedWinDetails" class="bets-details">
-        <div class="bet-item" v-for="(bet, index) in winData.bets" :key="index">
-          <div class="bet-meta">
-            <div class="bug-colors">
-              <div 
-                v-for="(color, i) in bet.bugColors" 
-                :key="i"
-                class="color-dot"
-                :style="{ backgroundColor: color }"
-              ></div>
-            </div>
-            <div class="bet-time">{{ bet.timestamp ? formatTime(bet.timestamp) : '' }}</div>
-          </div>
-          <div class="bet-amount">+{{ bet.winAmount }} ₽</div>
-        </div>
-      </div>
-      
-      <div v-if="!expandedWinDetails" class="hint">
-        {{ t('press_for_more') }}
-      </div>
-      
-      <button 
-        v-if="expandedWinDetails" 
-        class="close-button"
-        @click.stop="winNotificationVisible = false; expandedWinDetails = false"
-      >
-        {{ t('close') }}
-      </button>
-    </div>
-  </transition>
-  <!-- В секции template после win-notification -->
-<transition name="slide-fade">
-  <div 
-    v-if="loseNotificationVisible && loseData" 
-    class="lose-notification"
-    :class="{ expanded: expandedLoseDetails }"
-    @click="!expandedLoseDetails ? expandedLoseDetails = true : null"
-  >
-    <div class="notification-header">
-      <div class="lose-icon"></div>
-      <div class="title">You Lose</div>
-      <div class="time">
-        {{ loseData.timestamp ? formatTime(loseData.timestamp) : '' }}
-      </div>
-    </div>
-      
-    <div class="notification-body">
-      <div class="lose-amount-label">{{ t('losing_amount') }}:</div>
-      <div class="lose-amount">-{{ loseData.amount }} ₽</div>
-    </div>
-      
-    <div v-if="expandedLoseDetails" class="bets-details">
-      <div class="bet-item" v-for="(bet, index) in loseData.bets" :key="index">
-        <div class="bet-meta">
-          <div class="bug-colors">
-            <div 
-              v-for="(color, i) in bet.bugColors" 
-              :key="i"
-              class="color-dot"
-              :style="{ backgroundColor: color }"
-            ></div>
-          </div>
-          <div class="bet-time">{{ bet.timestamp ? formatTime(bet.timestamp) : '' }}</div>
-        </div>
-        <div class="bet-amount">-{{ bet.loseAmount }} ₽</div>
-      </div>
-    </div>
-      
-    <div v-if="!expandedLoseDetails" class="hint">
-      {{ t('press_for_more') }}
-    </div>
-      
-    <button 
-      v-if="expandedLoseDetails" 
-      class="close-button"
-      @click.stop="loseNotificationVisible = false; expandedLoseDetails = false"
-    >
-      {{ t('close') }}
-    </button>
-  </div>
-</transition>
+  <!-- Уведомления о выигрыше/проигрыше -->
+    <transition name="slide-fade">
+      <WinLoseNotification
+        v-if="winNotification.visible"
+        type="win"
+        :amount="winNotification.amount"
+        :bets="winNotification.bets"
+        :timestamp="winNotification.timestamp"
+        @close="closeWinNotification"
+      />
+    </transition>
+    
+    <transition name="slide-fade">
+      <WinLoseNotification
+        v-if="loseNotification.visible"
+        type="lose"
+        :amount="loseNotification.amount"
+        :bets="loseNotification.bets"
+        :timestamp="loseNotification.timestamp"
+        @close="closeLoseNotification"
+      />
+    </transition>
 <transition name="slide-fade">
     <div 
       v-if="infoNotificationVisible" 
@@ -544,6 +464,8 @@ import LastGameMenu from './LastGameMenu.vue'; // Добавьте эту стр
 import PodiumResults from './PodiumResults.vue';
 import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
+import WinLoseNotification from './WinLoseNotification.vue';
+
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
 const dizzySoundElement = ref(null);
@@ -680,6 +602,7 @@ const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
 // Добавляем эти функции
+
 const startDecrement = () => startAction(decrementBet);
 const startIncrement = () => startAction(incrementBet);
 
@@ -885,6 +808,7 @@ const playOutcomeSound = () => {
     console.error("Outcome sound error:", e);
   }
 };
+
 const placeSectionBet = async () => {
   try {
     playBetClick();
@@ -965,7 +889,8 @@ const resetWinButtonSelection = () => {
   });
   activeWinMenuId.value = null;
 };
-
+let winNotificationTimer = null;
+let loseNotificationTimer = null;
 const checkBetsResults = () => {
   
 const finishedBugs = bugs.value
@@ -987,9 +912,6 @@ const finishedBugs = bugs.value
   finishedBugs.forEach((bug, index) => {
     bugPositions[bug.id] = index + 1; // позиция (место)
   });
-
-
-
 
    currentRaceBets.value.forEach(bet => {
     if (bet.type === 'overtaking') {
@@ -1076,49 +998,16 @@ const finishedBugs = bugs.value
   });
 
   
-  // Показ уведомления о выигрыше
-  if (winningBets.length > 0) {
-    winData.value = {
-      amount: Math.floor(totalWin),
-      bets: winningBets.map(bet => ({
-        ...bet,
-        winAmount: Math.floor(bet.winAmount)
-      })),
-      timestamp: new Date()
-    };
-    winNotificationVisible.value = true;
-    
-    setTimeout(() => {
-      if (!expandedWinDetails.value) {
-        winNotificationVisible.value = false;
-      }
-    }, 3000);
-  }
-  
-  // Показ уведомления о проигрыше
-  if (losingBets.length > 0) {
-    loseData.value = {
-      amount: Math.floor(totalLose),
-      bets: losingBets.map(bet => ({
-        ...bet,
-        loseAmount: Math.floor(bet.loseAmount)
-      })),
-      timestamp: new Date()
-    };
-    loseNotificationVisible.value = true;
-    
-    setTimeout(() => {
-      if (!expandedLoseDetails.value) {
-        loseNotificationVisible.value = false;
-      }
-    }, 3000);
-  }
-  
-  
-  
-  
   betHistory.value.push(...currentRaceBets.value);
   currentRaceBets.value = [];
+
+  if (winningBets.length > 0) {
+    showWinNotification(totalWin, winningBets);
+  }
+  
+  if (losingBets.length > 0) {
+    showLoseNotification(totalLose, losingBets);
+  }
 };
 
 // Обновленная функция resetBugSelections
@@ -1356,7 +1245,82 @@ const showBetPlacedNotification = () => {
 };
 // Добавляем сброс при начале гонки
 
+// Состояния для уведомлений
+const winNotification = ref({
+  visible: false,
+  amount: 0,
+  bets: [],
+  timestamp: Date.now()
+});
 
+const loseNotification = ref({
+  visible: false,
+  amount: 0,
+  bets: [],
+  timestamp: Date.now()
+});
+
+// Функции для отображения уведомлений
+const showWinNotification = (amount, bets) => {
+  winNotification.value = {
+    visible: true,
+    amount,
+    bets: bets.map(bet => ({
+      description: getBetDescription(bet),
+      amount: bet.amount,
+      color: bet.bugColors[0] || '#000'
+    })),
+    timestamp: Date.now()
+  };
+  
+  // Воспроизведение звука выигрыша
+  if (userInteracted.value) {
+    const winSound = new Audio('/sounds/win.mp3');
+    winSound.volume = soundVolume.value;
+    winSound.play();
+  }
+};
+
+const showLoseNotification = (amount, bets) => {
+  loseNotification.value = {
+    visible: true,
+    amount,
+    bets: bets.map(bet => ({
+      description: getBetDescription(bet),
+      amount: bet.amount,
+      color: bet.bugColors[0] || '#000'
+    })),
+    timestamp: Date.now()
+  };
+  
+  // Воспроизведение звука проигрыша
+  if (userInteracted.value) {
+    const loseSound = new Audio('/sounds/lose.mp3');
+    loseSound.volume = soundVolume.value;
+    loseSound.play();
+  }
+};
+
+// Закрытие уведомлений
+const closeWinNotification = () => {
+  winNotification.value.visible = false;
+};
+
+const closeLoseNotification = () => {
+  loseNotification.value.visible = false;
+};
+
+// Генерация описания ставки
+const getBetDescription = (bet) => {
+  if (bet.type === 'position') {
+    return t('position_bet', { bug: bet.bugId, position: bet.position });
+  } else if (bet.type === 'overtaking') {
+    return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
+  } else if (bet.type === 'section') {
+    return t('section_bet', { trap: bet.trapId, bugs: bet.bugIds.join(', ') });
+  }
+  return t('unknown_bet');
+};
 const resetSelectedMenuButtons = () => {
   if (activeTab.value === 'result') {
     resultButtons.value.forEach(btn => {
@@ -1620,7 +1584,7 @@ const minBet = 25;
 const maxBet = 10000;
 const betStep = 1; // Шаг изменения ставки
 
-const winNotificationVisible = ref(false);
+
 const expandedWinDetails = ref(false);
 const winData = ref(null); // { amount: сумма выигрыша, bets: [массив выигрышных ставок] }
 const currentTime = ref('');
@@ -1737,6 +1701,7 @@ const explodeAllBugs = (raceEndTime) => {
   
   startExplosionAnimation();
 };
+
 // Add this method after the selectTrap function
 // В секции script
 const toggleBugSelection = (bugId) => {
@@ -2551,14 +2516,8 @@ watch(centerMenuVisible, (newVal) => {
 });
 
 
-
 // Добавляем отсутствующую переменную для анимации x2
 const isX2Clicked = ref(false);
-
-
-
-
-
 
 // ==============================
 // ЛОГИКА ИГРЫ
@@ -3125,22 +3084,7 @@ document.removeEventListener('click', firstInteractionHandler);
   transition: all 0.3s ease;
 }
 
-.notification {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 15px 30px;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.85);
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  z-index: 1000;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  animation: fadeInOut 3s ease-in-out;
-}
+
 
 .info-notification {
   position: fixed;
@@ -3179,7 +3123,20 @@ document.removeEventListener('click', firstInteractionHandler);
   border-radius: 4px;
   margin-right: 10px;
 }
+/* Анимации для уведомлений */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
 
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-20px);
+  opacity: 0;
+}
 .info-notification .title {
   font-family: 'Bahnschrift', sans-serif;
   font-weight: 700;
@@ -3203,15 +3160,7 @@ document.removeEventListener('click', firstInteractionHandler);
   color: #2E7D32;
   text-align: center;
 }
-.notification.win {
-  
-  background-color: rgba(76, 175, 80, 0.15);
-}
 
-.notification.lose {
-  
-  background-color: rgba(244, 67, 54, 0.15);
-}
 
 @keyframes fadeInOut {
   0%, 100% { opacity: 0; transform: translate(-50%, -40%); }
@@ -3554,32 +3503,9 @@ document.removeEventListener('click', firstInteractionHandler);
   background-repeat: no-repeat;
   background-position: center;
 }
-.lose-notification {
-  position: fixed;
-  top: 20px; /* Позиция сверху */
-  left: 50%;
-  transform: translateX(-50%); /* Центрирование по горизонтали */
-  width: 372px;
-  background: rgba(255, 220, 220, 0.9);
-  
-  border-radius: 10px;
-  z-index: 10000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
 
-.lose-notification.expanded {
-  height: auto;
-  max-height: 80vh;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
 
-.notification-header {
-  background: rgba(255, 200, 200, 0.7);
-}
+
 
 .lose-icon {
   background: linear-gradient(180deg, #FF0000 0%, #8B0000 100%);
@@ -4355,28 +4281,9 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   opacity: 0;
 }
 
-/* Базовые стили уведомления */
-.win-notification {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 372px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  z-index: 10000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
 
-.win-notification.expanded {
-  height: auto;
-  max-height: 80vh;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
+
+
 
 .notification-header {
   position: relative;

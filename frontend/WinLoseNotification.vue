@@ -1,28 +1,33 @@
+[file name]: WinLoseNotification.vue
+[file content begin]
 <template>
   <div 
     class="win-lose-notification"
-    :class="{ 'win': type === 'win', 'expanded': expanded }"
+    :class="{ 'expanded': expanded }"
     @click="expand"
   >
     <div class="notification-header">
       <div class="gradient-border"></div>
       <div class="icon-container">
-        <div v-if="type === 'win'" class="win-icon"></div>
+        <div class="win-icon"></div>
       </div>
-      <div class="title">{{ type === 'win' ? t('you_win') : t('you_lose') }}</div>
+      <div class="title">{{ t('you_win') }}</div>
       <div class="time">{{ currentTime }}</div>
     </div>
     
     <div class="notification-body">
       <div class="amount-display">
-        <span class="label">{{ type === 'win' ? t('winning_amount') : t('losing_amount') }}</span>
-        <span class="amount win">{{ formattedAmount }}</span>
+        <span class="label">{{ t('winning_amount') }}</span>
+        <span class="amount win">{{ formattedTotalAmount }}</span>
+      </div>
+      <div v-if="multipleWins" class="win-count">
+        +{{ bets.length - 1 }} {{ t('other_wins') }}
       </div>
     </div>
     
     <div v-if="expanded" class="details">
       <div class="bets-summary">
-        {{ t('bets_details') }}
+        {{ t('bets_details') }} ({{ bets.length }})
       </div>
       <div v-for="(bet, index) in bets" :key="index" class="bet-item">
         <div class="bet-color-indicator" :style="{ background: bet.color }"></div>
@@ -30,7 +35,7 @@
           {{ bet.description }}
         </div>
         <div class="bet-amount">
-          {{ bet.amount }}₽
+          +{{ new Intl.NumberFormat('ru-RU').format(bet.amount) }}₽
         </div>
       </div>
       <button class="close-button" @click.stop="close">{{ t('close') }}</button>
@@ -48,10 +53,15 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const props = defineProps({
-  type: String, // 'win' or 'lose'
-  amount: Number,
-  bets: Array,
-  timestamp: Number
+  bets: {
+    type: Array,
+    required: true,
+    default: () => []
+  },
+  timestamp: {
+    type: Number,
+    default: Date.now()
+  }
 });
 
 const emit = defineEmits(['close']);
@@ -59,12 +69,16 @@ const emit = defineEmits(['close']);
 const expanded = ref(false);
 const currentTime = ref('');
 
-// Форматирование суммы
-const formattedAmount = computed(() => {
-  return new Intl.NumberFormat('ru-RU').format(props.amount) + '₽';
+// Вычисляем общую сумму выигрыша
+const formattedTotalAmount = computed(() => {
+  const total = props.bets.reduce((sum, bet) => sum + bet.amount, 0);
+  return new Intl.NumberFormat('ru-RU').format(total) + '₽';
 });
 
-// Обновление времени каждую минуту
+// Проверяем, несколько ли выигрышей
+const multipleWins = computed(() => props.bets.length > 1);
+
+// Обновление времени
 const updateTime = () => {
   const date = new Date(props.timestamp);
   const hours = date.getHours().toString().padStart(2, '0');
@@ -87,11 +101,11 @@ let autoCloseTimer;
 onMounted(() => {
   updateTime();
   
-  // Автозакрытие через 3 секунды если не развернуто
+  // Автозакрытие через 5 секунды если не развернуто
   if (!expanded.value) {
     autoCloseTimer = setTimeout(() => {
       emit('close');
-    }, 3000);
+    }, 5000);
   }
 });
 
@@ -102,9 +116,9 @@ onUnmounted(() => {
 
 <style scoped>
 .win-lose-notification {
-  position: absolute;
+  position: fixed;
   width: 372px;
-  height: 100px;
+  min-height: 100px;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -115,9 +129,6 @@ onUnmounted(() => {
   cursor: pointer;
   transition: height 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.win-lose-notification.win {
   border-left: 4px solid #3C42E3;
 }
 
@@ -139,12 +150,12 @@ onUnmounted(() => {
 
 .gradient-border {
   position: absolute;
-  left: 15px;
+  left: 0;
   width: 4px;
-  height: 20px;
+  height: 100%;
   background: linear-gradient(180deg, #3C42E3 0%, #FF4300 100%);
   opacity: 0.7;
-  border-radius: 2px;
+  border-radius: 2px 0 0 2px;
 }
 
 .icon-container {
@@ -154,6 +165,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   margin-right: 10px;
+  margin-left: 15px;
   z-index: 1;
 }
 
@@ -198,6 +210,7 @@ onUnmounted(() => {
 
 .notification-body {
   padding: 12px 15px;
+  position: relative;
 }
 
 .amount-display {
@@ -225,6 +238,17 @@ onUnmounted(() => {
 
 .amount.win {
   color: #000000;
+}
+
+.win-count {
+  position: absolute;
+  right: 15px;
+  bottom: 12px;
+  font-family: 'Bai Jamjuree', sans-serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #000000;
+  opacity: 0.7;
 }
 
 .details {
@@ -263,6 +287,7 @@ onUnmounted(() => {
   font-weight: 500;
   font-size: 14px;
   font-family: 'Bai Jamjuree', sans-serif;
+  color: #28a745;
 }
 
 .close-button {
@@ -291,4 +316,20 @@ onUnmounted(() => {
   opacity: 0.7;
   font-style: italic;
 }
+
+/* Анимация появления */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
 </style>
+[file content end]

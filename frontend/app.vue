@@ -402,7 +402,16 @@
       </div> 
     </div>
   </div>
-  
+
+  <transition-group name="slide-fade" tag="div" class="notifications-container">
+  <WinLoseNotification
+    v-for="notification in winNotifications"
+    :key="notification.id"
+    :bets="notification.bets"
+    :timestamp="notification.timestamp"
+    @close="closeWinNotification(notification.id)"
+  />
+</transition-group>
   <!-- Уведомления о выигрыше/проигрыше -->
     <transition name="slide-fade">
       <WinLoseNotification
@@ -602,6 +611,8 @@ const historyBetsRef = ref(null);
 const backgroundMusic = ref(null);
 const isMusicPlaying = ref(false);
 // Добавляем эти функции
+const winNotifications = ref([]);
+const notificationCounter = ref(0);
 
 const startDecrement = () => startAction(decrementBet);
 const startIncrement = () => startAction(incrementBet);
@@ -1005,9 +1016,7 @@ const finishedBugs = bugs.value
     showWinNotification(totalWin, winningBets);
   }
   
-  if (losingBets.length > 0) {
-    showLoseNotification(totalLose, losingBets);
-  }
+  
 };
 
 // Обновленная функция resetBugSelections
@@ -1261,24 +1270,20 @@ const loseNotification = ref({
 });
 
 // Функции для отображения уведомлений
+// Функция показа уведомления
 const showWinNotification = (amount, bets) => {
-  winNotification.value = {
-    visible: true,
-    amount,
+  // Для нескольких выигрышей показываем одно уведомление
+  winNotifications.value.push({
+    id: ++notificationCounter.value,
     bets: bets.map(bet => ({
+      ...bet,
+      // Генерация описания ставки
       description: getBetDescription(bet),
-      amount: bet.amount,
+      // Получаем цвет для ставки
       color: bet.bugColors[0] || '#000'
     })),
     timestamp: Date.now()
-  };
-  
-  // Воспроизведение звука выигрыша
-  if (userInteracted.value) {
-    const winSound = new Audio('/sounds/win.mp3');
-    winSound.volume = soundVolume.value;
-    winSound.play();
-  }
+  });
 };
 
 const showLoseNotification = (amount, bets) => {
@@ -1301,9 +1306,9 @@ const showLoseNotification = (amount, bets) => {
   }
 };
 
-// Закрытие уведомлений
-const closeWinNotification = () => {
-  winNotification.value.visible = false;
+// Закрытие уведомления
+const closeWinNotification = (id) => {
+  winNotifications.value = winNotifications.value.filter(n => n.id !== id);
 };
 
 const closeLoseNotification = () => {

@@ -4062,7 +4062,7 @@ document.removeEventListener('click', firstInteractionHandler);
   position: absolute; /* Вместо relative */
   width: 30px;
   height: 38px;
-  scale: 90%;
+  scale: 95%;
   
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;

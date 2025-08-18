@@ -25,13 +25,6 @@
   "press_for_more": "Tap for details",
   "close": "Close",
 
-   "position_bet": "Position Bet",
-   "overtaking_bet": "Overtaking Bet",
-   "section_bet": "Section Bet",
-
-  "section": "Section",
-  "bugs": "bugs",
-  "place": "place",
   "yellow": "Yellow",
   "Yellow": "Yellow",
   "orange": "Orange",
@@ -41,10 +34,17 @@
   "purple": "Purple",
   "green": "Green",
   "unknown": "Unknown",
+  
+  
+  "unknown_bet_type": "Unknown bet type",
+  "position_bet": "Position Bet",
+  "overtaking_bet": "Overtaking Bet",
+  "section_bet": "Section Bet",
+  "section": "Section",
+  "bugs": "bugs",
+  "place": "place",
   "or": "or",
   "overtakes": "overtakes",
-  "overcomes": "overcomes",
+  "overcomes": "overcomes"
   
-  "unknown_bet_type": "Unknown bet type"
-   
 }

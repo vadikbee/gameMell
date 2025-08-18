@@ -4118,13 +4118,13 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 }
 
 /* Позиции контейнеров */
-.button-win-1 { top: 81.4%; right: 4px; }
-.button-win-2 { top: 81.4%; right: 59px; }
-.button-win-3 { top: 81.4%; right: 114px; }
-.button-win-4 { top: 81.4%; right: 169px; }
-.button-win-5 { top: 81.4%; right: 224px; }
-.button-win-6 { top: 81.4%; right: 279px; }
-.button-win-7 { top: 81.4%; right: 334px; }
+.button-win-1 { top: 81.2%; right: 4px; }
+.button-win-2 { top: 81.2%; right: 59px; }
+.button-win-3 { top: 81.2%; right: 114px; }
+.button-win-4 { top: 81.2%; right: 169px; }
+.button-win-5 { top: 81.2%; right: 224px; }
+.button-win-6 { top: 81.2%; right: 279px; }
+.button-win-7 { top: 81.2%; right: 334px; }
 
 /* Стили для кнопок победы */
 .button-win {

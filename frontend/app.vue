@@ -1006,7 +1006,46 @@ const finishedBugs = bugs.value
         bet.result = 'lose';
       }
     }
-  });
+
+   // Добавляем обработку ставок на секцию
+  else if (bet.type === 'section') {
+    let winAmount = 0;
+    let winCount = 0;
+    
+    bet.bugIds.forEach(bugId => {
+      const bugResult = bugs.value.find(b => b.id === bugId);
+      
+      // Проверяем, пришел ли таракан в нужную ловушку
+      if (bugResult && bugResult.finished && bugResult.trapId === bet.trapId) {
+        winCount++;
+        // Выигрыш = (сумма ставки / количество тараканов) * коэффициент
+        winAmount += (bet.amount / bet.bugIds.length) * 2.23;
+      }
+    });
+
+    if (winCount > 0) {
+      // Выигрыш
+      totalWin += winAmount;
+      balance.value += winAmount;
+      playIncomeSound();
+      
+      winningBets.push({
+        ...bet,
+        winAmount: winAmount,
+        bugColors: bet.bugIds.map(id => bugColors.value[id]),
+        winCount: winCount
+      });
+    } else {
+      // Проигрыш
+      losingBets.push({
+        ...bet,
+        loseAmount: bet.amount,
+        bugColors: bet.bugIds.map(id => bugColors.value[id])
+      });
+      totalLose += bet.amount;
+    }
+  }
+});
 
   
   betHistory.value.push(...currentRaceBets.value);
@@ -1316,13 +1355,18 @@ const closeLoseNotification = () => {
 };
 
 // Генерация описания ставки
+// В app.vue
 const getBetDescription = (bet) => {
   if (bet.type === 'position') {
     return t('position_bet', { bug: bet.bugId, position: bet.position });
   } else if (bet.type === 'overtaking') {
     return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
   } else if (bet.type === 'section') {
-    return t('section_bet', { trap: bet.trapId, bugs: bet.bugIds.join(', ') });
+    return t('section_bet', { 
+      trap: bet.trapId,
+      count: bet.bugIds.length,
+      bugs: bet.bugIds.join(', ')
+    });
   }
   return t('unknown_bet');
 };
@@ -4032,6 +4076,8 @@ document.removeEventListener('click', firstInteractionHandler);
   position: absolute; /* Вместо relative */
   width: 30px;
   height: 38px;
+  scale: 90%;
+  
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */

@@ -1,5 +1,3 @@
-[file name]: WinLoseNotification.vue
-[file content begin]
 <template>
   <div 
     class="win-lose-notification"
@@ -20,22 +18,29 @@
         <span class="label">{{ t('winning_amount') }}</span>
         <span class="amount win">{{ formattedTotalAmount }}</span>
       </div>
-      <div v-if="multipleWins" class="win-count">
+      <div v-if="multipleWins && !expanded" class="win-count">
         +{{ bets.length - 1 }} {{ t('other_wins') }}
       </div>
     </div>
     
-    <div v-if="expanded" class="details">
+     <div v-if="expanded" class="details">
       <div class="bets-summary">
-        {{ t('bets_details') }} ({{ bets.length }})
+        {{ t('bets_details') }}
       </div>
-      <div v-for="(bet, index) in bets" :key="index" class="bet-item">
-        <div class="bet-color-indicator" :style="{ background: bet.color }"></div>
-        <div class="bet-description">
-          {{ bet.description }}
-        </div>
-        <div class="bet-amount">
-          +{{ new Intl.NumberFormat('ru-RU').format(bet.amount) }}₽
+      <div class="bets-list">
+        <div v-for="(bet, index) in bets" :key="index" class="bet-item">
+          <!-- Специальный индикатор для ставок на секцию -->
+          <div v-if="bet.type === 'section'" class="section-indicator">
+            <img :src="`/images/trap-${bet.trapId}.png`" alt="Trap" class="trap-icon">
+          </div>
+          <div v-else class="bet-color-indicator" :style="{ background: bet.color }"></div>
+          
+          <div class="bet-description">
+            {{ formatBetDescription(bet) }}
+          </div>
+          <div class="bet-amount">
+            +{{ new Intl.NumberFormat('ru-RU').format(bet.amount) }}₽
+          </div>
         </div>
       </div>
       <button class="close-button" @click.stop="close">{{ t('close') }}</button>
@@ -85,7 +90,17 @@ const updateTime = () => {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   currentTime.value = `${hours}:${minutes}`;
 };
-
+// Добавляем функцию для форматирования описания ставки
+const formatBetDescription = (bet) => {
+  if (bet.type === 'section') {
+    return t('section_bet', { 
+      trap: bet.trapId,
+      count: bet.bugIds.length,
+      bugs: bet.bugIds.join(', ')
+    });
+  }
+  return bet.description;
+};
 // Развернуть/свернуть детали
 const expand = () => {
   expanded.value = true;
@@ -101,7 +116,7 @@ let autoCloseTimer;
 onMounted(() => {
   updateTime();
   
-  // Автозакрытие через 5 секунды если не развернуто
+  // Автозакрытие через 5 секунд если не развернуто
   if (!expanded.value) {
     autoCloseTimer = setTimeout(() => {
       emit('close');
@@ -133,8 +148,7 @@ onUnmounted(() => {
 }
 
 .win-lose-notification.expanded {
-  height: auto;
-  max-height: 80vh;
+  height: 205px;
   overflow-y: auto;
 }
 
@@ -211,11 +225,14 @@ onUnmounted(() => {
 .notification-body {
   padding: 12px 15px;
   position: relative;
+  height: 61px;
+  box-sizing: border-box;
 }
 
 .amount-display {
   display: flex;
   align-items: center;
+  margin-top: 10px;
 }
 
 .label {
@@ -252,15 +269,23 @@ onUnmounted(() => {
 }
 
 .details {
-  padding: 15px;
+  padding: 0 15px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+  height: calc(205px - 100px);
+  box-sizing: border-box;
 }
 
 .bets-summary {
   font-family: 'Bai Jamjuree', sans-serif;
   font-weight: 500;
-  margin-bottom: 10px;
+  margin: 10px 0;
   color: #333;
+  font-size: 15px;
+}
+
+.bets-list {
+  height: 100px;
+  overflow-y: auto;
 }
 
 .bet-item {
@@ -268,6 +293,11 @@ onUnmounted(() => {
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  margin-bottom: 2px;
+  padding: 0 10px;
 }
 
 .bet-color-indicator {
@@ -281,18 +311,22 @@ onUnmounted(() => {
   flex: 1;
   font-size: 14px;
   font-family: 'Bai Jamjuree', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bet-amount {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 15px;
   font-family: 'Bai Jamjuree', sans-serif;
-  color: #28a745;
+  color: #000000;
+  margin-left: 10px;
 }
 
 .close-button {
   display: block;
-  margin: 15px auto 5px;
+  margin: 10px auto;
   padding: 8px 20px;
   background: rgba(0, 0, 0, 0.1);
   border: none;
@@ -300,6 +334,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: background 0.2s;
   font-family: 'Bai Jamjuree', sans-serif;
+  font-size: 15px;
 }
 
 .close-button:hover {
@@ -331,5 +366,71 @@ onUnmounted(() => {
   transform: translateX(20px);
   opacity: 0;
 }
+
+/* Стили для скроллбара */
+.bets-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.bets-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.bets-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+/* Специальные стили для ставок на секцию */
+.section-indicator {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.trap-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Стили для списка ставок */
+.bet-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  height: 20px;
+}
+
+.bet-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.bet-description {
+  flex: 1;
+  font-size: 14px;
+  font-family: 'Bai Jamjuree', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 5px;
+}
+
+.bet-amount {
+  font-weight: 500;
+  font-size: 15px;
+  font-family: 'Bai Jamjuree', sans-serif;
+  color: #000000;
+  min-width: 100px;
+  text-align: right;
+}
 </style>
-[file content end]

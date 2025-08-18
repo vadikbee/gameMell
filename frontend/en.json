@@ -45,6 +45,15 @@
   "place": "place",
   "or": "or",
   "overtakes": "overtakes",
-  "overcomes": "overcomes"
+  "overcomes": "overcomes",
+
+    "you_win": "You Win!",
+  "other_wins": "other wins",
+  "press_for_details": "Tap for details",
+  "bets_details": "Bets Details",
+  "section_bet_won": "Section {trap} reached by {count} bugs: {bugs}",
+  "select_bug_to_overtake": "Select a bug to overtake",
+  "insufficient_funds": "Insufficient funds",
+  "select_bet_option": "Please select a bet option"
   
 }

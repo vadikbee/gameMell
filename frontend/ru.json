@@ -44,5 +44,15 @@
   "red": "Красный",
   "purple": "Фиолетовый",
   "green": "Зеленый",
-  "unknown": "Неизвестно"
+  "unknown": "Неизвестно",
+
+    "you_win": "Вы выиграли!",
+  "other_wins": "других выигрышей",
+  "press_for_details": "Нажмите для деталей",
+  "bets_details": "Детали ставок",
+  "section_bet_won": "Секция {trap} достигнута {count} тараканами: {bugs}",
+  "select_bug_to_overtake": "Выберите таракана для обгона",
+  "insufficient_funds": "Недостаточно средств",
+  "select_bet_option": "Пожалуйста, выберите вариант ставки"
+  
 }

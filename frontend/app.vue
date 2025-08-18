@@ -3978,7 +3978,7 @@ document.removeEventListener('click', firstInteractionHandler);
   background-size: contain; /* Изображение полностью помещается в элемент */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 3;
+  z-index: 5;
   opacity: 1;
   /* Адаптивные корректировки */
   @media (max-width: 390px) {
@@ -4542,7 +4542,7 @@ position: absolute;
   height: 11%;
   bottom: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
-  z-index: 4;
+  z-index: 6;
  /* box-shadow: 0 0 0 2px red; /* Обводка без размытия */
 }
 /* Стили для центрального меню */
@@ -5010,10 +5010,7 @@ position: absolute;
     background-size: cover;
   }
   
-  .labirint-bg {
-    z-index: 4;
-    
-  }
+ 
   
  
   
@@ -5622,7 +5619,7 @@ html[lang="ru"] .bth-2-text {
     height: 689px;
     top: 8.8%; /* Точная подстройка позиции */
     width: 100%; /* Занимает всю доступную ширину */
-    z-index: 4;
+    
     max-width: 100%; /* Не превышает ширину экрана */
     left: 0; /* Выравнивание по левому краю */
     transform: none; /* Сбрасываем трансформации */

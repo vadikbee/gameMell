@@ -2183,25 +2183,17 @@ watch(historyBetsVisible, (visible) => {
 });
 
 // Обработчик для кнопки истории ставок
-// Обновите toggleHistoryBets:
 const toggleHistoryBets = () => {
-  if (centerMenuVisible.value) {
-    if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
-    historyBetsVisible.value = !historyBetsVisible.value;
-    historyBetsInsideCenter.value = true;
-    
-    // Загружаем только при открытии
-    if (historyBetsVisible.value) {
-      fetchBetHistory();
-    }
+  // Удалить проверку на centerMenuVisible
+  if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
+  
+  if (historyBetsVisible.value) {
+    historyBetsVisible.value = false;
+    historyBetsInsideCenter.value = false;
   } else {
-    if (lastGameMenuVisible.value) lastGameMenuVisible.value = false;
-    historyBetsVisible.value = !historyBetsVisible.value;
-    
-    // Загружаем только при открытии
-    if (historyBetsVisible.value) {
-      fetchBetHistory();
-    }
+    fetchBetHistory();
+    historyBetsVisible.value = true;
+    historyBetsInsideCenter.value = centerMenuVisible.value;
   }
 };
 

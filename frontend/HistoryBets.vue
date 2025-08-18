@@ -6,17 +6,7 @@
     
     <div class="bets-list">
       <div v-for="(bet, index) in formattedBets" :key="index" class="bet-item">
-
-      <div v-if="bet.type === 'section'" class="bet-colors">
-          <div 
-            v-for="(color, i) in getBetColors(bet)" 
-            :key="i"
-            class="color-indicator"
-            :style="{ background: color }"
-          ></div>
-        </div>
-        <!-- Для ставок на секцию и обгон оставляем цветные индикаторы -->
-        <div v-if="bet.type === 'trap' || bet.type === 'place' || bet.type === 'overtaking'" class="bet-colors">
+        <div class="bet-colors">
           <div 
             v-for="(color, i) in getBetColors(bet)" 
             :key="i"
@@ -27,7 +17,15 @@
         
         <div class="bet-info">
           <div class="bet-description">
-            {{ getBetType(bet) }}
+            <!-- Изменение здесь: для ставок на позицию выводим цветной квадратик -->
+            <template v-if="bet.type === 'position'">
+              <span class="position-text">{{ bet.position }} {{ t('place') }}</span>
+              <div class="color-square" :style="{ backgroundColor: getBugColor(bet.bugId) }"></div>
+            </template>
+            
+            <template v-else>
+              {{ getBetType(bet) }}
+            </template>
           </div>
           <div class="bet-amount">{{ bet.amount }}₽ × {{ getMultiplier(bet) }} = {{ calculateTotal(bet) }}₽</div>
         </div>
@@ -64,6 +62,14 @@ const positionClass = computed(() => {
   if (props.insideCenter) return 'inside-center';
   return props.isCenterMenuOpen ? 'top-right' : 'bottom-right';
 });
+
+// Функция для получения цвета по ID таракана
+const getBugColor = (bugId) => {
+  const normalizedId = typeof bugId === 'number' 
+    ? (bugId <= 7 ? bugId : bugId - 1)
+    : (parseInt(bugId, 10) || 1);
+  return bugColorMap[normalizedId] || '#FFFFFF';
+};
 
 const formatTime = (timeString) => {
   if (!timeString) return '';
@@ -122,10 +128,11 @@ const calculateTotal = (bet) => {
 
 const getBetType = (bet) => {
   
-    // Для ставок на обгон
+     // Для ставок на обгон
   if (bet.type === 'overtaking') {
     return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
   }
+
 
   // Для ставок на позицию
   if (bet.type === 'position' || bet.type === 'win') {
@@ -136,7 +143,8 @@ const getBetType = (bet) => {
     return `${getBugName(bet.selection[0])} ${t('or')} ${getBugName(bet.selection[1])}`;
   }
   
-   if (bet.type === 'section' || (bet.type === 'trap' && bet.trapId)) {
+    // Для ставок на секцию
+  if (bet.type === 'section') {
     return `${t('section')} ${bet.trapId} ${t('section_bet')} (${bet.selection.length} ${t('bugs')})`;
   }
   // Для ставок на позицию

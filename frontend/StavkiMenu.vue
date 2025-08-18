@@ -1,5 +1,4 @@
 <!-- StavkiMenu.vue -->
- <!--эта менюшка (дублирует меню в центральной кнопке для кнопок win)' -->
 <template>
   <div class="menu-stavki">
     <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
@@ -21,7 +20,7 @@
       src="/images/menus/Group 164.png" 
       alt="Group 164" 
       class="group-164-button"
-      @click="$emit(context === 'win' ? 'win-bet-click' : 'group164-click');"
+      @click="handleGroup164Click"
       
       @mousedown="isGroup164Clicked = true"
       @mouseup="isGroup164Clicked = false"
@@ -48,13 +47,13 @@
     v-for="button in stavkiButtons"
     :key="button.id"
     class="stavki-button"
-    @click="$emit('add-bet', button.amount)"
+    @click="handleButtonClick(button.amount)"
   >
     {{ button.amount }}
   </div>
   <div 
     class="stavki-button x2-button"
-    @click="$emit('x2-click'); $emit('button-click')"
+    @click="handleX2Click"
   >
     Х2
   </div>
@@ -63,17 +62,18 @@
 </template>
 
 <script setup>
-defineProps({
+// Сохраняем результат defineProps в переменную
+const props = defineProps({
   currentBet: Number,
   stavkiButtons: Array,
   context: {
     type: String,
     default: 'center' // 'center' или 'win'
   },
-  playBetClick: Function // Добавляем новый проп
+  playBetClick: Function
 });
 
-defineEmits([
+const emit = defineEmits([
   'otmena-click',
   'reset-click',
   'group164-click',
@@ -82,14 +82,15 @@ defineEmits([
   'stop-action',
   'add-bet',
   'x2-click',
-  'win-bet-click' // Новое событие для ставок на секцию
+  'win-bet-click'
 ]);
+
 // Новые методы внутри компонента StavkiMenu
 const handleGroup164Click = () => {
   if (props.playBetClick) {
     props.playBetClick();
   }
-  context === 'win' 
+  props.context === 'win' 
     ? emit('win-bet-click') 
     : emit('group164-click');
 };
@@ -101,11 +102,12 @@ const handleButtonClick = (amount) => {
   emit('add-bet', amount);
 };
 
-const playSoundAndEmit = (eventName) => {
+// Обработчик для кнопки X2
+const handleX2Click = () => {
   if (props.playBetClick) {
     props.playBetClick();
   }
-  emit(eventName);
+  emit('x2-click', props.currentBet);
 };
 </script>
 

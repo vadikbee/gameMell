@@ -298,7 +298,7 @@
                 src="/images/buttons/reset.png" 
                 alt="Reset" 
                 class="reset-button"
-                @click="handleResetClick"
+                @click="undoLastBet"
               >
               <img 
               src="/images/menus/Group 164.png" 
@@ -1277,9 +1277,7 @@ const multiplyBet = () => {
   } else {
     overtakingButtons.value.forEach(btn => btn.selected = false);
   }
-  menuButtons.value.forEach(btn => {
-    btn.selected = false;
-  });
+  
 };
 
 // Добавьте вычисляемое свойство
@@ -1373,23 +1371,7 @@ const getBetDescription = (bet) => {
   }
   return t('unknown_bet');
 };
-const resetSelectedMenuButtons = () => {
-  if (activeTab.value === 'result') {
-    resultButtons.value.forEach(btn => {
-      if (btn.selected) {
-        btn.selected = false;
-        btn.pendingBetAmount = 0;
-      }
-    });
-  } else {
-    overtakingButtons.value.forEach(btn => {
-      if (btn.selected) {
-        btn.selected = false;
-        btn.pendingBetAmount = 0;
-      }
-    });
-  }
-};// app.vue
+
 const getBugName = (id) => {
   const names = { //хз на что влияет
     1: t('yellow'),
@@ -2367,8 +2349,7 @@ const stopAction = () => {
 // ==============================
 
 
-// Исправленная инициализация menuButtons
-// Заменяем старый menuButtons на два независимых массива:
+
 const resultButtons = ref(
   Array.from({ length: 49 }, (_, index) => 
     reactive({

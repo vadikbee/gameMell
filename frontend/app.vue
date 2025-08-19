@@ -1128,24 +1128,20 @@ const playStakeActionClick = () => {
   }
 };
 const handleDocumentClick = (event) => {
-  if (centerMenuVisible.value) {
-    const menuEl = centerMenuRef.value;
-    const buttonEl = button2Ref.value;
-    const historyButtonEl = button3Ref.value; // Добавляем кнопку истории
-    
+   // 1. Обработка win меню
+  if (centerWinMenuVisible.value) {
+    const menuEl = winMenuCenterRef.value;
+    const buttonId = activeWinMenuId.value;
+    const buttonEl = buttonId !== null ? buttonWinContainerRefs.value[buttonId] : null;
+
     if (menuEl && 
         !menuEl.contains(event.target) && 
-        !buttonEl.contains(event.target) &&
-        !historyButtonEl.contains(event.target)) { // Не закрываем при клике на history button
-      centerMenuVisible.value = false;
-      
-      // При закрытии центрального меню перемещаем историю ставок наружу
-      if (historyBetsVisible.value) {
-        historyBetsInsideCenter.value = false;
-      }
+        !(buttonEl && buttonEl.contains(event.target))) {
+      closeWinMenu();
     }
   }
-// Закрытие LastGameMenu (Button-1)
+
+  // 2. Обработка LastGameMenu (Button-1)
   if (lastGameMenuVisible.value) {
     const menuEl = lastGameMenuRef.value?.$el || lastGameMenuRef.value;
     const buttonEl = button1Ref.value;
@@ -1157,7 +1153,7 @@ const handleDocumentClick = (event) => {
     }
   }
 
-  // Закрытие CenterMenu (Button-2)
+  // 3. Обработка CenterMenu (Button-2)
   if (centerMenuVisible.value) {
     const menuEl = centerMenuRef.value;
     const buttonEl = button2Ref.value;
@@ -1166,10 +1162,15 @@ const handleDocumentClick = (event) => {
         !menuEl.contains(event.target) && 
         !buttonEl.contains(event.target)) {
       centerMenuVisible.value = false;
+      
+      // При закрытии центрального меню перемещаем историю ставок наружу
+      if (historyBetsVisible.value) {
+        historyBetsInsideCenter.value = false;
+      }
     }
   }
 
-  // Закрытие HistoryBets (Button-3)
+  // 4. Обработка HistoryBets (Button-3)
   if (historyBetsVisible.value && !historyBetsInsideCenter.value) {
     const menuEl = historyBetsRef.value?.$el || historyBetsRef.value;
     const buttonEl = button3Ref.value;

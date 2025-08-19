@@ -3956,10 +3956,10 @@ document.removeEventListener('click', firstInteractionHandler);
   position: relative;
 }
 .labirint-bg {
-  aspect-ratio: unset;
+  
   position: absolute;
-  top: 8.1%; /* Точная подстройка позиции сверху */
-  left: 0;
+  top: 8.235%; /* Точная подстройка позиции сверху */
+  
   width: 100%; /* Занимает всю ширину родителя */
   pointer-events: none;
   height: 689px; /* Автоматическая высота */
@@ -4071,7 +4071,7 @@ document.removeEventListener('click', firstInteractionHandler);
   position: absolute; /* Вместо relative */
   width: 30px;
   height: 38px;
-  scale: 95%;
+  scale: 90%;
   
   transform: translate(-50%, -50%); /* Центрирование */
   z-index: 3;

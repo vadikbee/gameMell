@@ -3981,17 +3981,18 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .labirint-bg {
   
   position: absolute;
-  top: 8.235%; /* Точная подстройка позиции сверху */
-  
+  top: 8.1%; /* Точная подстройка позиции сверху */
+  height: 689px; /* Соответствует соотношению сторон 390x689 */
   width: 100%; /* Занимает всю ширину родителя */
   pointer-events: none;
   
    /* Сохраняем соотношение сторон 390x689 */
   background-image: url('/images/background/labirint.png');
+  
   background-size: contain; /* Изображение полностью помещается в элемент */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 5;
+  z-index: 9995;
   opacity: 1;
   /* Адаптивные корректировки */
   @media (max-width: 390px) {

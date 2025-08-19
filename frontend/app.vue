@@ -459,12 +459,16 @@
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
  <audio ref="dizzySound" src="/sounds/star.mp3"></audio>
  <audio ref="explosionSound" src="/sounds/bax.mp3"></audio>
-
+<!-- Конфетти эффект -->
+<Confetti 
+  v-if="showConfetti" 
+  @complete="showConfetti = false"
+/>
 </template>
 
 
 <script setup>
-
+import Confetti from './Confetti.vue';
 import { ref, computed, onMounted, onUnmounted, reactive  } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
@@ -475,6 +479,7 @@ import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
 import WinLoseNotification from './WinLoseNotification.vue';
 
+const showConfetti = ref(false);
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
 const dizzySoundElement = ref(null);
@@ -1313,18 +1318,21 @@ const loseNotification = ref({
 
 // Функции для отображения уведомлений
 const showWinNotification = (amount, bets) => {
+  // Для нескольких выигрышей показываем одно уведомление
   winNotifications.value.push({
     id: ++notificationCounter.value,
     bets: bets.map(bet => ({
       ...bet,
-      // Для ставок на секцию используем цвета из winningBugs
-      bugColors: bet.type === 'section' 
-        ? bet.winningBugs.map(bug => bug.color) 
-        : bet.bugColors,
+      // Генерация описания ставки
       description: getBetDescription(bet),
+      // Получаем цвет для ставки
+      color: bet.bugColors[0] || '#000'
     })),
     timestamp: Date.now()
   });
+  
+  // Запускаем конфетти
+  showConfetti.value = true;
 };
 
 const showLoseNotification = (amount, bets) => {

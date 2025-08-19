@@ -460,10 +460,14 @@
  <audio ref="dizzySound" src="/sounds/star.mp3"></audio>
  <audio ref="explosionSound" src="/sounds/bax.mp3"></audio>
 <!-- Конфетти эффект -->
-<Confetti 
-  v-if="showConfetti" 
-  @complete="showConfetti = false"
-/>
+ <Confetti 
+        v-if="showConfetti" 
+        @complete="showConfetti = false"
+        :containerWidth="mainBgWidth"
+        :containerHeight="mainBgHeight"
+        :containerLeft="mainBgLeft"
+        :containerTop="mainBgTop"
+      />
 </template>
 
 
@@ -497,6 +501,11 @@ const lockedBugsArray = ref([]);
 
 // Добавьте переменную для отслеживания состояния звука
 const countdownPlayed = ref(false);
+
+const mainBgWidth = ref(0);
+const mainBgHeight = ref(0);
+const mainBgLeft = ref(0);
+const mainBgTop = ref(0);
 
 const currentLanguage = computed(() => locale.value.toUpperCase());
 // В секции refs
@@ -1334,7 +1343,17 @@ const showWinNotification = (amount, bets) => {
   // Запускаем конфетти
   showConfetti.value = true;
 };
-
+// Функция для обновления размеров и позиции main-bg
+const updateMainBgDimensions = () => {
+  const mainBgElement = document.querySelector('.main-bg');
+  if (mainBgElement) {
+    const rect = mainBgElement.getBoundingClientRect();
+    mainBgWidth.value = rect.width;
+    mainBgHeight.value = rect.height;
+    mainBgLeft.value = rect.left;
+    mainBgTop.value = rect.top;
+  }
+};
 const showLoseNotification = (amount, bets) => {
   loseNotification.value = {
     visible: true,
@@ -2935,6 +2954,8 @@ onMounted(() => {
     document.addEventListener('click', firstInteractionHandler);
     document.addEventListener('touchstart', firstInteractionHandler);
   }
+  updateMainBgDimensions();
+  window.addEventListener('resize', updateMainBgDimensions);
 });
 
 onUnmounted(() => {
@@ -2950,6 +2971,8 @@ onUnmounted(() => {
   }
 document.removeEventListener('click', firstInteractionHandler);
   document.removeEventListener('touchstart', firstInteractionHandler);
+window.removeEventListener('resize', updateMainBgDimensions);
+
 });
 
 
@@ -3962,7 +3985,7 @@ document.removeEventListener('click', firstInteractionHandler);
   
   width: 100%; /* Занимает всю ширину родителя */
   pointer-events: none;
-  height: 689px; /* Автоматическая высота */
+  
    /* Сохраняем соотношение сторон 390x689 */
   background-image: url('/images/background/labirint.png');
   background-size: contain; /* Изображение полностью помещается в элемент */

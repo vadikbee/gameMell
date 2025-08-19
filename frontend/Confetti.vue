@@ -10,7 +10,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+
+
+const props = defineProps({
+  containerWidth: Number,
+  containerHeight: Number,
+  containerLeft: Number,
+  containerTop: Number
+});
 
 const emit = defineEmits(['complete']);
 const confetti = ref([]);
@@ -29,8 +37,8 @@ const createConfetti = () => {
   for (let i = 0; i < 150; i++) {
     confetti.value.push({
       style: {
-        '--x': Math.random() * 100 + 'vw',
-        '--y': -10 - Math.random() * 20 + 'vh',
+        '--x': Math.random() * props.containerWidth + 'px',
+        '--y': -10 - Math.random() * 20 + 'px',
         '--r': Math.random() * 360 + 'deg',
         '--c': colors[Math.floor(Math.random() * colors.length)],
         '--s': shapes[Math.floor(Math.random() * shapes.length)],
@@ -40,15 +48,33 @@ const createConfetti = () => {
     });
   }
 };
+
+
+
+watch(() => [props.containerWidth, props.containerHeight], () => {
+  if (props.containerWidth > 0 && props.containerHeight > 0) {
+    confetti.value = [];
+    createConfetti();
+  }
+});
+
+onMounted(() => {
+  if (props.containerWidth > 0 && props.containerHeight > 0) {
+    createConfetti();
+  }
+  setTimeout(() => {
+    emit('complete');
+  }, 3000);
+});
 </script>
 
 <style scoped>
 .confetti-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: v-bind('props.containerTop + "px"');
+  left: v-bind('props.containerLeft + "px"');
+  width: v-bind('props.containerWidth + "px"');
+  height: v-bind('props.containerHeight + "px"');
   pointer-events: none;
   z-index: 1000;
   overflow: hidden;
@@ -103,7 +129,7 @@ const createConfetti = () => {
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh) rotate(calc(var(--r) * 5));
+    transform: translateY(v-bind('props.containerHeight + "px"')) rotate(calc(var(--r) * 5));
     opacity: 0;
   }
 }

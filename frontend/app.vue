@@ -837,6 +837,12 @@ const playOutcomeSound = () => {
 const placeSectionBet = async () => {
   try {
     playBetClick();
+    
+    // Преобразуем ID тараканов из формата интерфейса (1-7) в формат гонки (0-6)
+    const raceBugIds = selectedBugs.value.map(id => id - 1);
+    
+    console.log(`Создаем ставку на секцию ${selectedTrap.value} с тараканами: ${selectedBugs.value.join(', ')} (в формате гонки: ${raceBugIds.join(', ')})`);
+    
     // Блокируем выбранных тараканов
     const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
     lockedBugsArray.value = newLocked;
@@ -867,11 +873,11 @@ const placeSectionBet = async () => {
     showBetPlacedNotification();
     playOutcomeSound();
 
-    // Добавляем одну ставку в массив
+    // Добавляем одну ставку в массив (используем raceBugIds для формата гонки)
     nextRaceBets.value.push({
       type: 'section',
       trapId: selectedTrap.value,
-      bugIds: [...selectedBugs.value], // Массив ID тараканов
+      bugIds: raceBugIds, // Используем преобразованные ID
       amount: totalAmount
     });
 
@@ -889,14 +895,14 @@ const placeSectionBet = async () => {
         user_id: 1,
         amount: totalAmount,
         type: 'trap',
-        selection: selectedBugs.value,
-        trapId: selectedTrap.value, // Добавляем ID секции
+        selection: selectedBugs.value, // Оригинальные ID для бэкенда
+        trapId: selectedTrap.value,
         color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
         time: new Date().toTimeString().split(' ')[0]
       })
     });
     
-     if (!response.ok) throw new Error('Failed to save section bet');
+    if (!response.ok) throw new Error('Failed to save section bet');
     
     fetchBetHistory();
   } catch (error) {
@@ -937,7 +943,7 @@ const finishedBugs = bugs.value
   finishedBugs.forEach((bug, index) => {
     bugPositions[bug.id] = index + 1; // позиция (место)
   });
-
+  
    currentRaceBets.value.forEach(bet => {
     if (bet.type === 'overtaking') {
         const overtakerResult = finishedBugs.find(b => b.id === bet.overtaker);
@@ -1022,45 +1028,55 @@ const finishedBugs = bugs.value
     }
 
    // Добавляем обработку ставок на секцию
-  // Обработка ставок на секцию
-   // app.vue - исправленный блок для ставок на секцию
+// В функции checkBetsResults добавить обработку для ставок на секцию
+// В обработке ставок на секцию
 else if (bet.type === 'section') {
+  console.log(`Проверяем ставку на секцию ${bet.trapId} с тараканами: ${bet.bugIds.join(', ')}`);
+  
   const winningBugs = [];
   
   bet.bugIds.forEach(bugId => {
     const bugResult = bugs.value.find(b => b.id === bugId);
+    // Добавляем проверку, что таракан финишировал именно в нужной секции
     if (bugResult && bugResult.finished && bugResult.trapId === bet.trapId) {
+      console.log(`Таракан ${bugId} финишировал в секции ${bugResult.trapId} (нужная секция: ${bet.trapId}) - ВЫИГРЫШ`);
       winningBugs.push({
         id: bugId,
         color: bugColors.value[bugId]
       });
+    } else {
+      if (bugResult) {
+        console.log(`Таракан ${bugId} не подходит: finished=${bugResult.finished}, trapId=${bugResult.trapId}, нужна секция=${bet.trapId}`);
+      } else {
+        console.log(`Таракан ${bugId} не найден среди финишировавших`);
+      }
     }
   });
 
-  // В блоке обработки ставок на секцию
-if (winningBugs.length > 0) {
-  const winAmountPerBug = bet.amount / bet.bugIds.length;
-  const totalWin = winAmountPerBug * winningBugs.length * 2.23;
-  
-  balance.value += totalWin;
-  playIncomeSound();
-  
-  winningBets.push({
-    ...bet,
-    winAmount: totalWin,
-    winningBugs: winningBugs,
-    // Добавляем цвета для уведомления
-    bugColors: winningBugs.map(bug => bug.color),
-    timestamp: new Date().toISOString()
-  });
-} else {
-    // Проигрыш
+  if (winningBugs.length > 0) {
+    const winAmountPerBug = bet.amount / bet.bugIds.length;
+    const totalWin = winAmountPerBug * winningBugs.length * 2.23;
+    
+    balance.value += totalWin;
+    playIncomeSound();
+    
+    winningBets.push({
+      ...bet,
+      winAmount: totalWin,
+      winningBugs: winningBugs,
+      bugColors: winningBugs.map(bug => bug.color),
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log(`Ставка на секцию ${bet.trapId} выиграла: ${totalWin}₽`);
+  } else {
     losingBets.push({
       ...bet,
       loseAmount: bet.amount,
       timestamp: new Date().toISOString()
     });
-    totalLose += bet.amount; // Используем существующую переменную
+    totalLose += bet.amount;
+    console.log(`Ставка на секцию ${bet.trapId} проиграла`);
   }
 }
   });
@@ -1401,14 +1417,14 @@ const getBetDescription = (bet) => {
 };
 
 const getBugName = (id) => {
-  const names = { //хз на что влияет
-    1: t('yellow'),
-    2: t('orange'),
-    3: t('dark_orange'),
-    4: t('blue'),
-    5: t('red'),
-    6: t('purple'),
-    7: t('green')
+  const names = {
+    0: t('yellow'),
+    1: t('orange'),
+    2: t('dark_orange'),
+    3: t('blue'),
+    4: t('red'),
+    5: t('purple'),
+    6: t('green')
   };
   return names[id] || t('unknown');
 };
@@ -2130,7 +2146,8 @@ else if (bug.phase === 'to_blue_point') {
       }
     }
 
-    if (distance <= 1) {
+   // В блоке фазы движения к точке финиша
+if (distance <= 1) {
   bug.finished = true;
   button.occupied = true;
   button.finishedBugId = bug.id;
@@ -2138,7 +2155,10 @@ else if (bug.phase === 'to_blue_point') {
   
   // Сохраняем ID ловушки для ставок на секцию
   bug.trapId = bug.targetButtonId;
-    }
+  
+  // Логируем приход таракана в ячейку
+  console.log(`Таракан ${bug.id} (${getBugName(bug.id)}) пришел в ячейку ${bug.trapId}`);
+}
 
   }
 }

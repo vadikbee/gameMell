@@ -3992,7 +3992,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background-size: contain; /* Изображение полностью помещается в элемент */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 9995;
+  z-index: 5;
   opacity: 1;
   /* Адаптивные корректировки */
   @media (max-width: 390px) {

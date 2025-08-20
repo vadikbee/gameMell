@@ -84,9 +84,9 @@ const emit = defineEmits(['close']);
 const expanded = ref(false);
 const currentTime = ref('');
 
-// Вычисляем общую сумму выигрыша
+// Исправляем вычисление общей суммы выигрыша
 const formattedTotalAmount = computed(() => {
-  const total = props.bets.reduce((sum, bet) => sum + bet.amount, 0);
+  const total = props.bets.reduce((sum, bet) => sum + bet.winAmount, 0);
   return new Intl.NumberFormat('ru-RU').format(total) + '₽';
 });
 

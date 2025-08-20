@@ -1358,6 +1358,7 @@ const showWinNotification = (amount, bets) => {
     id: ++notificationCounter.value,
     bets: bets.map(bet => ({
       ...bet,
+      winAmount: bet.winAmount, // убедитесь что это правильная сумма
       // Генерация описания ставки
       description: getBetDescription(bet),
       // Получаем цвет для ставки
@@ -2492,7 +2493,7 @@ const toggleMenuButton = (btn) => {
  
     // Запрещаем взаимодействие с подтвержденными кнопками
   if (btn.confirmed) return; // <-- Добавленная проверка
-  
+
   console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
   if (activeTab.value === 'overtaking') {
     // Пропускаем диагональные кнопки

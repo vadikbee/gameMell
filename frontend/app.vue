@@ -923,26 +923,31 @@ const resetWinButtonSelection = () => {
 let winNotificationTimer = null;
 let loseNotificationTimer = null;
 const checkBetsResults = () => {
-  
-const finishedBugs = bugs.value
-  .filter(bug => bug.finished)
-  .sort((a, b) => a.finishTime - b.finishTime) // Сортировка по времени финиша
-  .map((bug, index) => ({
-    ...bug,
-    position: index + 1 // Присваиваем позицию по порядку финиша
-  }));
+  // Собираем только финишировавших тараканов и сортируем по времени финиша
+  const finishedBugs = bugs.value
+    .filter(bug => bug.finished)
+    .sort((a, b) => a.finishTime - b.finishTime)
+    .map((bug, index) => ({
+      ...bug,
+      position: index + 1 // Присваиваем позицию по порядку финиша
+    }));
+
+  // Логируем порядок финиша тараканов
+  console.log("Порядок финиша тараканов:");
+  finishedBugs.forEach(bug => {
+    console.log(`${bug.position} место: Таракан ${bug.id + 1} (${getBugName(bug.id)})`);
+  });
+
+  // Создаем объект для быстрого доступа к позициям тараканов
+  const bugPositions = {};
+  finishedBugs.forEach(bug => {
+    bugPositions[bug.id] = bug.position;
+  });
 
   const winningBets = [];
   const losingBets = [];
-  resetWinMenu();
   let totalWin = 0;
   let totalLose = 0;
-
-// Создаем объект для быстрого доступа к позициям тараканов
-  const bugPositions = {};
-  finishedBugs.forEach((bug, index) => {
-    bugPositions[bug.id] = index + 1; // позиция (место)
-  });
   
    currentRaceBets.value.forEach(bet => {
     if (bet.type === 'overtaking') {
@@ -988,8 +993,10 @@ const finishedBugs = bugs.value
 
 // Добавляем обработку для ставок типа "position" (result)
     else if (bet.type === 'position') {
-      const bugId = bet.bugId;
+      const bugId = bet.bugId - 1; // Преобразуем ID из формата интерфейса (1-7) в формат гонки (0-6)
       const finishedPosition = bugPositions[bugId];
+
+      console.log(`Проверяем ставку: таракан ${bet.bugId} на ${bet.position} место. Фактическая позиция: ${finishedPosition || 'не финишировал'}`);
 
       // Таракан не финишировал - ставка проиграла
       if (finishedPosition === undefined) {
@@ -1009,11 +1016,12 @@ const finishedBugs = bugs.value
         playIncomeSound();
         
         winningBets.push({
-  ...bet,
-  winAmount: winAmount,
-  bugColors: [bugColors.value[bet.bugId]]
-});
+          ...bet,
+          winAmount: winAmount,
+          bugColors: [bugColors.value[bugId]]
+        });
         bet.result = 'win';
+        console.log(`Ставка ВЫИГРАЛА: ${winAmount}₽`);
       } 
       // Таракан финишировал, но не на указанном месте - ставка проиграла
       else {
@@ -1024,8 +1032,10 @@ const finishedBugs = bugs.value
           bugColors: [bugColors.value[bugId]]
         });
         bet.result = 'lose';
+        console.log(`Ставка ПРОИГРАЛА: занял ${finishedPosition} место вместо ${bet.position}`);
       }
     }
+    
 
    // Добавляем обработку ставок на секцию
 // В функции checkBetsResults добавить обработку для ставок на секцию
@@ -2147,6 +2157,7 @@ else if (bug.phase === 'to_blue_point') {
     }
 
    // В блоке фазы движения к точке финиша
+// В блоке фазы движения к точке финиша
 if (distance <= 1) {
   bug.finished = true;
   button.occupied = true;
@@ -2156,8 +2167,9 @@ if (distance <= 1) {
   // Сохраняем ID ловушки для ставок на секцию
   bug.trapId = bug.targetButtonId;
   
-  // Логируем приход таракана в ячейку
-  console.log(`Таракан ${bug.id} (${getBugName(bug.id)}) пришел в ячейку ${bug.trapId}`);
+  // Логируем приход таракана с временем финиша
+  const finishTimeMs = (now - raceStartTime.value).toFixed(0);
+  console.log(`Таракан ${bug.id + 1} (${getBugName(bug.id)}) финишировал за ${finishTimeMs}мс`);
 }
 
   }

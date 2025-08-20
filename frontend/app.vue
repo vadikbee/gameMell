@@ -2490,6 +2490,8 @@ const toggleMenuButton = (btn) => {
   const row = Math.floor(btn.id / 7);
   const col = btn.id % 7;
  
+    // Запрещаем взаимодействие с подтвержденными кнопками
+  if (btn.confirmed) return; // <-- Добавленная проверка
   
   console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
   if (activeTab.value === 'overtaking') {

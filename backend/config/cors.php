@@ -15,7 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'api/save-bet'], // Добавьте явный путь
+    'paths' => [
+    'api/*',
+    'gameplay/*', // Добавьте эту строку
+    'sanctum/csrf-cookie'
+],
     'allowed_methods' => ['*'],
     'allowed_origins' => ['*'],
     'allowed_origins_patterns' => [],

@@ -126,7 +126,13 @@
               : `url('/images/buttons/Property 1=Default.png')`,
             cursor: 'pointer'
           }"
-        ></div>
+        >
+        <div class="win-button-text">
+    <div class="coefficient-x">x</div>
+    <div class="button-coefficient">{{ btn.coefficient }}</div>
+  </div>
+</div>
+      
           
         
       </div>
@@ -1998,7 +2004,7 @@ const saveGameResults = async () => {
   setTimeout(() => {
     checkBetsResults();
   }, 1000);
-  
+
   // Деактивируем сессию на сервере
 await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
     method: 'POST'
@@ -2440,13 +2446,13 @@ const overtakingButtons = ref(
 
 // Обновленные кнопки победы
 const winButtons = ref([
-  { id: 7, bugs: [], hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 6, bugs: [], hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 5, bugs: [], hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 4, bugs: [], hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 3, bugs: [], hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 2, bugs: [], hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 1, bugs: [], hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 7, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 6, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 5, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 4, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 3, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 2, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
+  { id: 1, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
 ]);
 
 // Сброс выбора обгона
@@ -3123,7 +3129,44 @@ window.removeEventListener('resize', updateMainBgDimensions);
   top: 50%;
   left: 50%;
 }
+.win-button-text {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
+.coefficient-x {
+  position: absolute;
+  left: 37.5%;
+  right: 37.5%;
+  top: 12.5%;
+  bottom: 64.21%;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.button-coefficient {
+  position: absolute;
+  left: 28.85%;
+  right: 28.85%;
+  top: 46.73%;
+  bottom: 26.71%;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
 .initial-animation::before {
   animation: lineAnimationTop 0.6s ease-in-out 0s 3;
 }

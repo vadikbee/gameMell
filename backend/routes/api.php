@@ -321,4 +321,28 @@ Route::get('/gameplay/games/sessions/{code}/last', [GameHistoryController::class
 
 
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
-// Добавьте в конец файла
+
+////////////////////////////////////////gameplay/games/sessions/cockroaches-space-maze/active///////////////////////////////////////
+
+use App\Http\Controllers\GameSessionController;
+
+// Добавляем маршрут для активной игровой сессии
+// Добавьте эти маршруты в конец файла
+Route::post('/gameplay/games/sessions/{code}/activate', [GameSessionController::class, 'createActiveSession']);
+Route::post('/gameplay/games/sessions/{code}/deactivate', [GameSessionController::class, 'deactivateSession']);
+
+// Обработка CORS для новых эндпоинтов
+Route::options('/gameplay/games/sessions/{code}/activate', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
+Route::options('/gameplay/games/sessions/{code}/deactivate', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+////////////////////////////////////////gameplay/games/sessions/{code}/active///////////////////////////////////////

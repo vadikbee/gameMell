@@ -1998,6 +1998,11 @@ const saveGameResults = async () => {
   setTimeout(() => {
     checkBetsResults();
   }, 1000);
+  
+  // Деактивируем сессию на сервере
+await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
+    method: 'POST'
+});
 };
 
 // Добавляем состояние для анимации взрыва
@@ -2650,6 +2655,10 @@ const handleGenerateClick = async () => {
   lockedBugs.value = new Set();
 countdownPlayed.value = false; // Сбрасываем флаг
 playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
+// Активируем сессию на сервере
+await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
+    method: 'POST'
+});
 
 // СОХРАНЯЕМ состояние выбора если меню открыто
   if (!centerWinMenuVisible.value) {

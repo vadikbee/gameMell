@@ -313,14 +313,22 @@ Route::options('/game-history/last', function () {
 
 Route::get('/game-history/last', [GameHistoryController::class, 'getLastGames']);
 
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+////////////////////////////////////////gameplay/games/sessions/cockroaches-space-maze/last///////////////////////////////////////
 
 
-// Затем динамический маршрут для остальных кодов
+// Добавить этот маршрут если его нет
 Route::get('/gameplay/games/sessions/{code}/last', [GameHistoryController::class, 'getLastSessions']);
 
+// И добавить обработчик CORS для этого маршрута
+Route::options('/gameplay/games/sessions/{code}/last', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
 
-///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
+
+////////////////////////////////////////gameplay/games/sessions/cockroaches-space-maze/last///////////////////////////////////////
 
 ////////////////////////////////////////gameplay/games/sessions/cockroaches-space-maze/active///////////////////////////////////////
 

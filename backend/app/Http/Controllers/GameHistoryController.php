@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator; // Добавлен импорт Validator
 
 class GameHistoryController extends Controller
 {
     const HISTORY_FILE = 'game_history.json';
+    const ACTIVE_SESSION_FILE = 'active_session.json';
     const MAX_GAMES = 5;
 
+    
    // GameHistoryController.php
 public function getLastGames()
 {
@@ -42,73 +46,114 @@ public function getLastGames()
     }
 }
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)/////...//////////////////////////////////
-public function getLastSessions(Request $request, $code)
-{
-    try {
-        if ($code !== 'cockroaches-space-maze') {
-            Log::error("Invalid game code: {$code}");
-            return response()->json(['error' => 'Invalid game code'], 404);
-        }
+  public function getLastSessions(Request $request, $code)
+    {
+        try {
+            // Валидация параметра code
+            $validator = Validator::make(['code' => $code], [
+                'code' => 'required|string|min:1'
+            ]);
 
-        $filePath = $this->getFilePath();
-        
-        // Проверка существования файла
-        if (!file_exists($filePath)) {
-            Log::error("History file not found: {$filePath}");
-            return response()->json([]);
-        }
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        // Чтение и декодирование JSON с проверкой ошибок
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            Log::error("Failed to read history file: {$filePath}");
-            return response()->json([]);
-        }
+            // Проверяем код инстанса
+            if ($code !== 'cockroaches-space-maze') {
+                return response()->json(['error' => 'Invalid game code'], 404);
+            }
 
-        $history = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error("JSON decode error: " . json_last_error_msg());
-            return response()->json([]);
-        }
+            $sessions = [];
 
-        // Проверка на пустую историю
-        if (empty($history)) {
-            Log::info("History is empty");
-            return response()->json([]);
-        }
-
-        $sessions = [];
-        foreach (array_slice($history, 0, self::MAX_GAMES) as $game) {
-            $timestamp = \Carbon\Carbon::parse($game['timestamp']);
-            
-            // Формируем results как объект
-            $resultsObject = [];
-            foreach ($game['results'] as $result) {
-                if ($result['position'] !== null) {
-                    $resultsObject[$result['position']] = [
-                        'position' => $result['position'],
-                        'color' => $result['color']
+            // Проверяем активную сессию
+            $activeSessionData = $this->getActiveSessionData();
+            if ($activeSessionData && $activeSessionData['is_active']) {
+                $betsAvailableTill = Carbon::parse($activeSessionData['bets_available_till']);
+                if (Carbon::now()->lte($betsAvailableTill)) {
+                    // Активная сессия валидна
+                    $sessions[] = [
+                        'id' => $activeSessionData['id'],
+                        'results' => (object)[], // активная сессия не имеет результатов
+                        'ended_at' => null,
+                        'is_active' => true,
+                        'started_at' => $activeSessionData['started_at'],
+                        'result_is_valid' => true,
+                        'bets_available_till' => $activeSessionData['bets_available_till']
                     ];
+                } else {
+                    // Время ставок истекло, деактивируем сессию
+                    $this->deactivateSession($activeSessionData);
                 }
             }
 
-            $sessions[] = [
-                'id' => $game['id'],
-                'results' => (object)$resultsObject,
-                'ended_at' => $timestamp->toIso8601String(),
-                'is_active' => false,
-                'started_at' => $timestamp->copy()->subSeconds(12)->toIso8601String(),
-                'result_is_valid' => true,
-                'bets_available_till' => $timestamp->copy()->subSeconds(12)->toIso8601String()
-            ];
+            // Загружаем историю игр
+            $history = $this->loadGameHistory();
+
+            foreach ($history as $game) {
+                if (count($sessions) >= self::MAX_GAMES) break;
+
+                $timestamp = Carbon::parse($game['timestamp']);
+                
+                $resultsObject = [];
+                foreach ($game['results'] as $result) {
+                    if ($result['position'] !== null) {
+                        $resultsObject[$result['position']] = [
+                            'position' => $result['position'],
+                            'color' => $result['color']
+                        ];
+                    }
+                }
+
+                $sessions[] = [
+                    'id' => $game['id'],
+                    'results' => (object)$resultsObject,
+                    'ended_at' => $timestamp->toIso8601String(),
+                    'is_active' => false,
+                    'started_at' => $timestamp->copy()->subSeconds(12)->toIso8601String(),
+                    'result_is_valid' => true,
+                    'bets_available_till' => $timestamp->copy()->subSeconds(12)->toIso8601String()
+                ];
+            }
+
+            return response()->json($sessions);
+        } catch (\Exception $e) {
+            Log::error('Error loading sessions: '.$e->getMessage());
+            return response()->json([], 500);
         }
-        
-        return response()->json($sessions);
-    } catch (\Exception $e) {
-        Log::error('Error loading sessions: '.$e->getMessage());
-        return response()->json([], 500);
     }
-}
+
+    private function getActiveSessionData()
+    {
+        $filePath = storage_path('app/' . self::ACTIVE_SESSION_FILE);
+        if (!file_exists($filePath)) {
+            return null;
+        }
+        return json_decode(file_get_contents($filePath), true);
+    }
+
+    private function deactivateSession($sessionData)
+    {
+        $sessionData['is_active'] = false;
+        $sessionData['ended_at'] = Carbon::now()->toISOString();
+        $this->saveActiveSessionData($sessionData);
+    }
+
+    private function saveActiveSessionData($data)
+    {
+        $filePath = storage_path('app/' . self::ACTIVE_SESSION_FILE);
+        file_put_contents($filePath, json_encode($data));
+    }
+
+    private function loadGameHistory()
+    {
+        $filePath = storage_path('app/' . self::HISTORY_FILE);
+        if (!file_exists($filePath)) {
+            return [];
+        }
+        return json_decode(file_get_contents($filePath), true) ?? [];
+    }
 ///////////////////////////////////////ЭНДПОИНТ (lastGame)///////////////////////////////////////
    public function saveGameResult(Request $request)
 {

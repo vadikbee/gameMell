@@ -1,0 +1,12 @@
+{
+  "bet_buttons": [25, 50, 100, 150],
+  "currency": "RUB",
+  "min_bet": 25,
+  "max_bet": 10000,
+  "bet_step": 1,
+  "coefficients": {
+    "win": 6.3,
+    "place": 4.2,
+    "trap": 8.5
+  }
+}

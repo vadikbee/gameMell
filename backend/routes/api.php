@@ -113,31 +113,107 @@ Route::options('/api/v1/gameplay/games/accounts/{code}/{session}', function () {
 ///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
 
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
-Route::get('/api/v1/gameplay/games/instances/{code}', function ($code) {
-    // Возвращает настройки игрового инстанса
+// Эндпоинт получения данных игрового инстанса
+Route::get('/v1/gameplay/games/instances/cockroaches-space-maze', function () {
+    $configPath = storage_path('app/bet_buttons.json');
+    
+    if (!file_exists($configPath)) {
+        return response()->json(['error' => 'Configuration not found'], 404);
+    }
+    
+    $config = json_decode(file_get_contents($configPath), true);
+    
     return response()->json([
-        'bet_buttons' => [25, 50, 100, 150], // Номиналы кнопок
-        'currency' => 'RUB', // Валюта
-        'coefficients' => [
-            'win' => 6.3, // Коэффициенты для разных типов ставок
-            'place' => 4.2,
-            'trap' => 8.5
-        ],
-        'available_currencies' => ['RUB', 'USD', 'EUR'], // Доступные валюты
-        'theme_params' => [ // Параметры темы
-            'background' => 'space',
-            'color_scheme' => 'dark'
-        ]
+        'bet_buttons' => $config['bet_buttons'],
+        'currency' => $config['currency'],
+        'min_bet' => $config['min_bet'],
+        'max_bet' => $config['max_bet'],
+        'bet_step' => $config['bet_step'],
+        'coefficients' => $config['coefficients']
     ]);
 });
 
-Route::options('/api/v1/gameplay/games/instances/{code}', function () {
+// Обработка CORS для OPTIONS запроса
+Route::options('/v1/gameplay/games/instances/cockroaches-space-maze', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
+// Эндпоинт для размещения ставок
+Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $code) {
+    try {
+        $data = $request->validate([
+            'user_id' => 'required|integer',
+            'amount' => 'required|numeric|min:0',
+            'type' => 'required|in:win,place,trap',
+            'selection' => 'required|array',
+            'currency' => 'required|string|size:3'
+        ]);
 
+        // Проверяем доступность ставки (гонка не началась)
+        $activeSessionPath = storage_path('app/active_sessions.json');
+        $activeSessions = file_exists($activeSessionPath) ? 
+            json_decode(file_get_contents($activeSessionPath), true) : [];
+        
+        if (isset($activeSessions[$code]) && $activeSessions[$code]['race_started']) {
+            return response()->json(['error' => 'Race already started'], 400);
+        }
+
+        // Проверяем баланс пользователя
+        $balancePath = storage_path('app/user_balances.json');
+        $balances = file_exists($balancePath) ? 
+            json_decode(file_get_contents($balancePath), true) : [];
+        
+        $userId = $data['user_id'];
+        $currentBalance = $balances[$userId][$data['currency']] ?? 0;
+        
+        if ($currentBalance < $data['amount']) {
+            return response()->json(['error' => 'Insufficient funds'], 400);
+        }
+
+        // Списание средств
+        $balances[$userId][$data['currency']] = $currentBalance - $data['amount'];
+        file_put_contents($balancePath, json_encode($balances));
+
+        // Сохранение ставки
+        $bet = [
+            'id' => uniqid(),
+            'user_id' => $userId,
+            'amount' => $data['amount'],
+            'type' => $data['type'],
+            'selection' => $data['selection'],
+            'currency' => $data['currency'],
+            'timestamp' => now()->toISOString(),
+            'status' => 'active'
+        ];
+
+        $betsPath = storage_path('app/bets.json');
+        $bets = file_exists($betsPath) ? 
+            json_decode(file_get_contents($betsPath), true) : [];
+        
+        $bets[] = $bet;
+        file_put_contents($betsPath, json_encode($bets));
+
+        return response()->json([
+            'status' => 'success',
+            'bet_id' => $bet['id'],
+            'new_balance' => $balances[$userId][$data['currency']]
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Bet placement error: ' . $e->getMessage());
+        return response()->json(['error' => 'Internal server error'], 500);
+    }
+});
+
+// Обработка CORS для OPTIONS запроса
+Route::options('/api/v1/gameplay/games/bets/{code}', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
 ///////////////////////////////////////ЭНДПОИНТ (place bet)///////////////////////////////////////
 Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $code) {
     // Обработка ставки

@@ -62,15 +62,16 @@
 </template>
 
 <script setup>
+const { data: gameConfig } = useFetch('/api/v1/gameplay/games/instances/cockroaches-space-maze');
 // Сохраняем результат defineProps в переменную
 const props = defineProps({
   currentBet: Number,
-  stavkiButtons: Array,
-  context: {
-    type: String,
-    default: 'center' // 'center' или 'win'
-  },
-  playBetClick: Function
+  minBet: Number,
+  maxBet: Number,
+  betStep: Number,
+  currency: String,
+  playBetClick: Function,
+  context: String // Добавьте эту строку
 });
 
 const emit = defineEmits([
@@ -85,11 +86,22 @@ const emit = defineEmits([
   'win-bet-click'
 ]);
 
+// Используем параметры из API
+const stavkiButtons = computed(() => {
+  if (!gameConfig.value) return [];
+  
+  return gameConfig.value.bet_buttons.map(amount => ({
+    id: amount.toString(),
+    amount: amount
+  }));
+});
+
 // Новые методы внутри компонента StavkiMenu
 const handleGroup164Click = () => {
   if (props.playBetClick) {
     props.playBetClick();
   }
+  
   props.context === 'win' 
     ? emit('win-bet-click') 
     : emit('group164-click');

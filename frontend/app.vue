@@ -60,6 +60,8 @@
       :betStep="betConfig.betStep"
       :currency="betConfig.currency"
       context="win"
+       :showNextRaceNotice="raceInProgress"
+      :nextRaceNoticeText="t('next_round_bet')"
       @win-bet-click="placeSectionBet"
       @otmena-click="resetCurrentBet"
       @reset-click="undoLastBet"
@@ -75,12 +77,11 @@
     />
     
     <div class="menu-container">
+      <div class="menu-image-wrapper">
       <div class="win-menu-title">
         {{ t('who_reaches_section') }}
       </div>
-       <div v-if="raceInProgress" class="next-race-notice">
-      {{ t('next_round_bet') }}
-    </div>
+       
       <img 
         :src="`/images/menus/Frame 575-${activeWinMenuId}.png`" 
         alt="Menu" 
@@ -88,29 +89,32 @@
       />
       
       <!-- Обновленный контейнер для тараканов с обработчиком выбора -->
-      <div class="bug-buttons-container">
-        <div 
-          v-for="(bug, index) in menuBugs"
-          :key="index"
-          class="bug-button"
-          :class="{
-            'bug-button-hovered': hoveredBugIndex === index,
-            'bug-button-clicked': clickedBugIndex === index,
-            'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId,
-            'locked': lockedBugsArray.includes(bug.id)
-          }"
-          @mouseenter="hoverBug(index)"
-          @mouseleave="unhoverBug"
-          @click="toggleBugSelection(bug.id)"
-          :style="getBugStyle(index)"
-        >
-          <img 
-            :src="`/images/tarakani/t-${bug.id}.png`" 
-            :alt="`Таракан ${bug.id}`"
-            class="bug-image"
-          />
-        </div>
+     <!-- В секции template -->
+<div class="bug-buttons-container">
+  <div 
+    v-for="(bug, index) in menuBugs"
+    :key="index"
+    class="bug-button"
+    :class="{
+      'bug-button-hovered': hoveredBugIndex === index,
+      'bug-button-clicked': clickedBugIndex === index,
+      'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId,
+      'locked': lockedBugsArray.includes(bug.id)
+    }"
+    @mouseenter="hoverBug(index)"
+    @mouseleave="unhoverBug"
+    @click="toggleBugSelection(bug.id)"
+    :style="getBugStyle(index)"
+  >
+    <img 
+      :src="`/images/tarakani/t-${bug.id}.png`" 
+      :alt="`Таракан ${bug.id}`"
+      class="bug-image"
+    />
+  </div>
+</div>
       </div>
+      
     </div>
   </div>\
 
@@ -1951,19 +1955,19 @@ const gap = 0.5; // % расстояния между кнопками
 
 const menuBugs = ref([
   // Желтый (1)
-  { id: 1, left: 5, top: 25, width: 12, height: 50 },
+  { id: 1, width: 12, height: 40 },
   // Оранжевый (2) - ID 2
-  { id: 2, left: 18 + gap, top: 25, width: 12, height: 50 },
+  { id: 2, width: 12, height: 40 },
   // Темно-оранжевый (3) - ID 3
-  { id: 3, left: 31 + gap * 2, top: 25, width: 12, height: 50 },
+  { id: 3, width: 12, height: 40 },
   // Синий (4)
-  { id: 4, left: 44 + gap * 3, top: 25, width: 12, height: 50 },
+  { id: 4, width: 12, height: 40 },
   // Красный (5)
-  { id: 5, left: 57 + gap * 4, top: 25, width: 12, height: 50 },
+  { id: 5, width: 12, height: 40 },
   // Фиолетовый (6)
-  { id: 6, left: 70 + gap * 5, top: 25, width: 12, height: 50 },
+  { id: 6, width: 12, height: 40 },
   // Зеленый (7)
-  { id: 7, left: 83 + gap * 6, top: 25, width: 12, height: 50 }
+  { id: 7, width: 12, height: 40 }
 ]);
 // В секции <script setup>
 const bugColors = ref([
@@ -2242,12 +2246,16 @@ watch(lastGameMenuVisible, (visible) => {
 });
 // Получение стилей для позиционирования кнопки таракана
 const getBugStyle = (index) => {
-  const bug = menuBugs.value[index];
+  const totalBugs = menuBugs.value.length;
+  const containerWidth = 80; // Ширина контейнера в %
+  const bugWidth = 14; // Ширина каждого таракана в %
+  const gap = 3; // Увеличиваем отступ между тараканами
+  
   return {
-    left: `${bug.left}%`,
-    top: `${bug.top}%`,
-    width: `${bug.width}%`,
-    height: `${bug.height}%`,
+    left: `${5 + index * (bugWidth + gap)}%`, // 10% отступ слева + позиция
+    top: `38%`,
+    width: `${bugWidth}%`,
+    height: `${menuBugs.value[index].height}%`,
   };
 };
 
@@ -3441,9 +3449,9 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 .win-menu-center .menu-stavki {
   position: absolute;
-  bottom: 79%;
-  left: 56%;
-  transform: translateX(-50%);
+  bottom: 115%;
+  left: 4%;
+  
   margin-bottom: 3px;
   height: 50%;
   width: 130%;
@@ -3465,10 +3473,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   transition: transform 0.3s ease;
 }
 
-/* Увеличиваем изображение при наведении */
-.bug-button-hovered .bug-image {
-  transform: translate(-50%, -50%) scale(1.1);
-}
+
 
 @keyframes bug-click {
   0% { transform: translate(-50%, -50%) scale(1.1); }
@@ -3480,21 +3485,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
 /* Контейнер для меню с относительным позиционированием */
 
 
-/* Контейнер для кнопок тараканов */
-.bug-buttons-container {
-  position: absolute;
-  top: 36%;
-  left: -17%;
-  width: 130%;
-  height: 60%;
-  z-index: 10; /* Поверх изображения меню */
-   
-   
-}
+
 .win-menu-title {
   position: absolute;
-  top: 32.5%; /* Позиционирование сверху */
-  left: 0;
+  top: 14%; /* Позиционирование сверху */
+  left: 16%;
   right: 0;
   text-align: center;
   font-family: 'Hero', 'Bahnschrift', sans-serif; /* Основной шрифт + fallback */
@@ -3510,11 +3505,12 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 /* Стиль кнопки таракана */
 .bug-button {
+  left: 10%;
   position: absolute;
   background-color: transparent;
   cursor: pointer;
   border-radius: 5px;
-  
+  transform-origin: center; /* Фиксируем точку трансформации */
   transition: all 0.3s ease;
   transform-origin: center;
   z-index: 11;
@@ -3523,13 +3519,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 /* Эффекты при наведении */
 .bug-button-hovered {
-  transform: scale(1.1);
-  position: relative;
-
+  transform: scale(1.15); /* Увеличиваем без смещения */
   filter: 
     drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
     drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
-  z-index: 12; /* Поднимаем над остальными при наведении */
+  z-index: 12;
 }
 
 /* Анимация при клике */
@@ -3548,8 +3542,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
 /* Обновленные стили для меню */
 .win-menu-center {
   position: absolute;
-  top: 72%;
-  left: 50%;
+  top: 74%;
+  left: 40%;
   transform: translate(-50%, -50%);
   z-index: 20;
   width: 80%;
@@ -3565,11 +3559,16 @@ window.removeEventListener('resize', updateMainBgDimensions);
   height: 80%;
 }
 
-.menuWin-image-center {
-  width: 100%;
+.menuWin-image-center stavki-image {
+  position: absolute;
+  
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 11;
+  width: auto;
   height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  max-width: 80%;
+  max-height: 80%;
 }
 
 
@@ -3579,7 +3578,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -3612,8 +3611,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   object-fit: contain; /* Сохраняем пропорции изображения */
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.7));
   animation: menu-appear 0.3s ease-out;
-  margin-left: -12.5%;
-  margin-top: 10%;
+  
 }
 
 @keyframes menu-appear {
@@ -3869,20 +3867,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   
 }
 
-.next-race-notice {
-  position: absolute;
-  top: -75px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-family: 'Bahnschrift', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  color: #FFD700;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
-  z-index: 15;
-  animation: pulse 1.5s infinite alternate;
-}
+
 
 @keyframes pulse {
   0% { opacity: 0.7; transform: scale(1); }
@@ -4144,7 +4129,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background-image: url('/images/icons/lock.png');
   background-size: contain;
   background-repeat: no-repeat;
-  transform: translate(-50%, -50%);
+  
   z-index: 15;
 }
 /* Стили для черной менюшки */
@@ -4188,7 +4173,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .bug-button.selected {
   
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  transform: scale(1.1);
+  
   z-index: 15;
 }
 .menu-button.confirmed {
@@ -4658,19 +4643,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   pointer-events: auto;
   
 }
-/* Специфичные стили для изображения stavki */
-.stavki-image {
-  margin-left: 2%;
-  top: -1%; /* Поднимаем изображение ближе к основному */
-  width: 95%; /* Уменьшаем ширину */
-  max-width: 100%; /* Максимальная ширина */
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  cursor: default;
-  
-  
-}
+
 
 .menu-image {
   width: 100%;
@@ -4687,13 +4660,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   justify-content: center;
 }
 
-.stavki-image {
-  width: 95%; /* Ширина относительно основного изображения */
-  max-width: 370px; /* Чуть меньше основного */
-  margin-top: -1%; /* Поднимаем ближе к основному */
-  object-fit: contain;
-  
-}
+
 
 
 .menu-button.button-visible {
@@ -4915,7 +4882,7 @@ html[lang="ru"] .bth-2-text {
  
   
   .bug-button-hovered {
-  transform: scale(1.15);
+  
   position: relative;
 
   filter: 

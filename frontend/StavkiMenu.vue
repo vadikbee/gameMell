@@ -1,6 +1,9 @@
 <!-- StavkiMenu.vue -->
 <template>
   <div class="menu-stavki">
+    <div v-if="showNextRaceNotice" class="next-race-notice">
+      {{ nextRaceNoticeText }}
+    </div>
     <img src="/images/menus/stavki.png" alt="Stavki" class="menu-image stavki-image">
     <div class="bet-controls-container">
       <img 
@@ -68,6 +71,8 @@ const props = defineProps({
   currentBet: Number,
   minBet: Number,
   maxBet: Number,
+  showNextRaceNotice: Boolean,
+  nextRaceNoticeText: String,
   betStep: Number,
   currency: String,
   playBetClick: Function,
@@ -187,10 +192,27 @@ const handleX2Click = () => {
 .stavki-image {
   width: 95%;
   max-width: 370px;
-  margin-top: -1%;
+  top: -1%;
   object-fit: contain;
 }
-
+.next-race-notice {
+  position: absolute;
+  top: -23px; /* Размещаем над изображением меню */
+  left: -12%;
+  right: 0;
+  text-align: center;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  z-index: 15;
+  animation: pulse 1.5s infinite alternate;
+}
+@keyframes pulse {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
 /* Стили для кнопок */
 .otmena-button {
   position: absolute;
@@ -409,9 +431,7 @@ const handleX2Click = () => {
     
   }
 
-  .menu-image, .stavki-image{
-    margin-left: 10%;
-  }
+  
   .group-164-button {
     width: 27%;
     top: 41%;

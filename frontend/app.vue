@@ -217,7 +217,12 @@
     >
       <span class="button-text bth-1-text">{{ t('last_games') }}</span>
     </div>
-    
+     <LastGameMenu 
+          v-if="lastGameMenuVisible"
+          ref="lastGameMenuRef"
+          :isCenterMenuOpen="centerMenuVisible"
+          :games="lastGames"
+        />
     <div 
       ref="button2Ref"
       class="button-2" 

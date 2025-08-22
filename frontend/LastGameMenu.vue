@@ -69,34 +69,30 @@ const getPositionColor = (results, position) => {
 
 .last-game-menu {
   position: absolute;
-  width: auto; /* Ширина по содержимому */
+  width: auto;
   min-width: 300px;
   height: 210px;
   padding: 5px;
-  top: -350%;
   background: linear-gradient(180deg, rgba(30, 3, 30, 0.8) 0%, rgba(30, 3, 30, 0.8) 100%);
   border-radius: 8px;
   z-index: 10;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow-x: auto; /* Горизонтальная прокрутка при необходимости */
+  overflow-x: auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  /* Новое позиционирование */
+  left: 50%;
+  bottom: 380%; /* Располагаем выше кнопок win */
+  transform: translateX(-50%);
 }
 
-/* Позиционирование */
-.bottom-left {
-  left: 2%;
-  bottom: 22%;
-}
+
 .bug-color.empty {
     background: rgba(255, 255, 255, 0.1) !important;
     
 }
-.top-left {
-  left: 2%;
-  top: 0.15%;
-}
+
 
 .history-header {
   background: linear-gradient(180deg, rgba(5, 3, 30, 0.7) 0%, rgba(10, 3, 49, 0.7) 100%);

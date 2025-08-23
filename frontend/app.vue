@@ -2929,20 +2929,23 @@ const startExplosionAnimation = () => {
 // Добавляем вычисление масштаба
 const updateScale = () => {
   const baseWidth = 390;
-  const baseHeight = 844;
+  const baseHeight = 788;
   const currentWidth = window.innerWidth;
   const currentHeight = window.innerHeight;
   
-  // Масштабируем по ширине И высоте
-  const scaleByWidth = currentWidth / baseWidth;
-  const scaleByHeight = currentHeight / baseHeight;
-  
-  // Выбираем минимальный масштаб чтобы вся игра помещалась на экран
-  scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
-  
-  // Для очень маленьких экранов отключаем масштабирование
-  if (currentWidth <= 390) {
-    scaleFactor.value = 1;
+  // Для мобильных устройств - масштабируем только по ширине
+  if (currentWidth <= 768) {
+    const scaleByWidth = currentWidth / baseWidth;
+    scaleFactor.value = scaleByWidth;
+  } else {
+    // Для десктопов - сохраняем прежнюю логику
+    const scaleByWidth = currentWidth / baseWidth;
+    const scaleByHeight = currentHeight / baseHeight;
+    scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
+    
+    if (currentWidth <= 390) {
+      scaleFactor.value = 1;
+    }
   }
 };
 
@@ -3239,7 +3242,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 .win-buttons-container {
   position: absolute;
-  top: 75%;
+  top: 73%;
   right: 0;
   width: 100%;
   height: 66px;
@@ -3357,7 +3360,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 /* Существующие стили прогресс-бара */
 .progress-container {
   position: absolute;
-  top: 13%; /* Располагаем сразу под panel-up (высота panel-up) */
+  top: 7%; /* Располагаем сразу под panel-up (высота panel-up) */
   left: 0;
   right: 0;
   width: 100%;
@@ -3618,7 +3621,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .game-container {
   transform-origin: center center;
   width: 390px;
-  height: 844px;
+  height: 788px;
   position: relative;
 }
 
@@ -3739,6 +3742,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .explosion {
   position: absolute;
   width: 50px;
+  margin-top: -13%;
   height: 50px;
   background-size: contain;
   background-repeat: no-repeat;
@@ -3774,7 +3778,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .game-container {
   transform-origin: top center;
   width: 390px;
-  height: 844px;
+  height: 788px;
   margin: 0 auto;
   position: relative;
 }
@@ -3879,7 +3883,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .labirint-bg {
   
   position: absolute;
-  top: 8.1%; /* Точная подстройка позиции сверху */
+  top: 1.7%; /* Точная подстройка позиции сверху */
   height: 689px; /* Соответствует соотношению сторон 390x689 */
   width: 100%; /* Занимает всю ширину родителя */
   pointer-events: none;
@@ -3942,7 +3946,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 /* Стили для черной менюшки */
 .panel-up {
   position: absolute;
-  top: 7%;
+  top: 0%;
   left: 0;
   width: 100%;
   height: 43px;
@@ -4015,8 +4019,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
   width: 30px;
   height: 38px;
   scale: 90%;
-  
-  transform: translate(-50%, -50%); /* Центрирование */
+  margin-top: -13%;
+  transform: translate(-50%, -50%) ; /* Центрирование */
   z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */
     
@@ -4141,9 +4145,9 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-size: 100% auto;
   /* Фиксированные размеры контейнера */
   width: 390px;
-  min-height: 844px;
+  min-height: 788px;
   height: 100%;
-  max-height: 844px;
+  max-height: 788px;
   position: relative;
   overflow: hidden;
   margin: 0 auto;
@@ -4611,13 +4615,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   height: 46px;
   background-image: url('/images/buttons/Group 168.png');
 }
-/* Адаптивность по высоте */
-@media (max-height: 844px) {
-  .main-bg {
-    height: 100vh;
-    max-height: none;
-  }
-}
+
 
 
 /* Анимация пульсации */

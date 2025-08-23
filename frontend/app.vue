@@ -3682,7 +3682,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   --button-width: 42px; /* Ширина кнопок по умолчанию */
   --button-height: 30px; /* Высота кнопок по умолчанию */
    /* Разделяем горизонтальное и вертикальное расстояние */
-  --column-gap: 4px; /* Горизонтальное расстояние */
+  --column-gap: 3px; /* Горизонтальное расстояние */
   --row-gap: 9px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
    
   /* Рассчитываем размер контейнера */
@@ -3740,7 +3740,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
   display: none !important;
 }
 .menu-button {
-  
+  width: 40px;
+  height: 28px;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

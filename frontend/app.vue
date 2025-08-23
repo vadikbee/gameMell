@@ -285,7 +285,9 @@
     'confirmed': btn.confirmed,
     'text-button': activeTab === 'result' || activeTab === 'overtaking',
     'button-visible': isButtonVisible(btn),
-    'has-bet': btn.betAmount > 0
+    'has-bet': btn.betAmount > 0,
+    'diagonal': activeTab === 'overtaking' && diagonalButtons.includes(btn.id),
+    'locked': activeTab === 'overtaking' && diagonalButtons.includes(btn.id)
   }"
   @click="toggleMenuButton(btn)"
 >
@@ -1808,8 +1810,7 @@ const processedGames = computed(() => {
 });
 const isButtonVisible = (btn) => {
   return (activeTab.value === 'result') || 
-         (activeTab.value === 'overtaking' && 
-          !diagonalButtons.value.includes(btn.id));
+         (activeTab.value === 'overtaking');
 };
 // Вычисляемое свойство для PodiumResults
 const podiums = computed(() => {
@@ -2472,7 +2473,9 @@ const diagonalButtons = computed(() => {
 // Обработчик выбора кнопки в меню
 const toggleMenuButton = (btn) => {
   playStakeActionClick();
-  
+    if (activeTab.value === 'overtaking' && diagonalButtons.value.includes(btn.id)) {
+    return;
+  }
   const row = Math.floor(btn.id / 7);
   const col = btn.id % 7;
  
@@ -3623,15 +3626,22 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 
 
-/* Стиль для скрытия диагональных кнопок */
- .menu-button.diagonal {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-    
-    box-shadow: 0 0 8px rgba(255, 165, 0, 0.6) !important;
-    display: block !important; /* Принудительно показываем */
-    visibility: visible !important;
-    pointer-events: auto !important;
-  }
+.menu-button.diagonal {
+    width: 40px;
+    height: 28px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Скрываем содержимое диагональных кнопок */
+.menu-button.diagonal .coefficient-container,
+.menu-button.diagonal .confirmed-content {
+    display: none !important;
+}
 
 
 
@@ -3718,7 +3728,17 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 
+.menu-button.diagonal.locked {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
 
+.menu-button.diagonal.locked .coefficient-container,
+.menu-button.diagonal.locked .confirmed-content {
+  display: none !important;
+}
 .menu-button {
   
   background-size: cover;
@@ -4057,12 +4077,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   transform: scale(0.95);
 }
 
-/* Специфичные стили для диагональных кнопок в Result */
-.menu-button.diagonal {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  
-  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
-}
+
 .main-bg {
   background-image: url('/images/background/Frame 560.png');
   background-position: center top;

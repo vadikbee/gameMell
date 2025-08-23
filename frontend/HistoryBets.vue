@@ -384,23 +384,5 @@ const formattedBets = computed(() => {
   text-align: center;
 }
 
-@media (max-width: 768px) {
-  .history-bets {
-    transform: scale(0.85);
-    transform-origin: top right;
-  }
-  
-  .bottom-right {
-    top: auto;
-    bottom: 70px;
-    left: auto;
-    right: 10px;
-  }
-  
-  .top-right {
-    top: 70px;
-    left: auto;
-    right: 10px;
-  }
-}
+
 </style>

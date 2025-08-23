@@ -2,6 +2,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <div class="main-color">
+    <div class="scroll-container">
     <!-- История ставок в основном интерфейсе -->
     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
@@ -360,7 +361,7 @@
 
         </div>
         
-      
+      </div>
 </div>
 </div>
       </div> 
@@ -3376,7 +3377,38 @@ window.removeEventListener('resize', updateMainBgDimensions);
   overflow: hidden;
   position: relative;
 }
+.scroll-container {
+  overflow-y: auto;
+  max-height: 100vh;
+  width: 100%;
+  display: flex;
+  scrollbar-width: thin;
+  scrollbar-color: #7F00FE #1E031E;
+  justify-content: center;
+}
 
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #1E031E;
+  border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7F00FE 0%, #66008F 98.9%);
+  border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9B30FF 0%, #8B30DB 98.9%);
+}
+
+/* Плавная прокрутка */
+.scroll-container {
+  scroll-behavior: smooth;
+}
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #FFD700, #FFA500);
@@ -3607,7 +3639,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 .game-wrapper {
-  position: absolute;
+  position: relative;
+  flex-shrink: 0; /* Предотвращает сжатие при скролле */
   top: 0;
   left: 0;
   width: 100%;
@@ -3619,6 +3652,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 
 .game-container {
+  transform-origin: top center; /* Масштабирование от верхнего края */
   transform-origin: center center;
   width: 390px;
   height: 788px;

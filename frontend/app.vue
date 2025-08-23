@@ -57,7 +57,8 @@
 />
       <!-- Центральное фиксированное меню -->
       <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100" ref="winMenuCenterRef">
-    <StavkiMenu custom-class="center-stavki"
+     <div class="menu-images-container" style="transform: translateY(-13%); width: 100%; height: 100%; position: relative;">
+        <StavkiMenu custom-class="center-stavki"
       :currentBet="currentBet"
       :minBet="betConfig.minBet"
       :maxBet="betConfig.maxBet"
@@ -116,12 +117,14 @@
       class="bug-image"
     />
   </div>
+
 </div>
-      </div>
+</div>
+      
       
     </div>
   </div>\
-
+</div>
       
       <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
@@ -3090,7 +3093,27 @@ window.removeEventListener('resize', updateMainBgDimensions);
     opacity: 0;
   }
 }
+.win-content-wrapper {
+  transform: translateY(-13%);
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
 
+.win-menu-center {
+  /* остальные стили остаются без изменений */
+  position: absolute;
+  top: 74%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  width: 80%;
+  max-width: 360px;
+  max-height: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 /* Класс для анимации */
 .initial-animation {
   position: relative;

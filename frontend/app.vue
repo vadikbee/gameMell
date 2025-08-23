@@ -5,7 +5,7 @@
     <!-- Контейнер для масштабирования фона -->
     
     <div class="main-bg-container"></div>
- 
+ <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
         <!-- Верхняя панель баланса -->
@@ -362,7 +362,7 @@
       </div> 
     </div>
   </div>
-
+</div>
   <transition-group name="slide-fade" tag="div" class="notifications-container">
   <WinLoseNotification
     v-for="notification in winNotifications"
@@ -2921,27 +2921,24 @@ const startExplosionAnimation = () => {
   
   animationExplodeFrame.value = requestAnimationFrame(animateExplosion);
 };
+// Добавляем вычисление масштаба
 const updateScale = () => {
   const baseWidth = 390;
   const baseHeight = 844;
-  const widthRatio = window.innerWidth / baseWidth;
-  const heightRatio = window.innerHeight / baseHeight;
+  const currentWidth = window.innerWidth;
   
-  // Учитываем портретную и ландшафтную ориентацию
-  const isPortrait = window.innerHeight > window.innerWidth;
-  
-  if (isPortrait) {
-    // Для портретной ориентации
-    scaleFactor.value = Math.min(widthRatio, heightRatio, 1);
+  // Масштабируем только на устройствах уже 390px
+  if (currentWidth < 390) {
+    scaleFactor.value = currentWidth / baseWidth;
   } else {
-    // Для ландшафтной ориентации
-    scaleFactor.value = Math.min(heightRatio, widthRatio * 0.8, 0.8);
+    scaleFactor.value = 1;
   }
 };
   
 
 onMounted(() => {
-  
+  updateScale();
+  window.addEventListener('resize', updateScale);
   document.addEventListener('click', handleDocumentClick);
  
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -2986,6 +2983,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateScale);
   document.removeEventListener('click', handleDocumentClick);
   document.removeEventListener('click', handleDocumentClick);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -3746,7 +3744,20 @@ window.removeEventListener('resize', updateMainBgDimensions);
   cursor: not-allowed;
   background: rgba(0, 0, 0, 0.3) !important;
 }
+.game-container {
+  transform-origin: top center;
+  width: 390px;
+  height: 844px;
+  margin: 0 auto;
+  position: relative;
+}
 
+.main-bg {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
 .menu-button.diagonal.locked .coefficient-container,
 .menu-button.diagonal.locked .confirmed-content {
   display: none !important;
@@ -3963,7 +3974,9 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 .main-color {
   background-color: #1E031E;
-  min-height: 100vh;
+    background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
   position: relative; /* Для позиционирования */
 }
 
@@ -4613,196 +4626,6 @@ html[lang="ru"] .bth-2-text {
 /* .......................375 ......................................*//* .......................375 ......................................*/
 
 /* ...................../..360 ......................................*//* ...................../..360 ......................................*/
-@media (max-width: 360px) {
-  /* Основные изменения для фона */
-  .main-bg {
-    
-    background-size: 100% 100%; /* Гарантируем полное покрытие по ширине */
-    background-position: top center; /* Фиксируем позицию сверху */
-    min-height: 100vh; /* Занимаем всю высоту экрана */
-    max-height: none; /* Снимаем ограничение по высоте */
-    transform: none; /* Убираем трансформацию */
-    margin: 0 auto; /* Центрируем */
-    padding-top: 20px; /* Добавляем отступ сверху */
-    overflow: hidden; /* Скрываем выходящие за границы элементы */
-  }
-  .menuWin-image-center {
-    transform: scale(0.8) ;
-  }
- 
- 
-  
-  .bug-button-hovered {
-  
-  position: relative;
-
-  filter: 
-    drop-shadow(0 0 8px rgba(255, 255, 0, 0.8))
-    drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
-  z-index: 12; /* Поднимаем над остальными при наведении */
-}
-  /* Уменьшаем горизонтальные отступы между тараканами */
-  .bug-button:nth-child(1) { left: 3% !important; }
-  .bug-button:nth-child(2) { left: 14% !important; }
-  .bug-button:nth-child(3) { left: 25% !important; }
-  .bug-button:nth-child(4) { left: 36% !important; }
-  .bug-button:nth-child(5) { left: 47% !important; }
-  .bug-button:nth-child(6) { left: 58% !important; }
-  .bug-button:nth-child(7) { left: 68% !important; }
-  /* Уменьшаем общий масштаб интерфейса */
-  .main-bg-container {
-    transform: scale(0.92);
-    transform-origin: top center;
-  }
-  
-  /* Корректируем позицию лабиринта */
-  .labirint-bg {
-    top: 9%;
-    height: 660px;
-  }
- 
-
-  
-  .panel-layer {
-    top: 89%;
-    height: 12%;
-  }
-  
-  /* Корректируем кнопки управления */
-  .button-1 {
-    
-    left: 0%;
-    top: 20%;
-    width: 27%;
-  }
-  
-  .button-2 {
-    
-    left: 28%;
-    top: -25%;
-    width: 44%;
-  }
-
-
-
-
-/* Специальные настройки для 360px */
-@media (max-width: 360px) {
-  
-  /* Уменьшение размера текста для лучшей читаемости */
-  .button-text {
-    font-size: 11px;
-    transition: font-size 0.1s ease;
-  }
-  
-  .button-2 .button-text {
-    font-size: 13px;
-  }
-  
-
-/* Для кнопки 2 оставляем только hover-эффект без изменения размера */
-.button-2:hover {
-  filter: 
-    brightness(1.1) 
-    drop-shadow(6 6 8px rgba(178, 56, 58, 0.8));
-}
-
-
-  .button-2:active .button-text {
-    font-size: 12.5px;
-  }
-}
-  
-  .button-3 {
-    
-    left: 72%;
-    top: -75%;
-    width: 28%;
-    height: 50%;
-  }
- 
-  /* Кнопки победы */
-  .button-win-container {
-    transform: scale(0.9);
-    margin-top: -1%;
-    margin-right: -11%;
-    height: 8.2%;
-    width: 14.5%;
-    
-  }
- 
-  
-  .button-win-1 { right: 39px; }
-  .button-win-2 { right: 86px; }
-  .button-win-3 { right: 134px; }
-  .button-win-4 { right: 183px; }
-  .button-win-5 { right: 231px; }
-  .button-win-6 { right: 280px; }
-  .button-win-7 { right: 330px; }
-  
-  /* Центральное меню */
-  .center-menu {
-    transform: translateX(-50%) scale(0.8);
-    bottom: 470%;
-  }
-  
- 
-  .win-menu-center {
-    top: 71%;
-    
-  }
- 
-  .menu-container {
-    top: 10%;
-    
-  }
-  .bug-button {
-    transform: scale(0.8);
-    margin-top: 1%;
-    margin-left: 2%;
-    
-  }
-   .bug-buttons-container {
-   margin-top: 4%;
-    margin-left: 10%;
-    height: 57%;
-  }
-  .button-win-container {
-    z-index: 10 !important; /* Повышаем z-index */
-    pointer-events: auto !important; /* Гарантируем кликабельность */
-  }
-  
-  .button-win {
-    z-index: 11 !important; /* Дополнительное повышение */
-    pointer-events: auto !important; /* Разрешаем взаимодействие */
-  }
-  
-  /* Дополнительно: убедимся что другие элементы не перекрывают кнопки */
-  .panel-layer {
-    z-index: 5; /* Ниже кнопок */
-  }
-  
-  .tarakan, .explosion {
-    z-index: 3; /* Ниже кнопок */
-  }
-  
-  
-  
-  .language-switcher {
-  left: 1%;
-}
-.menu-buttons-container{
-left: 12%;
-top: 55%;
-width: 85%;
---column-gap: 5.5px; /* Горизонтальное расстояние */
---row-gap: 7.5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
-   
-}
-
-
-
-}
 
 /* Для русского языка делаем шрифты немного меньше */
 html[lang="ru"] .bth-1-text,
@@ -4811,149 +4634,9 @@ html[lang="ru"] .bth-2-text {
 }
 /* //////////////////////////// 390-400 ///////////////////////// */
 /* Адаптация лабиринта для 390-400px */
-@media (min-width: 390px) and (max-width: 399px) {
-  .labirint-bg {
-    height: 689px;
-    top: 8.8%; /* Точная подстройка позиции */
-    width: 100%; /* Занимает всю доступную ширину */
-    
-    max-width: 100%; /* Не превышает ширину экрана */
-    left: 0; /* Выравнивание по левому краю */
-    transform: none; /* Сбрасываем трансформации */
-    background-position: center top; /* Центрируем фон */
-  }
-  
-  .main-bg {
-    z-index: 1;
-    
-    margin-top: -20%;
-    height: 800px;
-    width: 100%; /* Ширина на весь экран */
-    max-width: 100%; /* Не больше ширины экрана */
-    background-size: cover; /* Фон покрывает всю область */
-    overflow-x: hidden; /* Скрываем горизонтальный скролл */
-  }
-  .button-win {
-    z-index: 20;
-    
-    pointer-events: none; /* Клики проходят сквозь эти элементы */
-  }
- 
-  /* Корректировка позиций кнопок победы */
-  .button-win-1 { right: 5px; }
-  .button-win-2 { right: 59px; }
-  .button-win-3 { right: 113px; }
-  .button-win-4 { right: 167px; }
-  .button-win-5 { right: 221px; }
-  .button-win-6 { right: 275px; }
-  .button-win-7 { right: 330px; }
-  .button-win-1,.button-win-2 ,.button-win-3 ,.button-win-4 ,.button-win-5 ,.button-win-6 ,.button-win-7 {
-    margin-top: 6%;
-    transform: scaleX(1);
-    cursor: pointer;
-    pointer-events: none;
-    
-    
-  }
-  .button-win-container {
-    
-    
-    cursor: pointer;
-    pointer-events: none;
-    top: 81%;
-    width: 13%;
-    
-    
-  }
- .button-win {
-  cursor: default !important;
-  pointer-events: none;
-  
-  z-index: 7;
- }
-  
-  .panel-layer {
-    top: 92%;
-    height: 8%;
-    
-  }
-  .button-3 {
-    top: 16%;
-    
-    left: 74%;
-  }
-    .button-2 {
-      top: 17%;
-      left: 28%;
-      width: 44%;
-    
-    }
-  .button-1 {
-    top: 17%;
-  }
-  .button-1,.button-2,.button-3 {
-    top: 35%;
-  }
-  .history-bets {
-    margin-left: -1%;
-    transform: scaleX(0.9);
-    
-  }
-  .last-game-menu {
-    transform: scaleX(0.85);
-  }
-}
 
 /* //////////////////////////// 400-420 ///////////////////////// */
 
-@media (min-width: 400px) and (max-width: 405px) {
-  /* Центральное меню */
-  .button-1, .button-2, .button-3 {
-    top: 17%;
-    
-  }
-  
-  .button-2 {
-    left: 28%;
-  }
-  .button-3 {
-    left: 74%;
-  }
-  .labirint-bg {
-    top: 7.5%;
-    max-width: 100%;
-    margin: 0 auto;
-    z-index: 1;
-  }
-  .button-win-container {
-    width: 14%;
-    top: 82%;
-  }
-  .main-bg {
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-  width: 100%;
-  min-height: 844px;
-  height: 100%;
-  max-height: 844px;
-  position: relative;
-  overflow: hidden;
-  
-  margin: 0 auto;
-  z-index: 1;
-}
-
-.button-win-1,.button-win-2,.button-win-3,.button-win-4,.button-win-5,.button-win-6,.button-win-7 {
-   
-    margin-top: -2.9%;
-    transform: translateX(8%) scaleX(95%)
-    
-  }
-  .button-win {
-    z-index: 10;
-  }
-}
 
 /*  стили для языка */
 /* Добавим адаптивные стили для русского языка */
@@ -4971,49 +4654,8 @@ html[lang="ru"] .bth-2-text {
   letter-spacing: -0.5px;
   padding: 0 8px;
 }
-/* стили для языка*/
-@media (min-width: 400px) and (max-width: 403px) {
-  .button-1, 
-  .button-2, 
-  .button-3 
-  {
-    margin-top: -1%;
-  }
-}
-
-@media (min-width: 389px) and (max-width: 391px) {
-  .main-bg {
-    z-index: 1;
-  }
-  .labirint-bg {
-    z-index: 1;
-    top: 8%;
-  }
-.button-win-container {
-  top: 79.7%;
-  height: 8%;
-  width: 13.1%;
-  
-}
 
 
-.menu-buttons-container{
-  width: 85%;
-  
-  transform: scale(0.9);
-  left: 12%;
-  top: 105%;
-   --column-gap: 8.5px; /* Горизонтальное расстояние */
-  --row-gap: 9px;
-}
-.button-win-1 { right: 5px; }
-.button-win-2 { right: 57px; }
-.button-win-3 { right: 111px; }
-.button-win-4 { right: 164px; }
-.button-win-5 { right: 217px; }
-.button-win-6 { right: 270px; }
-.button-win-7 { right: 322px; }
-}
 .button-1,.button-2,.button-3 {
   top: 6%;
   
@@ -5027,117 +4669,6 @@ html[lang="ru"] .bth-2-text {
 .history-bets.inside-center{
 top: -330%;
 }
-@media (min-width: 359px) and (max-width: 361px) {
-.button-1 {
-top: 23%;
-left: 2%;
-width: 23%;
 
-}
-.button-1,.button-2,.button-3 {
-  transform: scale(1) scaleY(1.1);
-  
-}
-
-.button-2 {
-top: -26%;
-left: 28%;
-width: 43%;
-
-
-}
-.button-3 {
-  top: -73%;
-left: 74%;
-width: 23%;
-
-}
-.history-bets.inside-center {
-  top: -284%;
-  
-}
-
-.bug-buttons-container {
-  top: 32.5%;
-  transform: scale(1);
-}
-
-
-
-}
-@media (min-width: 392px) and (max-width: 394px) {
-  .main-color {
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-    
-  }
-  
-  .history-bets.inside-center {
-    top: -480%;
-  }
-  .main-bg {
-   background-position: center top;
-   left: 2%;
-  }
-  .button-win-container {
-  top: 80.3%;
-  height: 8%;
-  width: 13.1%;
-  z-index: 4;
-  
-  .button-win {
-        pointer-events: auto; /* Разрешаем события */
-    }
-}
-.button-win {
-  z-index: 10;
-}
-.bug-buttons-container {
-  z-index: 1;
-}
-
-.button-win-1 { right: 5px; }
-.button-win-2 { right: 58px; }
-.button-win-3 { right: 111px; }
-.button-win-4 { right: 164px; }
-.button-win-5 { right: 217px; }
-.button-win-6 { right: 270px; }
-.button-win-7 { right: 324px; }
-.button-1, .button-2,.button-3 {
-  top: -5%;
-}
-.button-1 {
-  left: 1%;
-  width: 23%;
-  top: -6%;
-}
-.win-menu-title {
-  top: 38%;
-}
-.button-3 {
-  width: 23%;
-  left: 74.2%;
-}
-
-
-.labirint-bg {
-  top: 8.2%;
-  z-index: 5;
-  pointer-events: none;
-}
-
-
-.menu-buttons-container{
-  width: 85%;
-  
-  transform: scale(0.9);
-  left: 12%;
-  top: 109%;
-   --column-gap: 8.9px; /* Горизонтальное расстояние */
-  --row-gap: 9px;
-}
-
-}
 
 </style>

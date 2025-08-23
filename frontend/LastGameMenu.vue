@@ -177,25 +177,7 @@ const getPositionColor = (results, position) => {
   
 }
 
-@media (max-width: 390px) {
-  .last-game-menu{
- transform:  scale(0.7);
-}
-}
 
-
-@media (max-width: 768px) {
-  .last-game-menu{
- transform:  scale(0.95);
- left: 3.5%;
-}
-}
-@media  (max-width: 400px) {
- .last-game-menu {
-  transform:  scale(0.9);
-  left: 4%;
- }
-}
 
 
 

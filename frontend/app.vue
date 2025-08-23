@@ -1,10 +1,14 @@
 <template>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <div class="main-color">
     <!-- История ставок в основном интерфейсе -->
     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
+    <div class="game-wrapper">
+  <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
+
     
-    <div class="main-bg-container"></div>
  <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
@@ -357,8 +361,8 @@
         </div>
         
       
-
-
+</div>
+</div>
       </div> 
     </div>
   </div>
@@ -408,6 +412,7 @@
         <div class="info-message">{{ infoMessage }}</div>
       </div>
     </div>
+    
   </transition>
   <audio ref="balanceIncomeSound" src="/sounds/balanceIncome.mp3"></audio>
   <audio ref="raceStartSound" src="/sounds/raceIsStarted.mp3"></audio>
@@ -2926,15 +2931,20 @@ const updateScale = () => {
   const baseWidth = 390;
   const baseHeight = 844;
   const currentWidth = window.innerWidth;
+  const currentHeight = window.innerHeight;
   
-  // Масштабируем только на устройствах уже 390px
-  if (currentWidth < 390) {
-    scaleFactor.value = currentWidth / baseWidth;
-  } else {
+  // Масштабируем по ширине И высоте
+  const scaleByWidth = currentWidth / baseWidth;
+  const scaleByHeight = currentHeight / baseHeight;
+  
+  // Выбираем минимальный масштаб чтобы вся игра помещалась на экран
+  scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
+  
+  // Для очень маленьких экранов отключаем масштабирование
+  if (currentWidth <= 390) {
     scaleFactor.value = 1;
   }
 };
-  
 
 onMounted(() => {
   updateScale();
@@ -3593,7 +3603,24 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 
 
+.game-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
 
+.game-container {
+  transform-origin: center center;
+  width: 390px;
+  height: 844px;
+  position: relative;
+}
 
 .menu-button.text-button {
   background-image: none !important;
@@ -3973,11 +4000,14 @@ window.removeEventListener('resize', updateMainBgDimensions);
   100% { transform: translate(-50%, -50%) scale(1.15); }
 }
 .main-color {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: #1E031E;
-    background-position: center top;
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-  position: relative; /* Для позиционирования */
+  overflow: hidden;
+  z-index: 0;
 }
 
 .tarakan {

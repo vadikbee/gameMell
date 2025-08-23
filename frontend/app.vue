@@ -254,7 +254,7 @@
         <img 
           :src="activeTab === 'overtaking' ? '/images/menus/center-buttom.png' : '/images/menus/center-buttom-result.png'" 
           alt="Center Menu" 
-          class="menu-image"
+          
         >
           <div class="menu-tabs">
           <!-- Вкладка Overtaking -->
@@ -328,83 +328,25 @@
 />
           
           <!-- Меню ставок -->
-          <div class="menu-stavki"> 
-            <img 
-              src="/images/menus/stavki.png" 
-              alt="Stavki" 
-              class="menu-image stavki-image"
-            >
-            <div class="bet-controls-container">
-              <img 
-                src="/images/buttons/otmena.png" 
-                alt="Otmena"
-                class="otmena-button"
-                @click="resetCurrentBet"
-              >
-              <img 
-                src="/images/buttons/reset.png" 
-                alt="Reset" 
-                class="reset-button"
-                @click="undoLastBet"
-              >
-              <img 
-              src="/images/menus/Group 164.png" 
-              alt="Group 164" 
-              class="group-164-button"
-              :class="{ 'group-164-clicked': isGroup164Clicked }"
-              @click="() => { playBetClick(); placeBet(); }"
-              @mousedown="isGroup164Clicked = true"
-              @mouseup="isGroup164Clicked = false"
-              @mouseleave="isGroup164Clicked = false"
-            >
-            </div>
-            <!-- Новый блок счетчика ставок.... -->
-            <div class="bet-counter-container">
-              <div 
-                class="bet-button minus" 
-                @mousedown="startDecrement" 
-                @mouseup="stopAction"
-                @mouseleave="stopAction"
-                @touchstart="startDecrement"
-                @touchend="stopAction"
-                @touchcancel="stopAction"
-              ></div>
-              <div class="bet-display">{{ currentBet }}</div>
-              <div 
-                class="bet-button plus" 
-                @mousedown="startIncrement" 
-                @mouseup="stopAction"
-                @mouseleave="stopAction"
-                @touchstart="startIncrement"
-                @touchend="stopAction"
-                @touchcancel="stopAction"
-              ></div>
-            </div>
-            <!-- ... остальной код ... -->
-            <!-- Кнопки ставок -->
-            <div class="stavki-buttons-container">
-              <div 
-                v-for="button in stavkiButtons"
-                :key="button.id"
-                class="stavki-button"
-                @click="addToBet(button.amount)"
-              >
-                {{ button.amount }}
-              </div>
-            </div>
-            <div class="x2-button-container">
-            <div 
-              class="stavki-button x2-button"
-              :class="{ 'x2-clicked': isX2Clicked }"
-              @click="handleX2ButtonClick"
-              @mousedown="isX2Clicked = true"
-              @mouseup="isX2Clicked = false"
-              @mouseleave="isX2Clicked = false"
-            >
-              X2
-            </div>
-</div>
-          </div> 
+          <div class="menu-stavki"><StavkiMenu
+  :currentBet="currentBet"
+  :minBet="betConfig.minBet"
+  :maxBet="betConfig.maxBet"
+  :betStep="betConfig.betStep"
+  :currency="betConfig.currency"
+  context="default"
+  :showNextRaceNotice="raceInProgress"
+  
+  @otmena-click="resetCurrentBet"
+  @reset-click="undoLastBet"
+  @decrement-start="startDecrement"
+  @increment-start="startIncrement"
+  @stop-action="stopAction"
+  @add-bet="addToBet"
+  @x2-click="multiplyBet"
+  :playBetClick="playBetClick"
+  @group164-click="placeBet"
+/></div>
           
 
 
@@ -2366,12 +2308,7 @@ const handleResetClick = () => {
   stopAction(); // Останавливаем любые активные интервалы
   resetCurrentBet(); // Теперь просто сбрасывает ставку без побочных эффектов
   
-  // Анимация
-  const resetBtn = document.querySelector('.reset-button');
-  if (resetBtn) {
-    resetBtn.classList.add('reset-clicked');
-    setTimeout(() => resetBtn.classList.remove('reset-clicked'), 300);
-  }
+  
   undoLastBet(); 
 };
 
@@ -2417,12 +2354,7 @@ const resetCurrentBet = () => {
 const handleOtmenaButtonClick = () => {
   resetAllBets();
   
-  // Анимация
-  const otmenaBtn = document.querySelector('.otmena-button');
-  if (otmenaBtn) {
-    otmenaBtn.classList.add('otmena-clicked');
-    setTimeout(() => otmenaBtn.classList.remove('otmena-clicked'), 300);
-  }
+  
 };
 
 const startAction = (action) => {
@@ -3230,20 +3162,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   pointer-events: auto;
   opacity: 1; /* Убедитесь что прозрачность нормальная */
 }
-.x2-button {
-  cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-.x2-button:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1) drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
-.x2-button:active {
-  transform: scale(0.95);
-}
-.x2-clicked {
-  animation: button-click 0.3s ease;
-}
+
 
 @keyframes button-click {
   0% { transform: scale(1.05); }
@@ -3386,16 +3305,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .tab-button:not(.active) {
   background: rgba(0, 0, 0, 0.4);
 }
-.x2-button-container {
-  position: absolute;
-  width: 47px;
-  height: 28px;
-  left: 12%;
-  top: 439%; /* Позиция под кнопками ставок */
-  z-index: 9;
- 
-   
-}
+
 /* Стиль для активной вкладки */
 .tab-button.active {
   box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
@@ -3559,17 +3469,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   height: 80%;
 }
 
-.menuWin-image-center stavki-image {
-  position: absolute;
-  
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 11;
-  width: auto;
-  height: auto;
-  max-width: 80%;
-  max-height: 80%;
-}
+
 
 
 /* Желтая центральная подсветка */
@@ -3644,40 +3544,6 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 
-
-/* Обновляем переходы для плавности */
-.x2-button, .reset-button {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.bet-counter-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  margin-top: -11.1%; /* Позиционирование по вертикали */
-  left: 37.5%;
-  transform: translateX(-50%);
-  z-index: 12; /* Поверх других элементов */
-  width: 23%;
-    
-}
-
-.bet-button {
-  width: 23px;
-  height: 23px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-
-
-
 .lose-icon {
   background: linear-gradient(180deg, #FF0000 0%, #8B0000 100%);
 }
@@ -3693,43 +3559,10 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .bet-amount {
   color: #FF0000;
 }
-.bet-button.minus {
-  z-index: 9;
-  background-image: url('/images/buttons/kryg-pravo.png');
-}
 
-.bet-button.plus {
-  z-index: 9;
-  background-image: url('/images/buttons/kryg-leva.png');
-}
 
-.bet-button:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.8));
-}
 
-.bet-button:active {
-  transform: scale(0.95);
-}
 
-.bet-display {
-  width: 70px;
-  height: 23px;
-  background-image: url('/images/buttons/seredina.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: flex;
-  align-items: flex-end;
-  padding-top: 0px;
-  justify-content: center;
-  font-family: 'Bahnschrift', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  color: #000000;
-  margin: 0 -13px;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
-}
 .menu-button.text-button {
   background-image: none !important;
   background-color: rgba(255, 255, 255, 0.9);
@@ -3771,79 +3604,6 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 
 
-.stavki-buttons-container {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 10px;
-  width: 60%;
-  height: 30%;
-  left: 3%;
-  z-index: 9;
-  padding: 0px;
-  top: 404%;
-}
-
-.stavki-button {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 47px;
-  height: 24px;
-  background: rgba(0, 0, 0, 0.9);
-  box-shadow: 3px 6px 4px rgba(0, 0, 0, 0.4);
-  border-radius: 4px;
-  font-family: 'Bahnschrift', sans-serif;
-  font-weight: 400;
-  font-size: 16px;
-  color: #FFFFFF;
-  cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.stavki-button:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
-
-.stavki-button:active {
-  transform: scale(0.95);
-}
-
-
-
-
-.otmena-button {
-  position: absolute;
-  z-index: 10;
-  cursor: pointer;
-  width: 25px; /* Настройте по размеру изображения */
-  height: 25px;
-  margin-top: -11%;
-  transform: translateX(-50%);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  margin-left: 7.5%;
-  
-  /* Для правильного отображения изображения */
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.otmena-button:hover {
-  transform: translateX(-50%) scale(1.05);
-  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
-
-.otmena-button:active {
-  transform: translateX(-50%) scale(0.95);
-}
-
-
-
-
 /* Стиль для скрытия диагональных кнопок */
  .menu-button.diagonal {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
@@ -3855,17 +3615,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   }
 
 
-/* Стили для новой кнопки сброса */
-.reset-button {
-  position: absolute;
-  z-index: 10;
-  cursor: pointer;
-  width: 48px;
-  height: 24px;
-  margin-top: -11%; /* Центрируем по вертикали */
-  margin-left: 50%;
-  
-}
+
 
 
 
@@ -3873,9 +3623,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   0% { opacity: 0.7; transform: scale(1); }
   100% { opacity: 1; transform: scale(1.05); }
 }
-.reset-button:hover {
-  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
+
 
 
 /* Анимации для кнопок */
@@ -3948,33 +3696,9 @@ window.removeEventListener('resize', updateMainBgDimensions);
   0% { transform: translate(-50%, -50%) scale(1); }
   100% { transform: translate(-50%, -50%) scale(1.1); }
 }
-/* Стили для новой кнопки Group 164 */
-.group-164-button {
-  position: absolute;
-  margin-top: 84%;
-  margin-left: 32%;
-  z-index: 8; /* Выше других элементов меню */
-  cursor: pointer;
-  width: 112px; /* Размер по вашему изображению */
-  height: 68px;
-  
-  /* Позиционируем кнопку поверх изображения stavki.png */
-  top: 46%; /* Регулируйте по необходимости */
-  left: 48.5%;
-  transform: translateX(-50%);
-  
-  /* Анимация при наведении */
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
 
-.group-164-button:hover {
-  transform: translateX(-50%) scale(1.0);
-  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
 
-.group-164-button:active {
-  transform: translateX(-50%) scale(0.95);
-}
+
 
 .menu-button {
   
@@ -4030,14 +3754,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 
-.group-164-button {
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
 
-.group-164-button:hover {
-  transform: translateX(-50%) scale(1.05);
-  filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
-}
 
 
 
@@ -4645,13 +4362,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 }
 
 
-.menu-image {
-  width: 100%;
-  max-width: 390px; /* Максимальная ширина основного изображения */
-  height: auto;
-  object-fit: contain;
-  
-}
+
 #Button-1 .button-text {
   white-space: pre-line;
   line-height: 1.2;
@@ -4696,13 +4407,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   filter: brightness(0.95);
 }
 
-.menu-image {
-  max-width: 80vw;
-  max-height: 80vh;
-  object-fit: contain;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.2s ease;
-}
 
 
 
@@ -4995,20 +4699,7 @@ html[lang="ru"] .bth-2-text {
     bottom: 470%;
   }
   
-  /* Уменьшаем элементы управления */
-  .bet-counter-container {
-    margin-top: 105%;
-    
-  }
-   /*.main-bg {
-    z-index: 90;
-  background-image: url('/images/test/maze-359.png');
-   }*/
-  .bet-display {
-    font-size: 15px;
-  
-    
-  }
+ 
   .win-menu-center {
     top: 71%;
     
@@ -5047,13 +4738,9 @@ html[lang="ru"] .bth-2-text {
   .tarakan, .explosion {
     z-index: 3; /* Ниже кнопок */
   }
-  .stavki-buttons-container {
-    gap: 6px;
-  }
   
-  .stavki-button {
-    width: 40px;
-  }
+  
+  
   .language-switcher {
   left: 1%;
 }
@@ -5065,36 +4752,9 @@ width: 85%;
 --row-gap: 7.5px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
    
 }
-.group-164-button {
-  top: 37%;
-  width: 26%;
-  left: 43.5%;
-  height: 54%;
-}
-.stavki-buttons-container {
-  top: 323%;
-  left: 5.5%;
-  gap: 5px;
-  width: 55%;
-  height: 25%;
-}
-.stavki-button {
-  width: 22%;
-  height: 80%;
-}
-.x2-button-container {
-  
-  top: 347%;
-  transform: scale(0.8);
-  left: 13%;
-}
-.otmena-button {
-  top: 386%;
-  left: 2%;
-  width: 6%;
-  height: 19%;
-  
-}
+
+
+
 }
 
 /* Для русского языка делаем шрифты немного меньше */
@@ -5205,11 +4865,7 @@ html[lang="ru"] .bth-2-text {
     top: 17%;
     
   }
-  .reset-button {
-    transform: scale(1);
-    top: 485%;
-    left: -2%;
-  }
+  
   .button-2 {
     left: 28%;
   }
@@ -5292,35 +4948,8 @@ html[lang="ru"] .bth-2-text {
   width: 13.1%;
   
 }
-.group-164-button {
-  transform: scale(1);
-  top: 64%;
-  height: 100%;
-  left: 30%;
-}
-.otmena-button{
-  top: 692%;
-}
-.x2-button-container {
-  height: 35%;
-  width: 11%;
-  top: 630%;
-}
-.bet-counter-container {
-  top: 40%;
-  height: 42%;
-}
-.reset-button {
-  top: 692%;
-  height: 35%;
-}
-.stavki-buttons-container {
-top: 575%;
-height: 50%;
-left: 6%;
-gap: 3%;
-width:55%;
-}
+
+
 .menu-buttons-container{
   width: 85%;
   
@@ -5362,12 +4991,6 @@ width: 23%;
   transform: scale(1) scaleY(1.1);
   
 }
-.reset-button {
-  top: 385%;
-  transform: scale(0.85);
-  width: 13%;
-  height: 21%;
-}
 
 .button-2 {
 top: -26%;
@@ -5386,13 +5009,7 @@ width: 23%;
   top: -284%;
   
 }
-.bet-counter-container {
-  top: -3%;
-  transform: scale(0.85);
-  width: 25%;
-  left: 24%;
-  height: 28%;
-}
+
 .bug-buttons-container {
   top: 32.5%;
   transform: scale(1);
@@ -5455,12 +5072,7 @@ width: 23%;
   width: 23%;
   left: 74.2%;
 }
-.group-164-button {
-  
-  top: 64%;
-  height: 100%;
-  left: 43%;
-}
+
 
 .labirint-bg {
   top: 8.2%;
@@ -5468,9 +5080,7 @@ width: 23%;
   pointer-events: none;
 }
 
-.otmena-button{
-  top: 680%;
-}
+
 .menu-buttons-container{
   width: 85%;
   
@@ -5480,41 +5090,7 @@ width: 23%;
    --column-gap: 8.9px; /* Горизонтальное расстояние */
   --row-gap: 9px;
 }
-.x2-button-container {
-  height: 35%;
-  width: 11%;
-  top: 620%;
-}
-.reset-button {
-  top: 681%;
-  height: 35%;
-}
-.bet-counter-container {
-  top: 40%;
-  height: 42%;
-}
-.stavki-buttons-container {
-top: 567%;
 
-left: 5.5%;
-gap: 3%;
-width:55%;
-}
-
-.bet-counter-container {
-margin-top: 97.5%;
-left: 36.5%;
-height: 44%;
-width: 20%;
-}
-.bet-display {
-margin-top: -5%;
-font-size: 13px;
-height: 70%;
-}
-.bet-button {
-  margin-top: -4%;
-}
 }
 
 </style>

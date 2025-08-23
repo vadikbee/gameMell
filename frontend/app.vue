@@ -120,7 +120,7 @@
       
       <!-- Фон лабиринта -->
       <div class="labirint-bg"></div>
-      
+      <div class="win-buttons-container">
       <!-- Контейнеры для кнопок победы -->
       <div 
       v-for="(btn, index) in winButtons" 
@@ -170,7 +170,7 @@
     <div class="button-coefficient">{{ btn.coefficient }}</div>
   </div>
 </div>
-      
+   </div>   
           
         
       </div>
@@ -3229,7 +3229,19 @@ window.removeEventListener('resize', updateMainBgDimensions);
   pointer-events: none;
 }
 
+.win-buttons-container {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  width: 100%;
+  height: 66px;
+  z-index: 4;
+  pointer-events: none; /* Пропускает события мыши к дочерним элементам */
+}
 
+.win-buttons-container .button-win-container {
+  pointer-events: auto; /* Включает события мыши для кнопок */
+}
 .info-notification .notification-header {
   background: rgba(76, 175, 80, 0.2);
   padding: 10px 15px;

@@ -85,17 +85,21 @@ const podiums = computed(() => {
 </script>
 
 <style scoped>
-.outer-container {
+  .outer-container {
   
-  display: flex;
+  display:  flex;
   justify-content: center;
   width: 100%;
-  padding: 0 10px; /* Добавляет отступы по бокам */
+  height: 100%;
+  top: 10%;
+  left: 35%;
+  padding: 0 0px; /* Добавляет отступы по бокам */
   box-sizing: border-box;
-}
+  }
 .podium-container {
   position: relative;
   width: 100%;
+  left: 20%;
   max-width: 400px;
   height: 100%;
   display: flex;
@@ -215,29 +219,7 @@ const podiums = computed(() => {
   
 }
 
-@media (max-width: 480px) {
-  
-  
-  .podium-container{
-    transform: scale(1.5);
-    top: -30%;
-    
-  }
-  .outer-container {
-  
-  display:  flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  
-  margin-top: 10%;
-  margin-left: 35%;
-  padding: 0 0px; /* Добавляет отступы по бокам */
-  box-sizing: border-box;
-  
-}
 
-}
 
 @media (min-width: 389px) and (max-width: 391px) {
   .podium-container {

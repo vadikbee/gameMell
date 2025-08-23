@@ -1,8 +1,7 @@
 <template>
   <div class="main-color">
-    
     <!-- История ставок в основном интерфейсе -->
-     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
+    <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
     
     <div class="main-bg-container"></div>
@@ -53,7 +52,7 @@
 />
       <!-- Центральное фиксированное меню -->
       <div v-if="centerWinMenuVisible" class="win-menu-center" style="z-index: 100" ref="winMenuCenterRef">
-    <StavkiMenu
+    <StavkiMenu custom-class="center-stavki"
       :currentBet="currentBet"
       :minBet="betConfig.minBet"
       :maxBet="betConfig.maxBet"
@@ -326,29 +325,32 @@
   :bets="betHistoryFromApi"
   class="inside-center"
 />
-          
-          <!-- Меню ставок -->
-          <div class="menu-stavki"><StavkiMenu
-  :currentBet="currentBet"
-  :minBet="betConfig.minBet"
-  :maxBet="betConfig.maxBet"
-  :betStep="betConfig.betStep"
-  :currency="betConfig.currency"
-  context="default"
-  :showNextRaceNotice="raceInProgress"
-  
-  @otmena-click="resetCurrentBet"
-  @reset-click="undoLastBet"
-  @decrement-start="startDecrement"
-  @increment-start="startIncrement"
-  @stop-action="stopAction"
-  @add-bet="addToBet"
-  @x2-click="multiplyBet"
-  :playBetClick="playBetClick"
-  @group164-click="placeBet"
-/></div>
-          
 
+          
+          <!-- Меню ставок - ИЗМЕНЕНО: убрали класс center-stavki -->
+      <!-- В template app.vue, внутри center-menu -->
+<div class="stavki-container-in-center">
+  <StavkiMenu
+    :currentBet="currentBet"
+    :minBet="betConfig.minBet"
+    :maxBet="betConfig.maxBet"
+    :betStep="betConfig.betStep"
+    :currency="betConfig.currency"
+    context="default"
+    :showNextRaceNotice="raceInProgress"
+    @otmena-click="resetCurrentBet"
+    @reset-click="undoLastBet"
+    @decrement-start="startDecrement"
+    @increment-start="startIncrement"
+    @stop-action="stopAction"
+    @add-bet="addToBet"
+    @x2-click="multiplyBet"
+    :playBetClick="playBetClick"
+    @group164-click="placeBet"
+    custom-class="center-stavki"
+  />
+</div>
+          
 
         </div>
         
@@ -3117,6 +3119,22 @@ window.removeEventListener('resize', updateMainBgDimensions);
   color: #FFFFFF;
 }
 
+/* Стили для меню ставок в центральном меню *//* Стили для меню ставок в центральном меню */
+
+
+
+.stavki-container-in-center {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  left: 4%;
+  z-index: 10;
+  transform-origin: top center;
+  transition: all 0.3s ease;
+}
+
+
+/* Стили для меню ставок в центральном меню *//* Стили для меню ставок в центральном меню */
 .button-coefficient {
   position: absolute;
   left: 28.85%;
@@ -3132,6 +3150,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   justify-content: center;
   color: #FFFFFF;
 }
+
 .initial-animation::before {
   animation: lineAnimationTop 0.6s ease-in-out 0s 3;
 }
@@ -3642,8 +3661,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .menu-buttons-container {
   
   position: absolute;
-  top: 227%; /* Регулируйте по необходимости */
-  left: 55.1%;
+  top: 215%; /* Регулируйте по необходимости */
+  left: 53%;
   transform: translate(-50%, -50%);
   
   display: grid;
@@ -3654,7 +3673,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   --button-height: 30px; /* Высота кнопок по умолчанию */
    /* Разделяем горизонтальное и вертикальное расстояние */
   --column-gap: 4px; /* Горизонтальное расстояние */
-  --row-gap: 11px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
+  --row-gap: 9px;   /* Вертикальное расстояние (можно увеличивать отдельно) */
    
   /* Рассчитываем размер контейнера */
   width: calc((var(--button-width) * 7) + (var(--column-gap) * 6));
@@ -4551,7 +4570,9 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 /* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
 
 /* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
+@media (max-width: 480px) {
 
+}
 /* ////////////////////////////////////////медиа@media (max-width: 390px)////////////////////////////////////////*/
 /* Добавляем общие адаптивные стили */
 

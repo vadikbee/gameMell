@@ -1,5 +1,6 @@
 <!-- StavkiMenu.vue -->
 <template>
+    <div class="menu-stavki" :class="customClass">
   <div class="menu-stavki">
     <div v-if="showNextRaceNotice" class="next-race-notice">
       {{ nextRaceNoticeText }}
@@ -74,6 +75,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -88,7 +90,11 @@ const props = defineProps({
   betStep: Number,
   currency: String,
   playBetClick: Function,
-  context: String // Добавьте эту строку
+  context: String, // Добавьте эту строку
+    customClass: {
+    type: String,
+    default: ''
+  }
 });
 
 const emit = defineEmits([
@@ -149,6 +155,7 @@ const handleX2Click = () => {
   z-index: 10;
   transform-origin: top center;
   transition: all 0.3s ease;
+  
 }
 
 /* Основное изображение меню */
@@ -191,7 +198,7 @@ const handleX2Click = () => {
   width: 100%;
   top: 10px;
   
-  right: 90px;
+  right: 65px;
   z-index: 9;
   padding: 0 10px;
   box-sizing: border-box;
@@ -200,9 +207,9 @@ const handleX2Click = () => {
 /* Кнопка Group 164 (основная кнопка ставки) */
 .group-164-button {
   position: absolute;
-  bottom: 15px;
-  right: -15px ;
-  transform: translateX(-50%);
+  bottom: 32.5px;
+  right: 5px ;
+  
   z-index: 8;
   cursor: pointer;
   width: 112px;
@@ -211,7 +218,7 @@ const handleX2Click = () => {
 }
 
 .group-164-button:hover {
-  transform: translateX(-50%) scale(1.05);
+  transform:  scale(1.05);
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
@@ -239,7 +246,7 @@ const handleX2Click = () => {
 /* Кнопка Отмена */
 .otmena-button {
   position: absolute;
-  top: 10px;
+  top: 0px;
   left: 2%;
   z-index: 10;
   cursor: pointer;
@@ -256,12 +263,12 @@ const handleX2Click = () => {
 /* Кнопка Сброс */
 .reset-button {
   position: absolute;
-  top: 11px;
-  left: 105px;
+  top: 0px;
+  right: 125px;
   z-index: 10;
   cursor: pointer;
-  width: 49px;
-  height: 25px;
+  width: 44px;
+  height: 21px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -269,6 +276,10 @@ const handleX2Click = () => {
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
 }
 
+/* Стили для контейнера меню ставок в центре */
+/* Стили для центрального меню */
+
+/* Стили для меню ставок в центральном меню *//* Стили для меню ставок в центральном меню */
 /* Кнопки быстрых ставок */
 .stavki-button {
   display: flex;
@@ -299,10 +310,10 @@ const handleX2Click = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 47px;
-  height: 24px;
-  top: 11px;
-  left: 50px;
+  width: 44px;
+  height: 22px;
+  top: 0px;
+  left: 42.5px;
   
   background: rgba(0, 0, 0, 0.9);
   box-shadow: 3px 6px 4px rgba(0, 0, 0, 0.4);
@@ -332,20 +343,23 @@ const handleX2Click = () => {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  
 }
 
 .bet-button.minus {
-  right: 60px;
-  top: 45px;
+  left: 14px;
+  top: 50px;
   position: absolute;
   z-index: 10;
   background-image: url('/images/buttons/kryg-pravo.png');
 }
 
 .bet-button.plus {
-  top: 45px;
-  left: 62px;
+  top: 50px;
+  right: 100px;
+  
   position: absolute;
+  z-index: 10;
   background-image: url('/images/buttons/kryg-leva.png');
 }
 
@@ -360,7 +374,7 @@ const handleX2Click = () => {
 
 /* Дисплей текущей ставки */
 .bet-display {
-  width: 70px;
+  width: 65px;
   position: absolute;
   height: 23px;
   background-image: url('/images/buttons/seredina.png');
@@ -374,127 +388,15 @@ const handleX2Click = () => {
   font-weight: 700;
   font-size: 17px;
   color: #000000;
-  top: 45px;
+  top: 50px;
+  left: 25px;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
 /* Адаптация для планшетов */
-@media (max-width: 768px) {
-  .menu-stavki {
-    max-width: 300px;
-  }
-  
-  .stavki-buttons-container {
-    
-    gap: 6px;
-  }
-  
-  .stavki-button {
-    width: 42px;
-    height: 22px;
-    font-size: 14px;
-  }
-  
-  .x2-button {
-    width: 42px;
-    height: 22px;
-  }
-  .reset-button {
-    width: 42px;
-    height: 22px;
-  }
-  .bet-display {
-    width: 60px;
-    font-size: 15px;
-  }
-  
-  
-}
 
 /* Адаптация для мобильных устройств */
-@media (max-width: 480px) {
-  .menu-stavki .stavki-image{
-    max-width: 365px;
-    height: 130%;
-    
-    
-    transform-origin: top center;
-    border: 3px solid blanchedalmond;
-  }
-  
-  .next-race-notice {
-    font-size: 16px;
-    top: -25px;
-  }
-  
-  .bet-controls-container {
-    height: 50px;
-    top: 52%;
-  }
-  
-  .stavki-buttons-container {
-    top: 20%;
-    right: 20%;
-    gap: 10px;
-  }
-  
-  .stavki-button {
-    width: 44px;
-    height: 24px;
-    font-size: 12px;
-  }
-  
-  .x2-button {
-    width: 42px;
-    height: 22px;
-    font-size: 12px;
-    top: 18px;
-    left: 50px;
-  }
-  
-  .otmena-button {
-    width: 25px;
-    height: 23px;
-    left: 15px;
-    top: 18px;
-  }
-  
-  .reset-button {
-    width: 40px;
-    height: 20px;
-    left: 105px;
-    top: 18px;
-  }
-  
-  .bet-button.minus {
-    width: 20px;
-    height: 20px;
-    right: 60px;
-    top: 50px;
-  }
-  
-  .bet-button.plus {
-    width: 20px;
-    height: 20px;
-    left: 60px;
-    top: 50px;
-  }
-  
-  .bet-display {
-    width: 70px;
-    height: 20px;
-    font-size: 16px;
-    
-    top: 50px;
-  }
-  
-  .group-164-button {
-    width: 95px;
-    height: 62px;
-    bottom: 10px;
-    right: -0px;
-  }
-}
+
 /* Адаптация для очень маленьких экранов */
 @media (max-width: 360px) {
   .menu-stavki {

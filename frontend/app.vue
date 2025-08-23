@@ -776,6 +776,7 @@ const firstInteractionHandler = () => {
 
 // Показать подсказку для включения звука
 const showMusicEnableHint = () => {
+  if (hasShownSoundHint.value) return;
   infoMessage.value = t('enable_sound_hint');
   infoNotificationVisible.value = true;
   setTimeout(() => {
@@ -1090,6 +1091,7 @@ const historyBetsInsideCenter = ref(false);
 const isGroup164Clicked = ref(false);
 // Добавляем состояние для выбранного таракана-победителя
 const selectedWinnerBugIds = ref([]);
+const hasShownSoundHint = ref(false);
 // Состояния для управления ставками
 const currentBet = ref(25);
 const balance = ref(10000); // Начальный баланс
@@ -3614,7 +3616,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 /* Позиция снаружи (стандартная) */
 .history-bets.outside-center {
   position: absolute;
-  top: 57.3%;
+  top: 55%;
   left: 38%;
   z-index: 10;
 }
@@ -4312,7 +4314,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   position: absolute;
   top: 0;
   right: 0;
-  margin-top: 38%;
+  margin-top: 31%;
   margin-right: 0%;
   width: 236px;
   height: 150px;
@@ -4473,7 +4475,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
 /* Стили для центрального меню */
 .center-menu {
   position: absolute;
-  bottom: calc(464%); /*  над кнопкой */
+    bottom: calc(464% + 40%); /* Сдвигаем на 13% вверх */
   left: 50%;
   transform: translateX(-50%);
   z-index: 5; /* Выше других элементов */

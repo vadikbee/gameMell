@@ -164,6 +164,7 @@ const handleX2Click = () => {
   max-width: 370px;
   height: auto;
   object-fit: contain;
+  
 }
 
 /* Контейнер для элементов управления ставками */
@@ -398,58 +399,5 @@ const handleX2Click = () => {
 /* Адаптация для мобильных устройств */
 
 /* Адаптация для очень маленьких экранов */
-@media (max-width: 360px) {
-  .menu-stavki {
-    max-width: 250px;
-  }
-  
-  .next-race-notice {
-    font-size: 14px;
-    top: -20px;
-  }
-  
-  .stavki-buttons-container {
-    top: 45px;
-    gap: 4px;
-  }
-  
-  .stavki-button {
-    width: 36px;
-    height: 18px;
-    font-size: 12px;
-  }
-  
-  .x2-button {
-    width: 36px;
-    height: 18px;
-  }
-  
-  .otmena-button {
-    width: 20px;
-    height: 20px;
-    left: 10px;
-  }
-  
-  .reset-button {
-    width: 40px;
-    height: 20px;
-    right: 10px;
-  }
-  
-  .bet-button {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .bet-display {
-    width: 50px;
-    height: 18px;
-    font-size: 13px;
-  }
-  
-  .group-164-button {
-    width: 80px;
-    height: 50px;
-  }
-}
+
 </style>

@@ -3560,7 +3560,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .history-bets.outside-center {
   position: absolute;
   top: 57.3%;
-  left: 43.5%;
+  left: 38%;
   z-index: 10;
 }
 

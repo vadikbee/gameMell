@@ -282,6 +282,7 @@ const formattedBets = computed(() => {
   padding: 5px;
   box-sizing: border-box;
   overflow: hidden;
+  left: auto;
 }
 
 .bottom-right {

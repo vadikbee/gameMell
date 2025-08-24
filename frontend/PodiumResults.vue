@@ -100,6 +100,7 @@ const podiums = computed(() => {
   position: relative;
   width: 100%;
   left: 20%;
+  top: -10%;
   max-width: 400px;
   height: 100%;
   display: flex;

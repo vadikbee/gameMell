@@ -2939,19 +2939,21 @@ const updateScale = () => {
   const currentWidth = window.innerWidth;
   const currentHeight = window.innerHeight;
   
-  // Масштабируем по высоте, чтобы вместить всю высоту игры
-  const scaleByHeight = currentHeight / baseHeight;
-  
-  // Масштабируем по ширине, чтобы вместить всю ширину игры
-  const scaleByWidth = currentWidth / baseWidth;
-  
-  // Выбираем минимальный масштаб, чтобы игра полностью помещалась на экране
-  scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
-  
-  // Устанавливаем кастомное свойство для использования в медиа-запросах
-  document.documentElement.style.setProperty('--scale-factor', scaleFactor.value);
+  // Для мобильных устройств - масштабируем только по ширине
+  if (currentWidth <= 768) {
+    const scaleByWidth = currentWidth / baseWidth;
+    scaleFactor.value = scaleByWidth;
+  } else {
+    // Для десктопов - сохраняем прежнюю логику
+    const scaleByWidth = currentWidth / baseWidth;
+    const scaleByHeight = currentHeight / baseHeight;
+    scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
+    
+    if (currentWidth <= 390) {
+      scaleFactor.value = 1;
+    }
+  }
 };
-
 
 onMounted(() => {
   updateScale();
@@ -3404,9 +3406,6 @@ window.removeEventListener('resize', updateMainBgDimensions);
   overflow-y: auto;
   max-height: 100vh;
   width: 100%;
-   height: calc(100vh - 20px);
-  height: calc(100vh - constant(safe-area-inset-top));
-  height: calc(100vh - env(safe-area-inset-top));
   display: flex;
   scrollbar-width: thin;
   scrollbar-color: #7F00FE #1E031E;
@@ -3666,15 +3665,24 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 .game-wrapper {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  margin-top: 25px;
+  flex-shrink: 0; /* Предотвращает сжатие при скролле */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1;
 }
 
-
+.game-container {
+  transform-origin: top center; /* Масштабирование от верхнего края */
+  transform-origin: center center;
+  width: 390px;
+  height: 788px;
+  position: relative;
+}
 
 .menu-button.text-button {
   background-image: none !important;
@@ -3827,9 +3835,10 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background: rgba(0, 0, 0, 0.3) !important;
 }
 .game-container {
-  transform-origin: center center;
+  transform-origin: top center;
   width: 390px;
   height: 788px;
+  margin: 0 auto;
   position: relative;
 }
 
@@ -4058,10 +4067,6 @@ window.removeEventListener('resize', updateMainBgDimensions);
   top: 0;
   left: 0;
   width: 100vw;
-  padding-top: 20px; /* Отступ для десктопных браузеров */
-  padding-top: constant(safe-area-inset-top); /* Для Safari */
-  padding-top: env(safe-area-inset-top); /* Для современных браузеров */
-  box-sizing: border-box;
   height: 100vh;
   background-color: #1E031E;
   overflow: hidden;

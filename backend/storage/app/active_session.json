@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"id":"68aaf43ec97d4","results":[],"ended_at":"2025-08-24T11:15:23.669400Z","is_active":false,"started_at":"2025-08-24T11:15:10.825310Z","result_is_valid":true,"bets_available_till":"2025-08-24T11:16:10.825390Z","game_coefficients":[{"id":101,"key":"stake_456","value":2.5,"game_session_id":"session_abc123","game_instance_id":12}],"next_game_session":null,"previous_game_session":null}
+=======
+{"id":"68aa42be2b312","results":[],"ended_at":null,"is_active":true,"started_at":"2025-08-23T22:37:50.176923Z","result_is_valid":true,"bets_available_till":"2025-08-23T22:38:50.176987Z","game_coefficients":[{"id":101,"key":"stake_456","value":2.5,"game_session_id":"session_abc123","game_instance_id":12}],"next_game_session":null,"previous_game_session":null}
+>>>>>>> parent of b9ebf88 (сдвиг)

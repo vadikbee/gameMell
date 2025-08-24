@@ -1989,8 +1989,7 @@ const saveGameResults = async () => {
     // Проверяем результаты ставок
   checkBetsResults();
   
-  // Сбрасываем выбор тараканов
-  resetBugSelections();
+
    
 // Проверяем результаты ставок
   setTimeout(() => {

@@ -35,15 +35,14 @@
         </div>
         
         <!-- Цвета выигравших тараканов -->
-        <!-- WinLoseNotification.vue - в блоке winning-bugs -->
-<div class="winning-bugs">
-  <div 
-    v-for="(bug, bugIndex) in bet.winningBugs" 
-    :key="bugIndex"
-    class="bug-color-indicator"
-    :style="{ background: bug.color }"
-  ></div>
-</div>
+        <div class="winning-bugs">
+          <div 
+            v-for="(bug, bugIndex) in getWinningBugs(bet)" 
+            :key="bugIndex"
+            class="bug-color-indicator"
+            :style="{ background: bug.color }"
+          ></div>
+        </div>
         
         <div class="bet-description">
           {{ formatBetDescription(bet) }}
@@ -100,22 +99,34 @@ const updateTime = () => {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   currentTime.value = `${hours}:${minutes}`;
 };
+
+// Получаем только выигравших тараканов для ставки
+const getWinningBugs = (bet) => {
+  if (bet.type === 'section' && bet.winningBugs) {
+    return bet.winningBugs;
+  }
+  // Для других типов ставок возвращаем пустой массив или заглушку
+  return bet.bugColors ? bet.bugColors.map(color => ({ color })) : [];
+};
+
 // Добавляем функцию для форматирования описания ставки
 const formatBetDescription = (bet) => {
-  // WinLoseNotification.vue - в функции formatBetDescription
-if (bet.type === 'section') {
-  const bugNames = bet.winningBugs.map(bug => 
-    t(`bug_${bug.id}`)
-  ).join(', ');
-  
-  return t('section_bet_won', { 
-    trap: bet.trapId,
-    count: bet.winningBugs.length,
-    bugs: bugNames
-  });
-}
+  if (bet.type === 'section') {
+    // Используем только выигравших тараканов для описания
+    const winningBugs = bet.winningBugs || [];
+    const bugNames = winningBugs.map(bug => 
+      t(`bug_${bug.id}`)
+    ).join(', ');
+    
+    return t('section_bet_won', { 
+      trap: bet.trapId,
+      count: winningBugs.length,
+      bugs: bugNames
+    });
+  }
   return bet.description;
 };
+
 // Развернуть/свернуть детали
 const expand = () => {
   expanded.value = true;

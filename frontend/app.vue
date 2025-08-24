@@ -4042,18 +4042,61 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 /* Стиль для выбранного таракана */
 .bug-button.selected {
-  
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  
-  z-index: 15;
+  box-shadow: none !important;
 }
+
 .menu-button.confirmed {
   background: linear-gradient(180deg, #3C42E3 0%, #2A2FBF 100%) !important;
 }
 
+/* Add central glow effect for selected bugs */
+.bug-button.selected::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle, 
+    rgba(255, 255, 0, 0.8) 0%, 
+    rgba(255, 255, 0, 0.4) 50%, 
+    rgba(255, 255, 0, 0) 70%
+  );
+  z-index: 10;
+  animation: central-glow 1s infinite alternate;
+  pointer-events: none;
+}
 
+/* Enhanced glow animation */
+@keyframes central-glow {
+  0% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
 
+/* Keep the image scaling animation for selected bugs */
+.bug-button.selected .bug-image {
+  animation: selected-pulse 1s infinite alternate;
+}
 
+@keyframes selected-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Ensure the bug image stays above the glow effect */
+.bug-image {
+  z-index: 13;
+  position: relative;
+}
 /* Усиленная анимация для выбранного состояния */
 .bug-button.selected .bug-image {
   animation: selected-pulse 1s infinite alternate;
@@ -4676,8 +4719,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-image: url('/images/buttons/Group 168.png');
 }
 
-
-
 /* Анимация пульсации */
 @keyframes glow-pulse {
   0% {
@@ -4689,60 +4730,6 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
             drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
   }
 }
-
-
-/* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
-
-
-/* ////////////////////////////////////////медиа@media (max-width: 768px)////////////////////////////////////////*/
-  
-/* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
-
-/* ////////////////////////////////////////медиа@media (max-width: 480px)////////////////////////////////////////*/
-
-/* ////////////////////////////////////////медиа@media (max-width: 390px)////////////////////////////////////////*/
-/* Добавляем общие адаптивные стили */
-
-/* .......................375 ......................................*//* .......................375 ......................................*/
-
-/* Оптимизация для русского языка */
-html[lang="ru"] .bth-1-text,
-html[lang="ru"] .bth-2-text {
-  font-size: 1px;
-  white-space: nowrap;
-}
-/* .......................375 ......................................*//* .......................375 ......................................*/
-
-/* ...................../..360 ......................................*//* ...................../..360 ......................................*/
-
-/* Для русского языка делаем шрифты немного меньше */
-html[lang="ru"] .bth-1-text,
-html[lang="ru"] .bth-2-text {
-  font-size: 11px;
-}
-/* //////////////////////////// 390-400 ///////////////////////// */
-/* Адаптация лабиринта для 390-400px */
-
-/* //////////////////////////// 400-420 ///////////////////////// */
-
-
-/*  стили для языка */
-/* Добавим адаптивные стили для русского языка */
-html[lang="ru"] .bth-1-text,
-html[lang="ru"] .bth-3-text {
-  font-size: 14px;
-  letter-spacing: -0.3px;
-  white-space: nowrap;
-  padding: 0 5px;
-  
-}
-
-html[lang="ru"] .bth-2-text {
-  font-size: 15px;
-  letter-spacing: -0.5px;
-  padding: 0 8px;
-}
-
 
 .button-1,.button-2,.button-3 {
   top: 6%;
@@ -4757,6 +4744,4 @@ html[lang="ru"] .bth-2-text {
 .history-bets.inside-center{
 top: -330%;
 }
-
-
 </style>

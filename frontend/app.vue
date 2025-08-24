@@ -3501,8 +3501,9 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .win-menu-title {
   position: absolute;
   top: 14%; /* Позиционирование сверху */
-  left: 16%;
+  left: 5%;
   right: 0;
+  width: 100%;
   text-align: center;
   font-family: 'Hero', 'Bahnschrift', sans-serif; /* Основной шрифт + fallback */
   font-weight: 700; /* Bold */
@@ -3770,7 +3771,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .menu-buttons-container {
   
   position: absolute;
-  top: 215%; /* Регулируйте по необходимости */
+  top: 232%; /* Регулируйте по необходимости */
   left: 53%;
   transform: translate(-50%, -50%);
   

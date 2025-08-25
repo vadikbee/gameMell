@@ -3831,12 +3831,12 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background: rgba(0, 0, 0, 0.3) !important;
 }
 .game-container {
-  transform-origin: top center;
+  
   width: 390px;
   height: 788px;
   margin: 0 auto;
   position: relative;
-  top: -3.3%;
+  
 }
 
 .main-bg {

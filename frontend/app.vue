@@ -3244,11 +3244,12 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 .info-notification {
-  position: fixed;
+   position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 372px;
+  width: 90vw; /* Адаптивная ширина */
+  max-width: 372px; /* Максимальная ширина */
   background: rgba(255, 255, 255, 0.9);
   
   border-radius: 10px;

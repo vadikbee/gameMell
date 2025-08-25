@@ -157,8 +157,9 @@ onUnmounted(() => {
 
 <style scoped>
 .win-lose-notification {
-  position: fixed;
-  width: 372px;
+    position: fixed;
+  width: 90vw; /* Используем viewport width */
+  max-width: 372px; /* Максимальная ширина как раньше */
   min-height: 100px;
   top: 20px;
   left: 50%;

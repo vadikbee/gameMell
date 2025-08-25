@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Validator; // Добавлен импорт Validator
+use Illuminate\Support\Carbon; // Добавлен импорт Carbon
 class BetHistoryController extends Controller
 {
     const HISTORY_FILE = 'bets_history.json';
@@ -93,4 +94,79 @@ class BetHistoryController extends Controller
         
         return $storagePath . '/' . self::HISTORY_FILE;
     }
+    // BetHistoryController.php
+public function repeatBets(Request $request, $code)
+{
+    try {
+        // Валидация параметров
+        $validator = Validator::make(array_merge($request->all(), ['code' => $code]), [
+            'code' => 'required|in:cockroaches-space-maze',
+            'game_session_id' => 'required|integer',
+            'account_session' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Проверяем активную сессию
+        $activeSessionPath = storage_path('app/active_session.json');
+        if (!file_exists($activeSessionPath)) {
+            return response()->json(['error' => 'Active session not found'], 404);
+        }
+
+        $activeSession = json_decode(file_get_contents($activeSessionPath), true);
+        if (!$activeSession || !$activeSession['is_active']) {
+            return response()->json(['error' => 'No active session'], 404);
+        }
+
+        // Загружаем историю ставок
+        $betsHistoryPath = storage_path('app/bets_history.json');
+        if (!file_exists($betsHistoryPath)) {
+            return response()->json(['error' => 'No bets history found'], 404);
+        }
+
+        $betsHistory = json_decode(file_get_contents($betsHistoryPath), true);
+        
+        // Фильтруем ставки по account_session (в демо-режиме используем user_id = 1)
+        $userBets = array_filter($betsHistory, function($bet) {
+            return isset($bet['data']['user_id']) && $bet['data']['user_id'] == 1;
+        });
+
+        if (empty($userBets)) {
+            return response()->json(['error' => 'No previous bets found'], 404);
+        }
+
+        // Создаем новые ставки на основе предыдущих
+        $repeatedBets = [];
+        foreach ($userBets as $bet) {
+            $newBet = [
+                'id' => uniqid(),
+                'timestamp' => now()->toDateTimeString(),
+                'data' => $bet['data']
+            ];
+            
+            $repeatedBets[] = $newBet;
+            $betsHistory[] = $newBet;
+        }
+
+        // Сохраняем обновленную историю
+        file_put_contents($betsHistoryPath, json_encode($betsHistory));
+
+        // Форматируем ответ
+        $response = [];
+        foreach ($repeatedBets as $bet) {
+            $response[] = [
+                'bet_amount' => (string)$bet['data']['amount'],
+                'game_coefficient_id' => '' // Заглушка, т.к. в текущей реализации нет этого поля
+            ];
+        }
+
+        return response()->json($response);
+
+    } catch (\Exception $e) {
+        Log::error('Repeat bets error: '.$e->getMessage());
+        return response()->json(['error' => 'Internal server error'], 500);
+    }
+}
 }

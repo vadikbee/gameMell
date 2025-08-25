@@ -140,80 +140,20 @@ Route::options('/gameplay/games/instances/cockroaches-space-maze', function () {
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
+
 // Эндпоинт для размещения ставок
-Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
-    try {
-        $data = $request->validate([
-            'user_id' => 'required|integer',
-            'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:win,place,trap',
-            'selection' => 'required|array',
-            'currency' => 'required|string|size:3'
-        ]);
-
-        // Проверяем доступность ставки (гонка не началась)
-        $activeSessionPath = storage_path('app/active_sessions.json');
-        $activeSessions = file_exists($activeSessionPath) ? 
-            json_decode(file_get_contents($activeSessionPath), true) : [];
-        
-        if (isset($activeSessions[$code]) && $activeSessions[$code]['race_started']) {
-            return response()->json(['error' => 'Race already started'], 400);
-        }
-
-        // Проверяем баланс пользователя
-        $balancePath = storage_path('app/user_balances.json');
-        $balances = file_exists($balancePath) ? 
-            json_decode(file_get_contents($balancePath), true) : [];
-        
-        $userId = $data['user_id'];
-        $currentBalance = $balances[$userId][$data['currency']] ?? 0;
-        
-        if ($currentBalance < $data['amount']) {
-            return response()->json(['error' => 'Insufficient funds'], 400);
-        }
-
-        // Списание средств
-        $balances[$userId][$data['currency']] = $currentBalance - $data['amount'];
-        file_put_contents($balancePath, json_encode($balances));
-
-        // Сохранение ставки
-        $bet = [
-            'id' => uniqid(),
-            'user_id' => $userId,
-            'amount' => $data['amount'],
-            'type' => $data['type'],
-            'selection' => $data['selection'],
-            'currency' => $data['currency'],
-            'timestamp' => now()->toISOString(),
-            'status' => 'active'
-        ];
-
-        $betsPath = storage_path('app/bets.json');
-        $bets = file_exists($betsPath) ? 
-            json_decode(file_get_contents($betsPath), true) : [];
-        
-        $bets[] = $bet;
-        file_put_contents($betsPath, json_encode($bets));
-
-        return response()->json([
-            'status' => 'success',
-            'bet_id' => $bet['id'],
-            'new_balance' => $balances[$userId][$data['currency']]
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Bet placement error: ' . $e->getMessage());
-        return response()->json(['error' => 'Internal server error'], 500);
-    }
-});
-
-// Обработка CORS для OPTIONS запроса
-Route::options('/gameplay/games/bets/{code}', function () {
+///////////////////////////////////////GET/gameplay/games/bets/{code}/repeat///////////////////////////////////////
+// api.php
+Route::get('/gameplay/games/bets/{code}/repeat', [BetHistoryController::class, 'repeatBets']);
+Route::options('/gameplay/games/bets/{code}/repeat', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
+
+
+///////////////////////////////////////GET/gameplay/games/bets/{code}/repeat///////////////////////////////////////
 ///////////////////////////////////////ЭНДПОИНТ (place bet)///////////////////////////////////////
 Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
     // Обработка ставки
@@ -236,46 +176,12 @@ Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
     ]);
 });
 
-Route::options('/gameplay/games/bets/{code}', function () {
-    return response('', 204)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-});
+
 
 ///////////////////////////////////////ЭНДПОИНТ (bet history)///////////////////////////////////////
-Route::get('/gameplay/games/bets/{code}/latest', function ($code) {
-    // Возвращает последние ставки
-    return response()->json([
-        'bets' => [
-            [
-                'id' => 1,
-                'user' => 'Player1',
-                'amount' => 100,
-                'type' => 'win',
-                'selection' => [3],
-                'time' => '15:30:42',
-                'color' => 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)'
-            ],
-            [
-                'id' => 2,
-                'user' => 'Player2',
-                'amount' => 50,
-                'type' => 'place',
-                'selection' => [1, 2],
-                'time' => '15:31:15',
-                'color' => 'linear-gradient(180deg, #FDF735 0%, #FD7E00 100%)'
-            ]
-        ]
-    ]);
-});
 
-Route::options('/gameplay/games/bets/{code}/latest', function () {
-    return response('', 204)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-});
+
+
 ///////////////////////////////////////ЭНДПОИНТ (bet history)///////////////////////////////////////
 
 

@@ -7,7 +7,7 @@
     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
     <!-- Контейнер для масштабирования фона -->
     <div class="game-wrapper">
-  <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
+  
 
     
  <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
@@ -367,7 +367,7 @@
       </div>
 </div>
 </div>
-      </div> 
+      
     </div>
   </div>
 </div>
@@ -2938,29 +2938,34 @@ const updateScale = () => {
   const currentWidth = window.innerWidth;
   const currentHeight = window.innerHeight;
   
-  // Для мобильных устройств - масштабируем только по ширине
-  if (currentWidth <= 768) {
-    const scaleByWidth = currentWidth / baseWidth;
-    scaleFactor.value = scaleByWidth;
+  // Приоритетное масштабирование по высоте
+  const scaleByHeight = currentHeight / baseHeight;
+  
+  // Проверяем, не превышает ли полученная ширина доступную
+  const scaledWidth = baseWidth * scaleByHeight;
+  
+  if (scaledWidth > currentWidth) {
+    // Если ширина превышает - масштабируем по ширине
+    scaleFactor.value = currentWidth / baseWidth;
   } else {
-    // Для десктопов - сохраняем прежнюю логику
-    const scaleByWidth = currentWidth / baseWidth;
-    const scaleByHeight = currentHeight / baseHeight;
-    scaleFactor.value = Math.min(scaleByWidth, scaleByHeight);
-    
-    if (currentWidth <= 390) {
-      scaleFactor.value = 1;
-    }
+    // Иначе используем масштабирование по высоте
+    scaleFactor.value = scaleByHeight;
+  }
+  
+  // Для очень маленьких экранов ограничиваем минимальный масштаб
+  if (currentWidth <= 390) {
+    scaleFactor.value = Math.max(scaleFactor.value, 0.7);
   }
 };
 
+
 onMounted(() => {
-  updateScale();
+  setTimeout(updateScale, 100);
   window.addEventListener('resize', updateScale);
   document.addEventListener('click', handleDocumentClick);
  
     document.addEventListener('visibilitychange', handleVisibilityChange);
-  updateScale();
+  
   window.addEventListener('resize', updateScale);
   startRaceCycle(); // Запускаем цикл при монтировании
   loadGameHistory(); // Загружаем историю игр
@@ -3001,6 +3006,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  
   window.removeEventListener('resize', updateScale);
   document.removeEventListener('click', handleDocumentClick);
   document.removeEventListener('click', handleDocumentClick);
@@ -3402,14 +3408,15 @@ window.removeEventListener('resize', updateMainBgDimensions);
   position: relative;
 }
 .scroll-container {
-  overflow-y: auto;
-  max-height: 100vh;
   width: 100%;
+  height: 100%;
   display: flex;
-  scrollbar-width: thin;
-  scrollbar-color: #7F00FE #1E031E;
   justify-content: center;
+  align-items: center;
+  scrollbar-color: #7F00FE #1E031E;
 }
+
+
 
 .scroll-container::-webkit-scrollbar {
   width: 8px;
@@ -3664,25 +3671,14 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 .game-wrapper {
-  position: relative;
-  flex-shrink: 0; /* Предотвращает сжатие при скролле */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
-.game-container {
-  transform-origin: top center; /* Масштабирование от верхнего края */
-  transform-origin: center center;
-  width: 390px;
-  height: 788px;
-  position: relative;
-}
+
 
 .menu-button.text-button {
   background-image: none !important;
@@ -3840,6 +3836,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   height: 788px;
   margin: 0 auto;
   position: relative;
+  top: -3.3%;
 }
 
 .main-bg {
@@ -3847,6 +3844,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   height: 100%;
   position: relative;
   overflow: hidden;
+  
 }
 .menu-button.diagonal.locked .coefficient-container,
 .menu-button.diagonal.locked .confirmed-content {
@@ -4111,9 +4109,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #1E031E;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
-  z-index: 0;
+  background-color: #1E031E; /* Добавьте это свойство */
 }
 
 .tarakan {

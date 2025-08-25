@@ -2938,22 +2938,19 @@ const updateScale = () => {
   const currentWidth = window.innerWidth;
   const currentHeight = window.innerHeight;
   
-  // Приоритетное масштабирование по высоте
+  // Масштабирование по высоте с приоритетом
   const scaleByHeight = currentHeight / baseHeight;
-  
-  // Проверяем, не превышает ли полученная ширина доступную
   const scaledWidth = baseWidth * scaleByHeight;
   
+  // Если scaledWidth превышает доступную ширину, масштабируем по ширине
   if (scaledWidth > currentWidth) {
-    // Если ширина превышает - масштабируем по ширине
     scaleFactor.value = currentWidth / baseWidth;
   } else {
-    // Иначе используем масштабирование по высоте
     scaleFactor.value = scaleByHeight;
   }
   
-  // Для очень маленьких экранов ограничиваем минимальный масштаб
-  if (currentWidth <= 390) {
+  // Для очень маленьких экранов устанавливаем минимальный масштаб
+  if (currentHeight < 600) {
     scaleFactor.value = Math.max(scaleFactor.value, 0.7);
   }
 };
@@ -3671,12 +3668,13 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 .game-wrapper {
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
 }
+
 
 
 
@@ -3831,14 +3829,21 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background: rgba(0, 0, 0, 0.3) !important;
 }
 .game-container {
-  
-  width: 390px;
-  height: 788px;
-  margin: 0 auto;
-  position: relative;
-  
+  transform-origin: center;
+  flex-shrink: 0;
+}
+/* Для очень маленьких экранов добавим минимальный масштаб */
+@media (max-height: 700px) {
+  .game-container {
+    transform: scale(0.9) !important;
+  }
 }
 
+@media (max-height: 600px) {
+  .game-container {
+    transform: scale(0.8) !important;
+  }
+}
 .main-bg {
   width: 100%;
   height: 100%;
@@ -4103,6 +4108,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   0% { transform: translate(-50%, -50%) scale(1); }
   100% { transform: translate(-50%, -50%) scale(1.15); }
 }
+
 .main-color {
   position: fixed;
   top: 0;

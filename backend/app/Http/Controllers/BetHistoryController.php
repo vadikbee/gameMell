@@ -169,4 +169,95 @@ public function repeatBets(Request $request, $code)
         return response()->json(['error' => 'Internal server error'], 500);
     }
 }
+public function getLatestUserBets(Request $request, $code)
+{
+    try {
+        // Валидация параметров
+        $validator = Validator::make(
+            array_merge(['code' => $code], $request->query()),
+            [
+                'code' => 'required|in:cockroaches-space-maze',
+                'account_session' => 'required|string|min:1'
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Загружаем историю ставок
+        $filePath = $this->getFilePath();
+        if (!file_exists($filePath)) {
+            return response()->json([]);
+        }
+
+        $history = json_decode(file_get_contents($filePath), true) ?? [];
+        
+        // Фильтруем ставки за последние 30 минут для user_id = 1 (демо-режим)
+        $thirtyMinutesAgo = Carbon::now()->subMinutes(30);
+        $userBets = array_filter($history, function($bet) use ($thirtyMinutesAgo) {
+            $betTime = Carbon::parse($bet['timestamp']);
+            return $betTime->gte($thirtyMinutesAgo) && 
+                   isset($bet['data']['user_id']) && 
+                   $bet['data']['user_id'] == 1;
+        });
+
+        // Форматируем ставки согласно схеме ответа
+        $formattedBets = array_map(function($bet) {
+            $betData = $bet['data'];
+            
+            return [
+                'id' => $bet['id'] ?? uniqid(),
+                'is_win' => false, // Заглушка - требуется реальная логика определения
+                'is_loss' => true,  // Заглушка - требуется реальная логика определения
+                'bet_key' => $this->generateBetKey($betData),
+                'bet_amount' => (string)($betData['amount'] ?? 0),
+                'is_rollback' => false,
+                'bet_currency' => 'RUB',
+                'is_processed' => true,
+                'final_outcome' => '0.00',
+                'game_session_id' => '',
+                'game_coefficient_id' => ''
+            ];
+        }, array_slice($userBets, 0, 100)); // Ограничиваем 100 ставками
+
+        return response()->json($formattedBets);
+
+    } catch (\Exception $e) {
+        Log::error('Error loading user bets: '.$e->getMessage());
+        return response()->json([], 500);
+    }
+}
+
+private function generateBetKey($betData)
+{
+    $type = $betData['type'] ?? '';
+    $selection = $betData['selection'] ?? [];
+    
+    switch ($type) {
+        case 'win':
+            return "result:{$this->getColorName($betData['color'])}:1";
+        case 'place':
+            return "result:{$this->getColorName($betData['color'])}:2";
+        case 'trap':
+            return "section:{$betData['trapId']}:" . implode(',', $selection);
+        default:
+            return "unknown:{$type}";
+    }
+}
+
+private function getColorName($hexColor)
+{
+    $colorMap = [
+        '#FFFF00' => 'yellow',
+        '#FFA500' => 'orange',
+        '#8B0000' => 'dark-orange',
+        '#0000FF' => 'blue',
+        '#FF0000' => 'red',
+        '#800080' => 'purple',
+        '#00FF00' => 'green'
+    ];
+    
+    return $colorMap[$hexColor] ?? 'unknown';
+}
 }

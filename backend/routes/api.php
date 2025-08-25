@@ -111,7 +111,15 @@ Route::options('/gameplay/games/accounts/{code}/{session}', function () {
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 ///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
-
+////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
+Route::get('/gameplay/games/bets/{code}/latest', [BetHistoryController::class, 'getLatestUserBets']);
+Route::options('/gameplay/games/bets/{code}/latest', function () {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
 // Эндпоинт получения данных игрового инстанса
 Route::get('/gameplay/games/instances/cockroaches-space-maze', function () {
@@ -336,3 +344,5 @@ Route::options('/gameplay/games/sessions/{code}/deactivate', function () {
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 ////////////////////////////////////////gameplay/games/sessions/{code}/active///////////////////////////////////////
+
+Route::post('/calculate-winnings', [GameHistoryController::class, 'calculateWinnings']);

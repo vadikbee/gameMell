@@ -162,6 +162,7 @@ public function getLastGames()
             'results' => 'required|array',
             'results.*.position' => 'nullable|integer|min:1',
             'results.*.color' => 'required|string',
+            'results.*.trapId' => 'nullable|integer', // Добавляем поле trapId
         ]);
 
         $results = $validated['results'];
@@ -185,7 +186,10 @@ public function getLastGames()
             json_encode(array_slice($history, 0, self::MAX_GAMES))
         );
 
-        return response()->json(['status' => 'success']);
+        return response()->json([
+            'status' => 'success',
+            'results' => $results // Возвращаем сохраненные результаты
+        ]);
     } catch (\Exception $e) {
         Log::error('Error saving history: '.$e->getMessage());
         return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
@@ -197,4 +201,128 @@ public function getLastGames()
     {
         return storage_path('app/' . self::HISTORY_FILE);
     }
+    public function calculateWinnings(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'results' => 'required|array',
+            'results.*.position' => 'nullable|integer',
+            'results.*.color' => 'required|string',
+            'results.*.trapId' => 'nullable|integer',
+            'bets' => 'required|array',
+            'bets.*.type' => 'required|string',
+            'bets.*.amount' => 'required|numeric',
+            'bets.*.bugId' => 'required_if:type,position|integer',
+            'bets.*.position' => 'required_if:type,position|integer',
+            'bets.*.overtaker' => 'required_if:type,overtaking|integer',
+            'bets.*.overtaken' => 'required_if:type,overtaking|integer',
+            'bets.*.trapId' => 'required_if:type,section|integer',
+            'bets.*.bugIds' => 'required_if:type,section|array',
+        ]);
+
+        $results = $validated['results'];
+        $bets = $validated['bets'];
+
+        $colorToId = [
+            '#FFFF00' => 0,
+            '#FFA500' => 1,
+            '#8B0000' => 2,
+            '#0000FF' => 3,
+            '#FF0000' => 4,
+            '#800080' => 5,
+            '#00FF00' => 6
+        ];
+
+        $winningBets = [];
+        $losingBets = [];
+
+        foreach ($bets as $bet) {
+            switch ($bet['type']) {
+                case 'position':
+                    $bugId = $bet['bugId'] - 1;
+                    $color = array_search($bugId, $colorToId);
+                    $result = collect($results)->firstWhere('color', $color);
+                    
+                    $isWin = $result && $result['position'] === $bet['position'];
+                    if ($isWin) {
+                        $winAmount = $bet['amount'] * 2.23;
+                        $winningBets[] = [
+                            'type' => 'position',
+                            'amount' => $bet['amount'],
+                            'winAmount' => $winAmount,
+                            'bugId' => $bet['bugId'],
+                            'position' => $bet['position']
+                        ];
+                    } else {
+                        $losingBets[] = $bet;
+                    }
+                    break;
+
+                case 'overtaking':
+                    $overtakerColor = array_search($bet['overtaker'], $colorToId);
+                    $overtakenColor = array_search($bet['overtaken'], $colorToId);
+                    
+                    $resultOvertaker = collect($results)->firstWhere('color', $overtakerColor);
+                    $resultOvertaken = collect($results)->firstWhere('color', $overtakenColor);
+
+                    $isWin = $resultOvertaker && 
+                             (!$resultOvertaken || $resultOvertaker['position'] < $resultOvertaken['position']);
+                    
+                    if ($isWin) {
+                        $winAmount = $bet['amount'] * 2;
+                        $winningBets[] = [
+                            'type' => 'overtaking',
+                            'amount' => $bet['amount'],
+                            'winAmount' => $winAmount,
+                            'overtaker' => $bet['overtaker'],
+                            'overtaken' => $bet['overtaken']
+                        ];
+                    } else {
+                        $losingBets[] = $bet;
+                    }
+                    break;
+
+               case 'section':
+    $winningBugs = [];
+    foreach ($bet['bugIds'] as $bugId) {
+        $color = array_search($bugId, $colorToId);
+        $result = collect($results)->firstWhere('color', $color);
+        
+        // Проверяем, что таракан пришел в нужную секцию
+        if ($result && isset($result['trapId']) && $result['trapId'] == $bet['trapId']) {
+            $winningBugs[] = $bugId;
+        }
+    }
+
+    if (count($winningBugs) > 0) {
+        // Выигрыш = (ставка / общее количество тараканов) * коэффициент * количество выигравших тараканов
+        $winAmountPerBug = ($bet['amount'] / count($bet['bugIds'])) * 2.23;
+        $totalWin = $winAmountPerBug * count($winningBugs);
+        
+        $winningBets[] = [
+            'type' => 'section',
+            'amount' => $bet['amount'],
+            'winAmount' => $totalWin,
+            'winAmountPerBug' => $winAmountPerBug,
+            'trapId' => $bet['trapId'],
+            'winningBugs' => $winningBugs,
+            'totalBugs' => count($bet['bugIds'])
+        ];
+    } else {
+        $losingBets[] = $bet;
+    }
+    break;
+            }
+        }
+
+        return response()->json([
+            'winningBets' => $winningBets,
+            'losingBets' => $losingBets
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error calculating winnings: '.$e->getMessage());
+        return response()->json(['error' => 'Calculation failed'], 500);
+    }
+}
 }

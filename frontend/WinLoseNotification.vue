@@ -157,9 +157,9 @@ onUnmounted(() => {
 
 <style scoped>
 .win-lose-notification {
-    position: fixed;
-  width: 90vw; /* Используем viewport width */
-  max-width: 372px; /* Максимальная ширина как раньше */
+  position: fixed;
+  width: calc(100vw - 20px); /* Адаптивная ширина с небольшими отступами */
+  max-width: 390px; /* Максимальная ширина как у game-container */
   min-height: 100px;
   top: 20px;
   left: 50%;
@@ -172,6 +172,46 @@ onUnmounted(() => {
   transition: height 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-left: 4px solid #3C42E3;
+}
+
+/* Адаптация для маленьких экранов */
+@media (max-width: 400px) {
+  .win-lose-notification {
+    width: calc(100vw - 16px); /* Меньше отступы на маленьких экранах */
+    border-radius: 8px;
+  }
+  
+  .notification-header {
+    padding: 8px 12px;
+    height: 35px;
+  }
+  
+  .title {
+    font-size: 14px;
+  }
+  
+  .time {
+    font-size: 14px;
+  }
+  
+  .notification-body {
+    padding: 10px 12px;
+    height: 55px;
+  }
+  
+  .label {
+    font-size: 14px;
+  }
+  
+  .amount {
+    font-size: 16px;
+  }
+  
+  .win-count {
+    font-size: 12px;
+    right: 12px;
+    bottom: 10px;
+  }
 }
 
 .win-lose-notification.expanded {

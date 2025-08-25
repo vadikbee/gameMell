@@ -10,7 +10,7 @@
   
 
     
- <div class="game-container" :style="{ transform: currentHeight >= 690 ? `scale(${scaleFactor})` : 'none' }">
+<div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
         <!-- Верхняя панель баланса -->
@@ -1086,7 +1086,7 @@ const resetBugSelections = () => {
 };
 
 // Добавим получение конфигурации из API
-const { data: gameConfig } = useFetch('/api/v1/gameplay/games/instances/cockroaches-space-maze');
+const { data: gameConfig } = useFetch('/gameplay/games/instances/cockroaches-space-maze');
 // Новое состояние для центрального меню
 const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
@@ -1861,7 +1861,7 @@ const makeBugDizzy = (index) => {
 // Получение конфигурации ставок
 const fetchBetConfig = async () => {
   try {
-    const response = await fetch('/api/v1/gameplay/games/instances/cockroaches-space-maze');
+    const response = await fetch('/gameplay/games/instances/cockroaches-space-maze');
     const data = await response.json();
     betConfig.value = {
       minBet: data.min_bet,
@@ -2934,29 +2934,38 @@ const startExplosionAnimation = () => {
 // Добавляем вычисление масштаба
 const updateScale = () => {
   const baseWidth = 390;
-  const baseHeight = 788;
   const currentWidth = window.innerWidth;
-  const currentHeight = ref(window.innerHeight);
+  const currentHeight = window.innerHeight;
   
-  // Если высота меньше 690px, используем медиазапрос вместо transform
-  if (currentHeight < 690) {
-    scaleFactor.value = 1; // Позволим CSS медиазапросам handle масштабирование
-    return;
+  // Базовые значения
+  const baseScaleHeight = 788; // Высота, с которой начинаем уменьшение
+  const minScale = 0.7; // Минимальный масштаб
+  
+  let newScale = 1;
+  
+  // Если высота меньше базовой - вычисляем масштаб
+  if (currentHeight < baseScaleHeight) {
+    // Вычисляем на сколько пикселей текущая высота меньше базовой
+    const heightDifference = baseScaleHeight - currentHeight;
+    // Вычисляем количество "шагов" по 5px
+    const steps = heightDifference / 5;
+    // Уменьшаем масштаб на 1% за каждый шаг
+    newScale = 1 - (steps * 0.006); // Изменено с 0.005 на 0.01 (1% вместо 0.5%)
+    // Ограничиваем минимальным масштабом
+    newScale = Math.max(newScale, minScale);
   }
   
-  // Масштабирование по высоте с приоритетом
-  const scaleByHeight = currentHeight / baseHeight;
-  
-  // Учитываем минимальный масштаб для очень маленьких экранов
-  scaleFactor.value = Math.max(scaleByHeight, 0.7);
-  
-  // Для очень широких экранов ограничиваем масштаб по ширине
-  const scaledWidth = baseWidth * scaleFactor.value;
+  // Проверяем, чтобы масштабированная ширина не превышала текущую ширину
+  const scaledWidth = baseWidth * newScale;
   if (scaledWidth > currentWidth) {
-    scaleFactor.value = currentWidth / baseWidth;
+    newScale = currentWidth / baseWidth;
   }
+  
+  // Дополнительная проверка - не позволяем масштабу быть меньше minScale
+  newScale = Math.max(newScale, minScale);
+  
+  scaleFactor.value = newScale;
 };
-
 
 onMounted(() => {
   setTimeout(updateScale, 100);
@@ -3029,56 +3038,9 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 </script>
 <style scoped>
-@media (max-height: 690px) {
-  .main-bg {
-    transform: scale(0.95);
-    transform-origin: top center;
-    min-height: 600px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-  
-}
 
-@media (max-height: 670px) {
-  .main-bg {
-    transform: scale(0.93);
-    transform-origin: top center;
-    min-height: 600px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-  
-}
 
-@media (max-height: 645px) {
-  .main-bg {
-    transform: scale(0.90);
-    transform-origin: top center;
-    min-height: 600px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-  
-}
 
-@media (max-height: 635px) {
-  .main-bg {
-    transform: scale(0.87);
-    transform-origin: top center;
-    min-height: 600px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-  
-}
-/* Для очень маленьких экранов */
-@media (max-height: 615px) {
-  .main-bg {
-    transform: scale(0.84);
-    min-height: 500px;
-  }
-}
 
 .icon-button-clicked {
   animation: icon-click 0.3s ease;
@@ -4009,16 +3971,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background-repeat: no-repeat;
   z-index: 5;
   opacity: 1;
-  /* Адаптивные корректировки */
-  @media (max-width: 390px) {
-    max-width: 100%; /* На маленьких экранах занимает всю ширину */
-  }
-  
-  /* Для очень широких экранов */
-  @media (min-width: 768px) {
-    left: 50%;
-    transform: translateX(-50%); /* Центрируем по горизонтали */
-  }
+ 
 }
 
 /* Добавляем стили для заблокированных тараканов */

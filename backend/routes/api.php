@@ -74,7 +74,7 @@ Route::options('/get-bets', function () {
 });
 ///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
 // Эндпоинт получения данных игрового аккаунта
-Route::get('/api/v1/gameplay/games/accounts/{code}/{session}', function ($code, $session) {
+Route::get('/gameplay/games/accounts/{code}/{session}', function ($code, $session) {
     try {
         // Валидация параметров
         if (empty($code) || empty($session)) {
@@ -104,7 +104,7 @@ Route::get('/api/v1/gameplay/games/accounts/{code}/{session}', function ($code, 
 });
 
 // Обработка CORS для OPTIONS запроса
-Route::options('/api/v1/gameplay/games/accounts/{code}/{session}', function () {
+Route::options('/gameplay/games/accounts/{code}/{session}', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -141,7 +141,7 @@ Route::options('/v1/gameplay/games/instances/cockroaches-space-maze', function (
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 // Эндпоинт для размещения ставок
-Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $code) {
+Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
     try {
         $data = $request->validate([
             'user_id' => 'required|integer',
@@ -208,14 +208,14 @@ Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $c
 });
 
 // Обработка CORS для OPTIONS запроса
-Route::options('/api/v1/gameplay/games/bets/{code}', function () {
+Route::options('/gameplay/games/bets/{code}', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 ///////////////////////////////////////ЭНДПОИНТ (place bet)///////////////////////////////////////
-Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $code) {
+Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
     // Обработка ставки
     $data = $request->validate([
         'user_id' => 'required|integer',
@@ -236,7 +236,7 @@ Route::post('/api/v1/gameplay/games/bets/{code}', function (Request $request, $c
     ]);
 });
 
-Route::options('/api/v1/gameplay/games/bets/{code}', function () {
+Route::options('/gameplay/games/bets/{code}', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -244,7 +244,7 @@ Route::options('/api/v1/gameplay/games/bets/{code}', function () {
 });
 
 ///////////////////////////////////////ЭНДПОИНТ (bet history)///////////////////////////////////////
-Route::get('/api/v1/gameplay/games/bets/{code}/latest', function ($code) {
+Route::get('/gameplay/games/bets/{code}/latest', function ($code) {
     // Возвращает последние ставки
     return response()->json([
         'bets' => [
@@ -270,7 +270,7 @@ Route::get('/api/v1/gameplay/games/bets/{code}/latest', function ($code) {
     ]);
 });
 
-Route::options('/api/v1/gameplay/games/bets/{code}/latest', function () {
+Route::options('/gameplay/games/bets/{code}/latest', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')

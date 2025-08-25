@@ -114,8 +114,8 @@ Route::options('/gameplay/games/accounts/{code}/{session}', function () {
 
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
 // Эндпоинт получения данных игрового инстанса
-Route::get('/v1/gameplay/games/instances/cockroaches-space-maze', function () {
-    $configPath = storage_path('app/bet_buttons.json');
+Route::get('/gameplay/games/instances/cockroaches-space-maze', function () {
+    $configPath = storage_path('/app/bet_buttons.json');
     
     if (!file_exists($configPath)) {
         return response()->json(['error' => 'Configuration not found'], 404);
@@ -134,7 +134,7 @@ Route::get('/v1/gameplay/games/instances/cockroaches-space-maze', function () {
 });
 
 // Обработка CORS для OPTIONS запроса
-Route::options('/v1/gameplay/games/instances/cockroaches-space-maze', function () {
+Route::options('/gameplay/games/instances/cockroaches-space-maze', function () {
     return response('', 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')

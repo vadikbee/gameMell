@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-const { data: gameConfig } = useFetch('/gameplay/games/instances/cockroaches-space-maze');
+const { data: gameConfig } = useFetch('/api/gameplay/games/instances/cockroaches-space-maze');
 // Сохраняем результат defineProps в переменную
 const props = defineProps({
   currentBet: Number,

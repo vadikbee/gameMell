@@ -2935,7 +2935,7 @@ const startExplosionAnimation = () => {
 const updateScale = () => {
   const baseWidth = 390;
   const currentWidth = window.innerWidth;
-  const currentHeight = window.innerHeight;
+const currentHeight = ref(0);
   
   // Базовые значения
   const baseScaleHeight = 788; // Высота, с которой начинаем уменьшение
@@ -3011,8 +3011,7 @@ onMounted(() => {
   }
   updateMainBgDimensions();
  window.addEventListener('resize', () => {
-    currentHeight.value = window.innerHeight;
-    updateScale();
+    
   });
 });
 

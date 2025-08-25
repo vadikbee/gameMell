@@ -10,7 +10,7 @@
   
 
     
- <div class="game-container" :style="{ transform: `scale(${scaleFactor})` }">
+ <div class="game-container" :style="{ transform: currentHeight >= 690 ? `scale(${scaleFactor})` : 'none' }">
     <!-- Основной игровой контейнер -->
     <div class="main-bg">
         <!-- Верхняя панель баланса -->
@@ -2936,7 +2936,13 @@ const updateScale = () => {
   const baseWidth = 390;
   const baseHeight = 788;
   const currentWidth = window.innerWidth;
-  const currentHeight = window.innerHeight;
+  const currentHeight = ref(window.innerHeight);
+  
+  // Если высота меньше 690px, используем медиазапрос вместо transform
+  if (currentHeight < 690) {
+    scaleFactor.value = 1; // Позволим CSS медиазапросам handle масштабирование
+    return;
+  }
   
   // Масштабирование по высоте с приоритетом
   const scaleByHeight = currentHeight / baseHeight;
@@ -2954,12 +2960,12 @@ const updateScale = () => {
 
 onMounted(() => {
   setTimeout(updateScale, 100);
-  window.addEventListener('resize', updateScale);
+  
   document.addEventListener('click', handleDocumentClick);
  
     document.addEventListener('visibilitychange', handleVisibilityChange);
   
-  window.addEventListener('resize', updateScale);
+  
   startRaceCycle(); // Запускаем цикл при монтировании
   loadGameHistory(); // Загружаем историю игр
   
@@ -2995,14 +3001,17 @@ onMounted(() => {
     document.addEventListener('touchstart', firstInteractionHandler);
   }
   updateMainBgDimensions();
-  window.addEventListener('resize', updateMainBgDimensions);
+ window.addEventListener('resize', () => {
+    currentHeight.value = window.innerHeight;
+    updateScale();
+  });
 });
 
 onUnmounted(() => {
   
   window.removeEventListener('resize', updateScale);
   document.removeEventListener('click', handleDocumentClick);
-  document.removeEventListener('click', handleDocumentClick);
+  
     document.removeEventListener('visibilitychange', handleVisibilityChange);
   // Очищаем таймеры при уничтожении компонента
   clearInterval(cycleTimer);
@@ -3020,6 +3029,56 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 </script>
 <style scoped>
+@media (max-height: 690px) {
+  .main-bg {
+    transform: scale(0.95);
+    transform-origin: top center;
+    min-height: 600px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+}
+
+@media (max-height: 670px) {
+  .main-bg {
+    transform: scale(0.93);
+    transform-origin: top center;
+    min-height: 600px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+}
+
+@media (max-height: 645px) {
+  .main-bg {
+    transform: scale(0.90);
+    transform-origin: top center;
+    min-height: 600px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+}
+
+@media (max-height: 635px) {
+  .main-bg {
+    transform: scale(0.87);
+    transform-origin: top center;
+    min-height: 600px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+}
+/* Для очень маленьких экранов */
+@media (max-height: 615px) {
+  .main-bg {
+    transform: scale(0.84);
+    min-height: 500px;
+  }
+}
 
 .icon-button-clicked {
   animation: icon-click 0.3s ease;
@@ -4252,6 +4311,7 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   overflow: hidden;
   margin: 0 auto;
   z-index: 1;
+  
 }
 /* Обновленные стили для кнопок */
 .button-1 {

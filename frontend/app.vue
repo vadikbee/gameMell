@@ -2940,18 +2940,14 @@ const updateScale = () => {
   
   // Масштабирование по высоте с приоритетом
   const scaleByHeight = currentHeight / baseHeight;
-  const scaledWidth = baseWidth * scaleByHeight;
   
-  // Если scaledWidth превышает доступную ширину, масштабируем по ширине
+  // Учитываем минимальный масштаб для очень маленьких экранов
+  scaleFactor.value = Math.max(scaleByHeight, 0.7);
+  
+  // Для очень широких экранов ограничиваем масштаб по ширине
+  const scaledWidth = baseWidth * scaleFactor.value;
   if (scaledWidth > currentWidth) {
     scaleFactor.value = currentWidth / baseWidth;
-  } else {
-    scaleFactor.value = scaleByHeight;
-  }
-  
-  // Для очень маленьких экранов устанавливаем минимальный масштаб
-  if (currentHeight < 600) {
-    scaleFactor.value = Math.max(scaleFactor.value, 0.7);
   }
 };
 
@@ -3672,7 +3668,8 @@ window.removeEventListener('resize', updateMainBgDimensions);
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Изменено с center на flex-start */
+  overflow: hidden;
 }
 
 
@@ -3829,7 +3826,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background: rgba(0, 0, 0, 0.3) !important;
 }
 .game-container {
-  transform-origin: center;
+  transform-origin: top center; /* Масштабирование от верхнего края */
   flex-shrink: 0;
 }
 /* Для очень маленьких экранов добавим минимальный масштаб */
@@ -3844,13 +3841,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
     transform: scale(0.8) !important;
   }
 }
-.main-bg {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  
-}
+
 .menu-button.diagonal.locked .coefficient-container,
 .menu-button.diagonal.locked .confirmed-content {
   display: none !important;

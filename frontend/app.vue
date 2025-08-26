@@ -284,13 +284,14 @@
     <!-- app.vue -->
   <!-- Обновленный блок menu-buttons-container -->
 <div class="menu-buttons-container">
+
 <div 
   v-for="btn in (activeTab === 'result' ? resultButtons : overtakingButtons)" 
   :key="btn.id"
   class="menu-button"
   :class="{
-    'selected': btn.selected,
-    'confirmed': btn.confirmed,
+    'selected': btn.selected && !btn.confirmed, // Выделена, но не подтверждена
+    'confirmed': btn.confirmed,                 // Подтвержденная ставка
     'text-button': activeTab === 'result' || activeTab === 'overtaking',
     'button-visible': isButtonVisible(btn),
     'has-bet': btn.betAmount > 0,
@@ -1127,16 +1128,12 @@ const resetAllBets = () => {
   });
   
   overtakingButtons.value.forEach(b => {
-    if (b.confirmed) {
       b.confirmed = false;
       b.betAmount = 0;
-      // Сбрасываем выделение только для подтвержденных кнопок
-      b.selected = false;
-    }
-    // Неподтвержденные кнопки остаются выделенными
+    
   });
   
-  
+
 };
 // Восстановление неподтвержденных выделений при открытии меню
 
@@ -1448,7 +1445,7 @@ const placeBet = async () => {
       playOutcomeSound();
       
       // Очищаем выделения
-      overtakingSelections.value = {};
+      
     }
 
     showBetPlacedNotification();
@@ -1571,12 +1568,14 @@ const setActiveTab = (tab) => {
 };
 
 // 2. Добавляем метод для восстановления выделений
+// В app.vue, в методе restoreOvertakingSelections:
 const restoreOvertakingSelections = () => {
   overtakingButtons.value.forEach(btn => {
     const row = Math.floor(btn.id / 7);
     const col = btn.id % 7;
     
-    // Восстанавливаем только неподтвержденные выделения
+    // Восстанавливаем выделение на основе overtakingSelections
+    // Для подтвержденных кнопок не восстанавливаем выделение
     if (!btn.confirmed) {
       btn.selected = overtakingSelections.value[row]?.has(col) || false;
     }
@@ -2463,8 +2462,7 @@ const diagonalButtons = computed(() => {
 
 // Обработчик выбора кнопки в меню
 const toggleMenuButton = (btn) => {
-  playStakeActionClick();
-    if (activeTab.value === 'overtaking' && diagonalButtons.value.includes(btn.id)) {
+  if (btn.confirmed || (activeTab.value === 'overtaking' && diagonalButtons.value.includes(btn.id))) {
     return;
   }
   const row = Math.floor(btn.id / 7);
@@ -2474,21 +2472,21 @@ const toggleMenuButton = (btn) => {
   if (btn.confirmed) return; // <-- Добавленная проверка
 
   console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBugName(row+1)}, position=${col+1}`);
-  if (activeTab.value === 'overtaking') {
-    // Пропускаем диагональные кнопки
-    if (row === col) return;
+if (activeTab.value === 'overtaking') {
+  // Пропускаем диагональные кнопки
+  if (row === col) return;
 
-    // Инициализируем строку если нужно
-    if (!overtakingSelections.value[row]) {
-      overtakingSelections.value[row] = new Set();
-    }
+  // Инициализируем строку если нужно
+  if (!overtakingSelections.value[row]) {
+    overtakingSelections.value[row] = new Set();
+  }
 
-    
-    // Проверка блокировки
-    if (lockedBugsArray.value.includes(row) || 
-        lockedBugsArray.value.includes(col)) {
-      return;
-    }
+  // Проверка блокировки
+  if (lockedBugsArray.value.includes(row) || 
+      lockedBugsArray.value.includes(col)) {
+    return;
+  }
+
   // Переключение выбора столбца
   if (overtakingSelections.value[row].has(col)) {
     overtakingSelections.value[row].delete(col);
@@ -2497,6 +2495,11 @@ const toggleMenuButton = (btn) => {
     overtakingSelections.value[row].add(col);
     btn.selected = true;
   }
+
+  
+  // Убедимся, что состояние кнопки соответствует selections
+  btn.selected = overtakingSelections.value[row].has(col);
+
 
     const { overtaker, overtaken } = overtakingSelection.value;
     
@@ -2648,14 +2651,20 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
   resultButtons.value.forEach(b => {
     b.confirmed = false;
     b.betAmount = 0;
+    
   });
 
-  overtakingButtons.value.forEach(btn => {
-    if (btn.confirmed) {
-      btn.confirmed = false;
-      btn.betAmount = 0;
-    }
-  });
+// В функции handleGenerateClick добавьте:
+overtakingButtons.value.forEach(btn => {
+  if (btn.confirmed) {
+    btn.confirmed = false;
+    btn.betAmount = 0;
+    
+  }
+  
+});
+
+
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;
@@ -2748,27 +2757,8 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
   } finally {
     isLoading.value = false;
   }
-  // В функции generatePaths после получения данных
-// После получения данных генерации
-
-  confirmedBets.forEach(bet => {
-    const btn = overtakingButtons.value.find(b => b.id === bet.id);
-    if (btn) {
-      btn.confirmed = true;
-      btn.betAmount = bet.amount;
-    }
-  });
-};
-const clearOvertakingSelections = () => {
-  // Сбрасываем только НЕподтвержденные выделения
-  overtakingButtons.value.forEach(btn => {
-    if (!btn.confirmed) {
-      btn.selected = false;
-    }
-  });
   
-  // Очищаем объект выделений
-  overtakingSelections.value = {};
+  
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {

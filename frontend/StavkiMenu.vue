@@ -195,11 +195,11 @@ const handleX2Click = () => {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
-  width: 100%;
+  gap: 10px;
+  width: 67%;
   top: 10px;
   
-  right: 65px;
+  right: 117px;
   z-index: 9;
   padding: 0 10px;
   box-sizing: border-box;

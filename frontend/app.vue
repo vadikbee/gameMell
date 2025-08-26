@@ -945,9 +945,10 @@ const stavkiButtons = computed(() => {
 // Добавим computed свойства для коэффициентов
 
 // Убедимся, что коэффициенты всегда берутся из API
+// В computed свойствах коэффициентов замените console.error на console.warn
 const resultCoefficients = computed(() => {
   if (!gameConfig.value?.coefficients?.result) {
-    console.error('Result coefficients not found in API response');
+    console.warn('Result coefficients not found in API response'); // changed to warn
     return Array(49).fill(2.23);
   }
   return gameConfig.value.coefficients.result;
@@ -955,10 +956,20 @@ const resultCoefficients = computed(() => {
 
 const overtakingCoefficients = computed(() => {
   if (!gameConfig.value?.coefficients?.overtaking) {
-    console.error('Overtaking coefficients not found in API response');
+    console.warn('Overtaking coefficients not found in API response'); // changed to warn
     return Array(49).fill(2.6);
   }
   return gameConfig.value.coefficients.overtaking;
+});
+
+const sectionCoefficients = computed(() => {
+  if (!gameConfig.value?.coefficients?.section) {
+    console.warn('Section coefficients not found in API response'); // changed to warn
+    return {
+      1: 2.5, 2: 2.3, 3: 2.1, 4: 2.0, 5: 2.2, 6: 2.4, 7: 2.6
+    };
+  }
+  return gameConfig.value.coefficients.section;
 });
 
 // Добавление ставки
@@ -1808,19 +1819,6 @@ const saveGameResults = async () => {
     }
     
 
-// Проверяем результаты ставок
-  setTimeout(() => {
-    checkBetsResults();
-  }, 1000);
-    // Проверяем результаты ставок
-  checkBetsResults();
-  
-
-   
-// Проверяем результаты ставок
-  setTimeout(() => {
-    checkBetsResults();
-  }, 1000);
 
   // Деактивируем сессию на сервере
 await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
@@ -2317,17 +2315,7 @@ const overtakingButtons = ref(
 const getCoefficient = (btn) => {
   return btn.coefficient;
 };
-// Добавьте вычисляемые свойства для коэффициентов секций
-// Используем коэффициенты из API
-const sectionCoefficients = computed(() => {
-  if (!gameConfig.value?.coefficients?.section) {
-    console.error('Section coefficients not found in API response');
-    return {
-      1: 2.5, 2: 2.3, 3: 2.1, 4: 2.0, 5: 2.2, 6: 2.4, 7: 2.6
-    };
-  }
-  return gameConfig.value.coefficients.section;
-});
+
 // Обновленные кнопки победы
 // Обновите winButtons чтобы использовать коэффициенты из API
 const winButtons = ref([
@@ -2339,7 +2327,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [360, 687] // Добавлено значение по умолчанию
   },
   { 
     id: 6, 
@@ -2349,7 +2337,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [305, 687] // Добавлено значение по умолчанию
   },
    { 
     id: 5, 
@@ -2359,7 +2347,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [250, 687] // Добавлено значение по умолчанию
   }, { 
     id: 4, 
     bugs: [], 
@@ -2368,7 +2356,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [195, 687] // Добавлено значение по умолчанию
   }, { 
     id: 3, 
     bugs: [], 
@@ -2377,7 +2365,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [140, 687] // Добавлено значение по умолчанию
   }, { 
     id: 2, 
     bugs: [], 
@@ -2386,7 +2374,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [85, 687] // Добавлено значение по умолчанию
   }, { 
     id: 1, 
     bugs: [], 
@@ -2395,7 +2383,7 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
-     bluePoint: [0, 0] // Добавлено значение по умолчанию
+     bluePoint: [30, 687] // Добавлено значение по умолчанию
   },
 ]);
 

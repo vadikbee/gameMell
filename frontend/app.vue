@@ -4077,7 +4077,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   width: 30px;
   height: 38px;
   scale: 90%;
-  margin-top: -13%;
+  margin-top: -12%;
   transform: translate(-50%, -50%) ; /* Центрирование */
   z-index: 3;
   transition: left 0.1s linear, top 0.1s linear, filter 0.3s ease; /* Плавное движение */ /* Полупрозрачный фон */

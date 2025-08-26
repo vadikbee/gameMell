@@ -315,7 +315,7 @@
       class="coefficient-container"
     >
       <div class="coefficient-bg"></div>
-      <div class="coefficient-text">2.23</div>
+      <div class="coefficient-text">{{ btn.coefficient || '2.23' }}</div>
     </div>
   </div>
 </div>
@@ -813,7 +813,7 @@ const playOutcomeSound = () => {
 const placeSectionBet = async () => {
   try {
     playBetClick();
-    
+    const coefficient = sectionCoefficients.value[selectedTrap.value];
     // Преобразуем ID тараканов из формата интерфейса (1-7) в формат гонки (0-6)
     const raceBugIds = selectedBugs.value.map(id => id - 1);
     
@@ -840,7 +840,7 @@ const placeSectionBet = async () => {
       alert('Недостаточно средств на балансе');
       return;
     }
-
+    
     // Создаем ОДНУ ставку для всех выбранных тараканов
     const totalAmount = currentBet.value * selectedBugs.value.length;
     
@@ -912,8 +912,13 @@ const resetBugSelections = () => {
 };
 
 // Добавим получение конфигурации из API
-const { data: gameConfig } = useFetch('/gameplay/games/instances/cockroaches-space-maze');
-// Новое состояние для центрального меню
+const { data: gameConfig, error: configError } = useFetch('/api/gameplay/games/instances/cockroaches-space-maze');
+watch(configError, (newError) => {
+  if (newError) {
+    console.error('Failed to load game config:', newError);
+    // Можно показать уведомление пользователю
+  }
+});
 const centerWinMenuVisible = ref(false);
 const activeWinMenuId = ref(null);
 const historyBetsInsideCenter = ref(false);
@@ -928,6 +933,7 @@ const betHistory = ref([]); // История ставок
 const undoStack = ref([]); // Стек для отмены операций
 
 // Используем параметры из API
+
 const stavkiButtons = computed(() => {
   if (!gameConfig.value) return [];
   
@@ -935,6 +941,24 @@ const stavkiButtons = computed(() => {
     id: amount.toString(),
     amount: amount
   }));
+});
+// Добавим computed свойства для коэффициентов
+
+// Убедимся, что коэффициенты всегда берутся из API
+const resultCoefficients = computed(() => {
+  if (!gameConfig.value?.coefficients?.result) {
+    console.error('Result coefficients not found in API response');
+    return Array(49).fill(2.23);
+  }
+  return gameConfig.value.coefficients.result;
+});
+
+const overtakingCoefficients = computed(() => {
+  if (!gameConfig.value?.coefficients?.overtaking) {
+    console.error('Overtaking coefficients not found in API response');
+    return Array(49).fill(2.6);
+  }
+  return gameConfig.value.coefficients.overtaking;
 });
 
 // Добавление ставки
@@ -1296,152 +1320,97 @@ const saveBetToServer = async (bet) => {
     throw error;
   }
 };
-const placeBet = async () => {
-    try {
-      
+// Добавьте watcher для обновления коэффициентов при изменении конфига
+watch(resultCoefficients, (newCoefficients) => {
+  resultButtons.value.forEach((btn, index) => {
+    btn.coefficient = newCoefficients[index];
+  });
+});
 
-        const workingButtons = activeTab.value === 'result' 
-            ? resultButtons.value 
-            : overtakingButtons.value;
-            
-        const selectedButtons = workingButtons.filter(btn => btn.selected);
-        playBetClick();
+watch(overtakingCoefficients, (newCoefficients) => {
+  overtakingButtons.value.forEach((btn, index) => {
+    btn.coefficient = newCoefficients[index];
+  });
+});
+
+// В функции placeBet добавлю использование коэффициентов
+const placeBet = async () => {
+  try {
+    if (activeTab.value === 'overtaking') {
+      // Для ставок на обгон
+      const selectedPairs = [];
+      for (const [row, columns] of Object.entries(overtakingSelections.value)) {
+        for (const col of columns) {
+          selectedPairs.push({
+            overtaker: Number(row),
+            overtaken: Number(col)
+          });
+        }
+      }
+
+      selectedPairs.forEach(pair => {
+        const buttonId = pair.overtaker * 7 + pair.overtaken;
+        const button = overtakingButtons.value.find(b => b.id === buttonId);
+        const coefficient = button?.coefficient || 2.0; // Индивидуальный коэффициент
         
-        // Для ставок на обгон
-        if (activeTab.value === 'overtaking') {
-            
-            const selectedPairs = [];
-            
-  for (const [row, columns] of Object.entries(overtakingSelections.value)) {
-    for (const col of columns) {
-      selectedPairs.push({
-        overtaker: Number(row),
-        overtaken: Number(col)
+        const bet = {
+          type: 'overtaking',
+          overtaker: pair.overtaker,
+          overtaken: pair.overtaken,
+          amount: currentBet.value,
+          coefficient: coefficient, // Передаем коэффициент
+          timestamp: new Date().toISOString()
+        };
+        
+        betHistory.value.push(bet);
+        nextRaceBets.value.push(bet);
+        
+        saveBetToServer({
+          type: 'overtaking',
+          overtaker: pair.overtaker,
+          overtaken: pair.overtaken,
+          amount: currentBet.value,
+          coefficient: coefficient // Передаем коэффициент
+        });
       });
     }
-  }
-  
-             if (selectedPairs.length === 0) {
-    infoMessage.value = t('select_bug_to_overtake');
-    infoNotificationVisible.value = true;
-    setTimeout(() => infoNotificationVisible.value = false, 3000);
-    return;
-  }
-  
-  // Создаем ставки для КАЖДОЙ пары
-  selectedPairs.forEach(pair => {
-    const bet = {
-      type: 'overtaking',
-      overtaker: pair.overtaker,
-      overtaken: pair.overtaken,
-      amount: currentBet.value,
-      timestamp: new Date().toISOString(),
-      result: 'pending'
-    };
     
-    betHistory.value.push(bet);
-    nextRaceBets.value.push(bet);
-    
-    // Сохраняем на сервере
-    saveBetToServer({
-      type: 'overtaking',
-      overtaker: pair.overtaker,
-      overtaken: pair.overtaken,
-      amount: currentBet.value
-    });
-  });
-            
-            // Списание средств
-  balance.value -= currentBet.value * selectedPairs.length;
-  playOutcomeSound();
-  showBetPlacedNotification();
-            
-            // Отмечаем кнопки как подтвержденные
-  selectedPairs.forEach(pair => {
-    const buttonId = pair.overtaker * 7 + pair.overtaken;
-    const button = overtakingButtons.value.find(b => b.id === buttonId);
-    if (button) {
-      button.confirmed = true;
-      button.betAmount = currentBet.value;
-      // Сбрасываем выделение после подтверждения
-      button.selected = false; // <-- ДОБАВЛЕНА ЭТА СТРОКА
-    }
-  });
-
-  clearOvertakingSelections(); // ДОБАВИТЬ
-}
-
-        // Для ставок на результат (позицию)
-        if (activeTab.value === 'result') {
-            const selectedButtons = resultButtons.value.filter(btn => btn.selected);
-            
-            if (selectedButtons.length > 0) {
-                // Рассчитываем общую сумму ставки
-                const totalBetAmount = currentBet.value * selectedButtons.length;
-                
-                if (totalBetAmount > balance.value) {
-                    infoMessage.value = t('insufficient_funds');
-                    infoNotificationVisible.value = true;
-                    setTimeout(() => infoNotificationVisible.value = false, 3000);
-                    return;
-                }
-
-                // Списание средств
-                balance.value -= totalBetAmount;
-                playOutcomeSound();
-                showBetPlacedNotification();
-                
-                // Для каждой выбранной кнопки создаем отдельную ставку
-                selectedButtons.forEach(button => {
-                    const row = Math.floor(button.id / 7);
-                    const col = button.id % 7;
-                    const bugId = row + 1;
-                    const position = col + 1;
-                    
-                    const bet = {
-                        type: 'position',
-                        bugId: bugId,
-                        position: position,
-                        amount: currentBet.value,
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    betHistory.value.push(bet);
-                    nextRaceBets.value.push(bet);
-                    
-                    // Сохраняем на сервере
-                    saveBetToServer({
-                        type: 'position',
-                        bugId: bugId,
-                        position: position,
-                        amount: currentBet.value
-                    });
-                });
-                
-                // Обновляем UI
-                selectedButtons.forEach(button => {
-                    button.confirmed = true;
-                    button.betAmount = currentBet.value;
-                    button.selected = false;
-                });
-            } else {
-                infoMessage.value = t('select_bet_option');
-                infoNotificationVisible.value = true;
-                setTimeout(() => infoNotificationVisible.value = false, 3000);
-            }
-        }
+    if (activeTab.value === 'result') {
+      // Для ставок на результат
+      const coefficient = button.coefficient;
+      const selectedButtons = resultButtons.value.filter(btn => btn.selected);
+      
+      selectedButtons.forEach(button => {
+        const row = Math.floor(button.id / 7);
+        const col = button.id % 7;
+        const bugId = row + 1;
+        const position = col + 1;
+        const coefficient = button.coefficient; // Индивидуальный коэффициент
         
-        // Обновляем историю ставок
-        fetchBetHistory();
-        // После успешного сохранения ставки
-        if (activeTab.value === 'result' || activeTab.value === 'overtaking') {
-            currentBet.value = 25; // Сброс к минимальной ставке
-            undoStack.value = []; // Очистка стека отмены
-        }
+        const bet = {
+          type: 'position',
+          bugId: bugId,
+          position: position,
+          amount: currentBet.value,
+          coefficient: coefficient, // Передаем коэффициент
+          timestamp: new Date().toISOString()
+        };
         
-    } catch (error) {
-        console.error('Error saving bet:', error);
+        betHistory.value.push(bet);
+        nextRaceBets.value.push(bet);
+        
+        saveBetToServer({
+          type: 'position',
+          bugId: bugId,
+          position: position,
+          amount: currentBet.value,
+          coefficient: coefficient // Передаем коэффициент
+        });
+      });
     }
+  } catch (error) {
+    console.error('Error saving bet:', error);
+  }
 };
 watch(activeTab, (newTab) => {
   if (newTab === 'overtaking') {
@@ -1526,6 +1495,15 @@ const lastGames = ref([
   { id: 2, results: [{ position: 3, color: '#0000FF' }, { position: 2, color: '#FFFF00' }] }
 ]);
 
+// Используйте watch для обновления кнопок при получении конфигурации
+// В функции обновления winButtons
+watch(() => gameConfig.value, (newConfig) => {
+  if (newConfig) {
+    winButtons.value.forEach(btn => {
+      btn.coefficient = newConfig.coefficients?.section?.[btn.id] ?? sectionCoefficients.value[btn.id];
+    });
+  }
+}, { immediate: true });
 
 const setActiveTab = (tab) => {
   playStakeActionClick();
@@ -2311,13 +2289,15 @@ const stopAction = () => {
 
 
 
+// Обновим инициализацию кнопок с коэффициентами
 const resultButtons = ref(
   Array.from({ length: 49 }, (_, index) => 
     reactive({
       id: index,
       selected: false,
       confirmed: false,
-      betAmount: 0
+      betAmount: 0,
+      coefficient: resultCoefficients.value[index] // Используем коэффициент из конфига
     })
   )
 );
@@ -2328,20 +2308,95 @@ const overtakingButtons = ref(
       id: index,
       selected: false,
       confirmed: false,
-      betAmount: 0
+      betAmount: 0,
+      coefficient: overtakingCoefficients.value[index] // Используем коэффициент из конфига
     })
   )
 );
-
+// Обновим функцию отображения коэффициента в шаблоне
+const getCoefficient = (btn) => {
+  return btn.coefficient;
+};
+// Добавьте вычисляемые свойства для коэффициентов секций
+// Используем коэффициенты из API
+const sectionCoefficients = computed(() => {
+  if (!gameConfig.value?.coefficients?.section) {
+    console.error('Section coefficients not found in API response');
+    return {
+      1: 2.5, 2: 2.3, 3: 2.1, 4: 2.0, 5: 2.2, 6: 2.4, 7: 2.6
+    };
+  }
+  return gameConfig.value.coefficients.section;
+});
 // Обновленные кнопки победы
+// Обновите winButtons чтобы использовать коэффициенты из API
 const winButtons = ref([
-  { id: 7, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 4, bluePoint: [360, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 6, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 59, bluePoint: [305, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 5, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 114, bluePoint: [250, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 4, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 169, bluePoint: [195, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 3, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 224, bluePoint: [140, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 2, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 279, bluePoint: [85, 687], menuVisible: false, menuTimer: null, selected: false },
-  { id: 1, bugs: [], coefficient: 1.1,hovered: false, top: 687, right: 334, bluePoint: [30, 687], menuVisible: false, menuTimer: null, selected: false },
+  { 
+    id: 7, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[7],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  },
+  { 
+    id: 6, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[6],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  },
+   { 
+    id: 5, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[5],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  }, { 
+    id: 4, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[4],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  }, { 
+    id: 3, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[3],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  }, { 
+    id: 2, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[2],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  }, { 
+    id: 1, 
+    bugs: [], 
+    coefficient: sectionCoefficients.value[1],
+    selected: false,
+    occupied: false,
+    finishedBugId: null,
+    betAmount: 0,
+     bluePoint: [0, 0] // Добавлено значение по умолчанию
+  },
 ]);
 
 // Сброс выбора обгона

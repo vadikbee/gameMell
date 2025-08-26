@@ -22,8 +22,13 @@ class BetHistoryController extends Controller
             'selection' => 'required|array', // Теперь это массив ID
             'trapId' => 'required_if:type,trap|integer', // Добавляем поле trapId
             'color' => 'required|string',
-            'time' => 'required|date_format:H:i:s'
+            'time' => 'required|date_format:H:i:s',
+            'coefficient' => 'sometimes|numeric'
         ]);
+         // Сохраняем коэффициент если передан
+        if ($request->has('coefficient')) {
+            $validated['coefficient'] = $request->input('coefficient');
+        }
             // Для ставок на секцию сохраняем ID тараканов
         if ($validated['type'] === 'trap') {
             $validated['selection'] = $request->input('selection'); // ID тараканов

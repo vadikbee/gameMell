@@ -30,7 +30,8 @@ Route::post('/api/save-bet', function (Request $request) {
       'selection' => 'required_if:type,section|array',
       'trapId' => 'required_if:type,section|integer',
       'color' => 'nullable|string',
-      'time' => 'nullable|string'
+      'time' => 'nullable|string',
+      'coefficient' => 'sometimes|numeric'
     ]);
         
         // Сохранение ставки в базу данных или файл
@@ -121,15 +122,24 @@ Route::options('/gameplay/games/bets/{code}/latest', function () {
 });
 ////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
-// Эндпоинт получения данных игрового инстанса
 Route::get('/gameplay/games/instances/cockroaches-space-maze', function () {
     $configPath = storage_path('/app/bet_buttons.json');
     
+    Log::info('Loading config from: ' . $configPath);
+    
     if (!file_exists($configPath)) {
+        Log::error('Config file not found: ' . $configPath);
         return response()->json(['error' => 'Configuration not found'], 404);
     }
     
     $config = json_decode(file_get_contents($configPath), true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        Log::error('Invalid JSON in config file: ' . json_last_error_msg());
+        return response()->json(['error' => 'Invalid configuration'], 500);
+    }
+    
+    Log::info('Config loaded successfully', $config);
     
     return response()->json([
         'bet_buttons' => $config['bet_buttons'],

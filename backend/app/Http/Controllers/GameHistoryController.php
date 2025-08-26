@@ -163,8 +163,9 @@ public function getLastGames()
             'results.*.position' => 'nullable|integer|min:1',
             'results.*.color' => 'required|string',
             'results.*.trapId' => 'nullable|integer', // Добавляем поле trapId
+            'coefficient' => 'sometimes|numeric', // Добавляем поле коэффициента
         ]);
-
+        $validated['coefficient'] = $request->input('coefficient', 2.23);
         $results = $validated['results'];
         $filePath = $this->getFilePath();
         $history = [];
@@ -218,8 +219,9 @@ public function getLastGames()
             'bets.*.overtaken' => 'required_if:type,overtaking|integer',
             'bets.*.trapId' => 'required_if:type,section|integer',
             'bets.*.bugIds' => 'required_if:type,section|array',
+            'bets.*.coefficient' => 'sometimes|numeric', // Добавляем поле коэффициента
         ]);
-
+        
         $results = $validated['results'];
         $bets = $validated['bets'];
 
@@ -237,6 +239,7 @@ public function getLastGames()
         $losingBets = [];
 
         foreach ($bets as $bet) {
+            $coefficient = $bet['coefficient'] ?? 2.23; // Используем переданный коэффициент или значение по умолчанию
             switch ($bet['type']) {
                 case 'position':
                     $bugId = $bet['bugId'] - 1;
@@ -256,6 +259,7 @@ public function getLastGames()
                     } else {
                         $losingBets[] = $bet;
                     }
+                    $winAmount = $bet['amount'] * $coefficient; // Используем индивидуальный коэффициент
                     break;
 
                 case 'overtaking':
@@ -280,6 +284,7 @@ public function getLastGames()
                     } else {
                         $losingBets[] = $bet;
                     }
+                     $winAmount = $bet['amount'] * $coefficient; // Используем индивидуальный коэффициент
                     break;
 
                case 'section':
@@ -311,6 +316,7 @@ public function getLastGames()
     } else {
         $losingBets[] = $bet;
     }
+    $winAmountPerBug = ($bet['amount'] / count($bet['bugIds'])) * $coefficient;
     break;
             }
         }

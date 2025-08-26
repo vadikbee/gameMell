@@ -248,7 +248,7 @@ public function getLastGames()
                     
                     $isWin = $result && $result['position'] === $bet['position'];
                     if ($isWin) {
-                        $winAmount = $bet['amount'] * 2.23;
+                         $winAmount = $bet['amount'] * $coefficient; // Используем коэффициент
                         $winningBets[] = [
                             'type' => 'position',
                             'amount' => $bet['amount'],
@@ -273,7 +273,7 @@ public function getLastGames()
                              (!$resultOvertaken || $resultOvertaker['position'] < $resultOvertaken['position']);
                     
                     if ($isWin) {
-                        $winAmount = $bet['amount'] * 2;
+                        $winAmount = $bet['amount'] * $coefficient; // Используем коэффициент
                         $winningBets[] = [
                             'type' => 'overtaking',
                             'amount' => $bet['amount'],
@@ -301,7 +301,7 @@ public function getLastGames()
 
     if (count($winningBugs) > 0) {
         // Выигрыш = (ставка / общее количество тараканов) * коэффициент * количество выигравших тараканов
-        $winAmountPerBug = ($bet['amount'] / count($bet['bugIds'])) * 2.23;
+         $winAmountPerBug = ($bet['amount'] / count($bet['bugIds'])) * $coefficient; // Используем коэффициент
         $totalWin = $winAmountPerBug * count($winningBugs);
         
         $winningBets[] = [

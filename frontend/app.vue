@@ -881,6 +881,10 @@ const placeSectionBet = async () => {
     if (!response.ok) throw new Error('Failed to save section bet');
     
     fetchBetHistory();
+
+     // После успешного сохранения ставки
+        currentBet.value = 25; // Сброс к минимальной ставке
+        undoStack.value = []; // Очистка стека отмены
   } catch (error) {
     console.error('Error saving section bet:', error);
   } finally {
@@ -1429,6 +1433,11 @@ const placeBet = async () => {
         
         // Обновляем историю ставок
         fetchBetHistory();
+        // После успешного сохранения ставки
+        if (activeTab.value === 'result' || activeTab.value === 'overtaking') {
+            currentBet.value = 25; // Сброс к минимальной ставке
+            undoStack.value = []; // Очистка стека отмены
+        }
         
     } catch (error) {
         console.error('Error saving bet:', error);

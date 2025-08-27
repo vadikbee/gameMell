@@ -1144,13 +1144,11 @@ const resetAllBets = () => {
  // Полный сброс только для confirmed ставок
   resultButtons.value.forEach(b => {
     b.confirmed = false;
-     b.selected = false; // Добавлено сброс выделения
     b.betAmount = 0;
   });
   
   overtakingButtons.value.forEach(b => {
       b.confirmed = false;
-       b.selected = false; // Добавлено сброс выделения
       b.betAmount = 0;
     
   });
@@ -1437,14 +1435,19 @@ const placeBet = async () => {
 
       // Немедленное обновление UI
       for (const pair of selectedPairs) {
-        const buttonId = pair.overtaker * 7 + pair.overtaken;
-        const button = overtakingButtons.value.find(b => b.id === buttonId);
-        if (button) {
-          button.confirmed = true;
-          button.betAmount = currentBet.value;
-          button.selected = false;
-        }
-      }
+  const buttonId = pair.overtaker * 7 + pair.overtaken;
+  const button = overtakingButtons.value.find(b => b.id === buttonId);
+  if (button) {
+    button.confirmed = true;
+    button.betAmount = currentBet.value;
+    button.selected = false;
+
+    // Удаляем пару из overtakingSelections
+    if (overtakingSelections.value[pair.overtaker]) {
+      overtakingSelections.value[pair.overtaker].delete(pair.overtaken);
+    }
+  }
+}
 
       balance.value -= totalAmount;
       playOutcomeSound();
@@ -2456,7 +2459,7 @@ const resetOvertakingSelection = () => {
     if (btn.confirmed) {
       btn.confirmed = false;
       btn.betAmount = 0;
-      btn.selected = false;
+      
     }
   });
   
@@ -2692,11 +2695,9 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
 
 // В функции handleGenerateClick добавьте:
 overtakingButtons.value.forEach(btn => {
-  if (btn.confirmed) {
     btn.confirmed = false;
     btn.betAmount = 0;
     
-  }
   
 });
 

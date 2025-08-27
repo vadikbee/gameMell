@@ -1577,10 +1577,7 @@ watch(() => gameConfig.value, (newConfig) => {
 const setActiveTab = (tab) => {
   playStakeActionClick();
   
-  // Сбрасываем выделение на текущей активной вкладке
-  if (activeTab.value === 'result') {
-    resultButtons.value.forEach(btn => btn.selected = false);
-  } 
+
   
   // Устанавливаем новую вкладку
   activeTab.value = tab;

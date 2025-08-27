@@ -31,7 +31,7 @@
       <div v-for="(bet, index) in bets" :key="index" class="bet-item">
         <!-- Индикатор ловушки -->
         <div class="section-indicator">
-          <img :src="`/images/trap-${bet.trapId}.png`" alt="Trap" class="trap-icon">
+          <img :src="`/images/icons/icon-kybok.png`" alt="Trap" class="trap-icon">
         </div>
         
         <!-- Цвета выигравших тараканов -->
@@ -100,13 +100,27 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}`;
 };
 
-// Получаем только выигравших тараканов для ставки
 const getWinningBugs = (bet) => {
   if (bet.type === 'section' && bet.winningBugs) {
-    return bet.winningBugs;
+    // Convert bug IDs to color objects
+    return bet.winningBugs.map(bugId => ({
+      color: getBugColorById(bugId)
+    }));
   }
-  // Для других типов ставок возвращаем пустой массив или заглушку
   return bet.bugColors ? bet.bugColors.map(color => ({ color })) : [];
+};
+
+const getBugColorById = (bugId) => {
+  const colorMap = {
+    0: '#FFFF00', // yellow
+    1: '#FFA500', // orange
+    2: '#8B0000', // dark-orange
+    3: '#0000FF', // blue
+    4: '#FF0000', // red
+    5: '#800080', // purple
+    6: '#00FF00'  // green
+  };
+  return colorMap[bugId] || '#CCCCCC'; // default gray
 };
 
 // Добавляем функцию для форматирования описания ставки
@@ -462,6 +476,7 @@ onUnmounted(() => {
 .trap-icon {
   width: 20px;
   height: 20px;
+  
 }
 
 /* Стили для списка ставок */

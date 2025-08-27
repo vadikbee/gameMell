@@ -3968,7 +3968,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   pointer-events: none;
   
    /* Сохраняем соотношение сторон 390x689 */
-  background-image: url('/images/background/labirint.png');
+  
   
   background-size: contain; /* Изображение полностью помещается в элемент */
   background-position: center;

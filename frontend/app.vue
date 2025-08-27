@@ -303,7 +303,7 @@
   <!-- Удалено старое отображение -->
   <!-- Новое расположение элементов -->
  <div v-if="btn.confirmed" class="confirmed-content">
-  <div class="confirmed-coefficient">2.23</div>
+  <div class="confirmed-coefficient">{{ btn.coefficient }}</div>
   <div class="confirmed-bet-amount">
     {{ btn.betAmount }}₽
   </div>

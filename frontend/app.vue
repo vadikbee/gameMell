@@ -1144,11 +1144,13 @@ const resetAllBets = () => {
  // Полный сброс только для confirmed ставок
   resultButtons.value.forEach(b => {
     b.confirmed = false;
+     b.selected = false; // Добавлено сброс выделения
     b.betAmount = 0;
   });
   
   overtakingButtons.value.forEach(b => {
       b.confirmed = false;
+       b.selected = false; // Добавлено сброс выделения
       b.betAmount = 0;
     
   });

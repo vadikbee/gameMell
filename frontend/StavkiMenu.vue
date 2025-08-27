@@ -121,9 +121,7 @@ const stavkiButtons = computed(() => {
 
 // Новые методы внутри компонента StavkiMenu
 const handleGroup164Click = () => {
-  if (props.playBetClick) {
-    props.playBetClick();
-  }
+  
   
   props.context === 'win' 
     ? emit('win-bet-click') 
@@ -131,17 +129,13 @@ const handleGroup164Click = () => {
 };
 
 const handleButtonClick = (amount) => {
-  if (props.playBetClick) {
-    props.playBetClick();
-  }
+  
   emit('add-bet', amount);
 };
 
 // Обработчик для кнопки X2
 const handleX2Click = () => {
-  if (props.playBetClick) {
-    props.playBetClick();
-  }
+  
   emit('x2-click', props.currentBet);
 };
 </script>

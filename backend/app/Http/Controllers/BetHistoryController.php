@@ -15,6 +15,7 @@ class BetHistoryController extends Controller
     public function saveBet(Request $request)
     {
         try {
+            Log::info('Save bet request:', $request->all());
         $validated = $request->validate([
             'user_id' => 'required|integer',
             'amount' => 'required|numeric',

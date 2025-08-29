@@ -1442,7 +1442,7 @@ const placeBet = async () => {
     button.betAmount = currentBet.value;
     button.selected = false;
 
-    // Удаляем пару из overtakingSelections
+    // Удаляем пару из overtakingSelectionssdsd
     if (overtakingSelections.value[pair.overtaker]) {
       overtakingSelections.value[pair.overtaker].delete(pair.overtaken);
     }

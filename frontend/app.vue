@@ -316,7 +316,7 @@
       class="coefficient-container"
     >
       <div class="coefficient-bg"></div>
-      <div class="coefficient-text">{{ btn.coefficient || '2.23' }}</div>
+      <div class="coefficient-text">{{ btn.coefficient || '1' }}</div>
     </div>
   </div>
 </div>
@@ -930,15 +930,15 @@ watch(gameConfig, (newConfig) => {
     console.log('Game config loaded:', newConfig);
     // Обновляем коэффициенты для всех кнопок
     resultButtons.value.forEach((btn, index) => {
-      btn.coefficient = newConfig.coefficients?.result?.[index] ?? 2.23;
+      btn.coefficient = newConfig.coefficients?.result?.[index] ?? 1;
     });
 
     overtakingButtons.value.forEach((btn, index) => {
-      btn.coefficient = newConfig.coefficients?.overtaking?.[index] ?? 2.23;
+      btn.coefficient = newConfig.coefficients?.overtaking?.[index] ?? 1;
     });
 
     winButtons.value.forEach(btn => {
-      btn.coefficient = newConfig.coefficients?.section?.[btn.id] ?? 2.23;
+      btn.coefficient = newConfig.coefficients?.section?.[btn.id] ?? 1;
     });
   }
 });
@@ -972,7 +972,7 @@ const stavkiButtons = computed(() => {
 const resultCoefficients = computed(() => {
   if (!gameConfig.value?.coefficients?.result) {
     console.warn('Result coefficients not found, using defaults');
-    return Array(49).fill(2.23);
+    return Array(49).fill(1);
   }
   return gameConfig.value.coefficients.result;
 });
@@ -980,7 +980,7 @@ const resultCoefficients = computed(() => {
 const overtakingCoefficients = computed(() => {
   if (!gameConfig.value?.coefficients?.overtaking) {
     console.warn('Overtaking coefficients not found, using defaults');
-    return Array(49).fill(2.23);
+    return Array(49).fill(1);
   }
   return gameConfig.value.coefficients.overtaking;
 });
@@ -988,7 +988,7 @@ const overtakingCoefficients = computed(() => {
 const sectionCoefficients = computed(() => {
   if (!gameConfig.value?.coefficients?.section) {
     console.warn('Section coefficients not found, using defaults');
-    return { 1: 2.3, 2: 2.3, 3: 2.3, 4: 2.3, 5: 2.3, 6: 2.3, 7: 2.3 };
+    return { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
   }
   return gameConfig.value.coefficients.section;
 });
@@ -1457,14 +1457,14 @@ const placeBet = async () => {
       for (const pair of selectedPairs) {
         const buttonId = pair.overtaker * 7 + pair.overtaken;
         const button = overtakingButtons.value.find(b => b.id === buttonId);
-        const coefficient = button?.coefficient || 2.0;
+        const coefficient = button?.coefficient || 1;
 
         const bet = {
           type: 'overtaking',
           overtaker: pair.overtaker,
           overtaken: pair.overtaken,
           amount: currentBet.value,
-          coefficient: 2.23, // Используем актуальный коэффициент
+          coefficient: button?.coefficient || 1, // Используется актуальный коэффициент
           timestamp: new Date().toISOString(),
           bugColors: [
             bugColors.value[pair.overtaker],

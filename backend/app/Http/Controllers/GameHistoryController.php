@@ -165,7 +165,7 @@ public function getLastGames()
             'results.*.trapId' => 'nullable|integer', // Добавляем поле trapId
             'coefficient' => 'sometimes|numeric', // Добавляем поле коэффициента
         ]);
-        $validated['coefficient'] = $request->input('coefficient', 2.23);
+        $validated['coefficient'] = $request->input('coefficient', 1);
         $results = $validated['results'];
         $filePath = $this->getFilePath();
         $history = [];
@@ -205,6 +205,7 @@ public function getLastGames()
 public function calculateWinnings(Request $request)
 {
     try {
+          Log::info('Starting winnings calculation with data:', $request->all());
          Log::info('Starting winnings calculation');
 
         $validated = $request->validate([
@@ -223,10 +224,12 @@ public function calculateWinnings(Request $request)
             'bets.*.bugIds' => 'required_if:type,section|array',
             'bets.*.coefficient' => 'sometimes|numeric',
         ]);
+        Log::info('Validated data:', $validated);
         Log::info('Request validated successfully');
         $results = $validated['results'];
         $bets = $validated['bets'];
-
+        Log::info('Results data:', $results);
+        Log::info('Bets data:', $bets);
         // Map colors to bug IDs (0-6)
         $colorToId = [
             '#FFFF00' => 0, // Желтый
@@ -256,7 +259,7 @@ public function calculateWinnings(Request $request)
         Log::info('Processing ' . count($bets) . ' bets');
 
         foreach ($bets as $bet) {
-            $coefficient = $bet['coefficient'] ?? 2.23;
+            $coefficient = $bet['coefficient'] ?? 1;
             Log::info('Processing bet type: ' . $bet['type'] . ' with coefficient: ' . $coefficient);
 
             switch ($bet['type']) {
@@ -288,39 +291,61 @@ public function calculateWinnings(Request $request)
                     }
                     break;
 
-                case 'overtaking':
-                    $overtakerId = $bet['overtaker'] ?? 0;
-                    $overtakenId = $bet['overtaken'] ?? 0;
-                    
-                    $overtakerResult = collect($results)->first(function ($r) use ($overtakerId, $idToColor) {
-                        return $r['color'] === $idToColor[$overtakerId];
-                    });
-                    
-                    $overtakenResult = collect($results)->first(function ($r) use ($overtakenId, $idToColor) {
-                        return $r['color'] === $idToColor[$overtakenId];
-                    });
+              case 'overtaking':
+    Log::info('Processing overtaking bet:', $bet);
+    
+    $overtakerId = ($bet['overtaker'] ?? 1) ;
+    $overtakenId = ($bet['overtaken'] ?? 1) ;
+    
+    Log::info('Converted IDs - Overtaker: '.$overtakerId.', Overtaken: '.$overtakenId);
+    
+    $overtakerResult = collect($results)->first(function ($r) use ($overtakerId, $idToColor) {
+        return $r['color'] === $idToColor[$overtakerId];
+    });
+    
+    $overtakenResult = collect($results)->first(function ($r) use ($overtakenId, $idToColor) {
+        return $r['color'] === $idToColor[$overtakenId];
+    });
 
-                    $isWin = $overtakerResult && 
-                             $overtakenResult &&
-                             isset($overtakerResult['position']) &&
-                             isset($overtakenResult['position']) &&
-                             $overtakerResult['position'] < $overtakenResult['position'];
-                    
-                    if ($isWin) {
-                        $winAmount = $bet['amount'] * $coefficient;
-                        $winningBets[] = [
-                            'type' => 'overtaking',
-                            'amount' => $bet['amount'],
-                            'winAmount' => $winAmount,
-                            'overtaker' => $overtakerId,
-                            'overtaken' => $overtakenId,
-                            'coefficient' => $coefficient,
-                            'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
-                        ];
-                    } else {
-                        $losingBets[] = $bet;
-                    }
-                    break;
+    Log::info('Overtaker result:', $overtakerResult ?? []);
+    Log::info('Overtaken result:', $overtakenResult ?? []);
+
+    // Проверяем, что обгоняющий финишировал
+    $overtakerFinished = $overtakerResult && 
+                        isset($overtakerResult['position']) &&
+                        $overtakerResult['position'] !== null;
+    
+    // Проверяем, что обгоняемый либо не финишировал, либо финишировал после обгоняющего
+    $overtakenLost = !$overtakenResult || 
+                    !isset($overtakenResult['position']) || 
+                    $overtakenResult['position'] === null ||
+                    ($overtakerFinished && $overtakenResult['position'] !== null && 
+                     $overtakerResult['position'] < $overtakenResult['position']);
+    
+    $isWin = $overtakerFinished && $overtakenLost;
+    
+    Log::info('Overtaking bet win check result: '.($isWin ? 'WIN' : 'LOSE'));
+    
+    if ($isWin) {
+        $coefficient = $bet['coefficient'] ?? 1;
+        $winAmount = $bet['amount'] * $coefficient;
+        
+        Log::info('Overtaking bet WON - Amount: '.$bet['amount'].', Coefficient: '.$coefficient.', Win: '.$winAmount);
+        
+        $winningBets[] = [
+            'type' => 'overtaking',
+            'amount' => $bet['amount'],
+            'winAmount' => $winAmount,
+            'overtaker' => $overtakerId + 1,
+            'overtaken' => $overtakenId + 1,
+            'coefficient' => $coefficient,
+            'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
+        ];
+    } else {
+        Log::info('Overtaking bet LOST');
+        $losingBets[] = $bet;
+    }
+    break;
                 
                 case 'section':
                     $winningBugs = [];

@@ -2939,42 +2939,36 @@ const startExplosionAnimation = () => {
 // Добавляем вычисление масштаба
 const updateScale = () => {
   const baseWidth = 390;
+  const baseHeight = 788;
   const currentWidth = window.innerWidth;
-const currentHeight = ref(0);
+  const currentHeight = window.innerHeight;
   
-  // Базовые значения
-  const baseScaleHeight = 788; // Высота, с которой начинаем уменьшение
-  const minScale = 0.7; // Минимальный масштаб
+  let scaleByWidth = currentWidth / baseWidth;
+  let scaleByHeight = currentHeight / baseHeight;
   
-  let newScale = 1;
+  // Приоритет масштабирования по ширине
+  let newScale = scaleByWidth;
   
-  // Если высота меньше базовой - вычисляем масштаб
-  if (currentHeight < baseScaleHeight) {
-    // Вычисляем на сколько пикселей текущая высота меньше базовой
-    const heightDifference = baseScaleHeight - currentHeight;
-    // Вычисляем количество "шагов" по 5px
-    const steps = heightDifference / 5;
-    // Уменьшаем масштаб на 1% за каждый шаг
-    newScale = 1 - (steps * 0.006); // Изменено с 0.005 на 0.01 (1% вместо 0.5%)
-    // Ограничиваем минимальным масштабом
-    newScale = Math.max(newScale, minScale);
+  // Если после масштабирования по ширине высота не помещается, масштабируем по высоте
+  if (baseHeight * newScale > currentHeight) {
+    newScale = scaleByHeight;
   }
   
-  // Проверяем, чтобы масштабированная ширина не превышала текущую ширину
-  const scaledWidth = baseWidth * newScale;
-  if (scaledWidth > currentWidth) {
-    newScale = currentWidth / baseWidth;
-  }
-  
-  // Дополнительная проверка - не позволяем масштабу быть меньше minScale
-  newScale = Math.max(newScale, minScale);
+  newScale = Math.max(newScale, 0.5);
+  newScale = Math.min(newScale, 1);
   
   scaleFactor.value = newScale;
+  
+  // Центрируем контейнер после масштабирования
+  const gameContainer = document.querySelector('.game-container');
+  if (gameContainer) {
+    gameContainer.style.margin = '0 auto';
+  }
 };
-
 onMounted(() => {
   setTimeout(updateScale, 100);
-  
+    
+  window.addEventListener('resize', updateScale);
   document.addEventListener('click', handleDocumentClick);
  
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -3690,11 +3684,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 .game-wrapper {
-  width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Изменено с center на flex-start */
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -3710,6 +3704,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
   justify-content: center;
 }
 
+.game-container {
+  transform-origin: center center;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
 
 .confirmed-bet-amount {
   font-family: 'Hero', 'Bahnschrift', sans-serif;
@@ -3855,18 +3854,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   transform-origin: top center; /* Масштабирование от верхнего края */
   flex-shrink: 0;
 }
-/* Для очень маленьких экранов добавим минимальный масштаб */
-@media (max-height: 700px) {
-  .game-container {
-    transform: scale(0.9) !important;
-  }
-}
 
-@media (max-height: 600px) {
-  .game-container {
-    transform: scale(0.8) !important;
-  }
-}
 
 .menu-button.diagonal.locked .coefficient-container,
 .menu-button.diagonal.locked .confirmed-content {
@@ -4127,7 +4115,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  background-color: #1E031E; /* Добавьте это свойство */
+  background-color: #1E031E;
 }
 
 .tarakan {
@@ -4259,16 +4247,13 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   background-position: center top;
   background-repeat: no-repeat;
   background-size: 100% auto;
-  /* Фиксированные размеры контейнера */
   width: 390px;
   min-height: 788px;
   height: 100%;
-  max-height: 788px;
   position: relative;
   overflow: hidden;
   margin: 0 auto;
   z-index: 1;
-  
 }
 /* Обновленные стили для кнопок */
 .button-1 {

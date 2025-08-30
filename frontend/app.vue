@@ -76,6 +76,7 @@
       @add-bet="addToBet"
       @x2-click="multiplyBet"
       :playBetClick="playBetClick" 
+      :playStakeActionClick="playStakeActionClick" 
       @button-click="playStakeActionClick"
       @group164-click="placeBet"
       
@@ -357,6 +358,7 @@
     @add-bet="addToBet"
     @x2-click="multiplyBet"
     :playBetClick="playBetClick"
+    :playStakeActionClick="playStakeActionClick" 
     @group164-click="placeBet"
     custom-class="center-stavki"
   />
@@ -677,7 +679,7 @@ const playRaceStartSound = () => {
   }
 };
 const handleButtonClick = (btn) => {
-
+playStakeActionClick(); // Добавляем звук
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
     button.selected = false;
@@ -2200,6 +2202,7 @@ watch(historyBetsVisible, (visible) => {
 // Обработчик для кнопки истории ставок
 // app.vue
 const toggleHistoryBets = () => {
+  playStakeActionClick(); // Добавляем звук
   // Всегда открываем центральное меню при нажатии на кнопку истории
   if (!centerMenuVisible.value) {
     centerMenuVisible.value = true;
@@ -2237,6 +2240,7 @@ watch(locale, () => {
 
 // Функция переключения видимости
 const toggleLastGameMenu = () => {
+  playStakeActionClick(); // Добавляем звук
   if (centerMenuVisible.value) return;
   
   // Закрываем историю ставок при открытии истории игр
@@ -2490,6 +2494,7 @@ const diagonalButtons = computed(() => {
 
 // Обработчик выбора кнопки в меню
 const toggleMenuButton = (btn) => {
+  playStakeActionClick(); // Добавляем звук
   if (btn.confirmed || (activeTab.value === 'overtaking' && diagonalButtons.value.includes(btn.id))) {
     return;
   }
@@ -2590,6 +2595,7 @@ console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBug
 
 
 const toggleCenterMenu = () => {
+   playStakeActionClick(); // Добавляем звук
   // Закрываем другие меню
   lastGameMenuVisible.value = false;
   centerWinMenuVisible.value = false;

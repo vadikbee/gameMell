@@ -90,6 +90,7 @@ const props = defineProps({
   betStep: Number,
   currency: String,
   playBetClick: Function,
+  playStakeActionClick: Function, // Добавляем эту строку
   context: String, // Добавьте эту строку
     customClass: {
     type: String,
@@ -121,7 +122,7 @@ const stavkiButtons = computed(() => {
 
 // Новые методы внутри компонента StavkiMenu
 const handleGroup164Click = () => {
-  
+  props.playStakeActionClick(); // Добавляем звук
   
   props.context === 'win' 
     ? emit('win-bet-click') 
@@ -129,13 +130,13 @@ const handleGroup164Click = () => {
 };
 
 const handleButtonClick = (amount) => {
-  
+  props.playStakeActionClick(); // Добавляем звук
   emit('add-bet', amount);
 };
 
 // Обработчик для кнопки X2
 const handleX2Click = () => {
-  
+  props.playStakeActionClick(); // Добавляем звук
   emit('x2-click', props.currentBet);
 };
 </script>

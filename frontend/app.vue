@@ -1899,38 +1899,42 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
 };
 const processWinnings = (winningsData) => {
     let totalWin = 0;
+    const allWinningBets = [];
     
     winningsData.winningBets.forEach(bet => {
         totalWin += bet.winAmount;
         balance.value += bet.winAmount;
         
-        // В функции processWinnings
-if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
-    const sectionBets = bet.winningBugs.map(bugId => {
-        const bugColor = bugColors.value[bugId];
-        return {
-            ...bet,
-            description: `${t('section')} ${bet.trapId} - ${getBugName(bugId)} ${t('won')}`,
-            winAmount: bet.winAmountPerBug,
-            color: bugColor,
-            bugId: bugId
-        };
-    });
-    
-    winNotifications.value.push({
-        id: Date.now() + Math.random(),
-        bets: sectionBets,
-        timestamp: new Date().toISOString(),
-        totalWin: bet.winAmount
-    });
+        if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
+            const sectionBets = bet.winningBugs.map(bugId => {
+                const bugColor = bugColors.value[bugId];
+                return {
+                    ...bet,
+                    description: `${t('section')} ${bet.trapId} - ${getBugName(bugId)} ${t('won')}`,
+                    winAmount: bet.winAmountPerBug,
+                    color: bugColor,
+                    bugId: bugId
+                };
+            });
+            allWinningBets.push(...sectionBets);
         } else {
-            winNotifications.value.push({
-                id: Date.now() + Math.random(),
-                bets: [bet],
-                timestamp: new Date().toISOString()
+            allWinningBets.push({
+                ...bet,
+                description: getBetDescription(bet),
+                color: bet.bugColors[0] || '#000'
             });
         }
     });
+
+    // Добавляем одно уведомление со всеми выигрышными ставками
+    if (allWinningBets.length > 0) {
+        winNotifications.value.push({
+            id: Date.now() + Math.random(),
+            bets: allWinningBets,
+            timestamp: new Date().toISOString(),
+            totalWin: totalWin
+        });
+    }
 
     // Очищаем текущие ставки после расчета
     currentRaceBets.value = [];

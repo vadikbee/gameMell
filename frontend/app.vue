@@ -3458,7 +3458,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 }
 
 .scroll-container::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .scroll-container::-webkit-scrollbar-track {

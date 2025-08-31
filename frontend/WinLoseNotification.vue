@@ -433,20 +433,7 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Стили для скроллбара */
-.bets-list::-webkit-scrollbar {
-  width: 4px;
-}
 
-.bets-list::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-}
-
-.bets-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 2px;
-}
 
 /* Специальные стили для ставок на секцию */
 .section-indicator {
@@ -481,7 +468,56 @@ onUnmounted(() => {
   border-radius: 4px;
   margin-right: 10px;
 }
+/* Стили для основного скроллбара уведомления */
+.win-lose-notification.expanded::-webkit-scrollbar {
+  width: 8px;
+}
 
+.win-lose-notification.expanded::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.win-lose-notification.expanded::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.win-lose-notification.expanded::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.win-lose-notification.expanded {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
+
+/* Стили для скроллбара списка ставок (bets-list) */
+.win-lose-notification .bets-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.win-lose-notification .bets-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  margin: 5px;
+}
+
+.win-lose-notification .bets-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.win-lose-notification .bets-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.win-lose-notification .bets-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
 .bet-description {
   flex: 1;
   font-size: 14px;

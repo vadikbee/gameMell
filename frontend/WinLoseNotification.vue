@@ -3,6 +3,7 @@
     class="win-lose-notification"
     :class="{ 'expanded': expanded }"
     @click="expand"
+    :style="notificationStyle"
   >
     <div class="notification-header">
       <div class="gradient-border"></div>
@@ -75,6 +76,10 @@ const props = defineProps({
   timestamp: {
     type: Number,
     default: Date.now()
+  },
+  scaleFactor: {
+    type: Number,
+    default: 1
   }
 });
 
@@ -83,6 +88,18 @@ const emit = defineEmits(['close']);
 const expanded = ref(false);
 const currentTime = ref('');
 
+
+// Добавляем новое вычисляемое свойство для позиционирования
+const notificationPosition = computed(() => {
+  return {
+    width: '100%',
+    maxWidth: '350px',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: '1000'
+  };
+});
 // Исправляем вычисление общей суммы выигрыша
 const formattedTotalAmount = computed(() => {
   const total = props.bets.reduce((sum, bet) => sum + bet.winAmount, 0);
@@ -171,10 +188,10 @@ onUnmounted(() => {
 
 <style scoped>
 .win-lose-notification {
-  position: fixed;
-  width: calc(100vw - 20px); /* Адаптивная ширина с небольшими отступами */
-  max-width: 390px; /* Максимальная ширина как у game-container */
-  min-height: 100px;
+  position: absolute;
+  /* Убираем фиксированные значения и используем вычисляемые свойства */
+  width: calc(100% - 40px);
+  max-width: 350px;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -191,40 +208,8 @@ onUnmounted(() => {
 /* Адаптация для маленьких экранов */
 @media (max-width: 400px) {
   .win-lose-notification {
-    width: calc(100vw - 16px); /* Меньше отступы на маленьких экранах */
-    border-radius: 8px;
-  }
-  
-  .notification-header {
-    padding: 8px 12px;
-    height: 35px;
-  }
-  
-  .title {
-    font-size: 14px;
-  }
-  
-  .time {
-    font-size: 14px;
-  }
-  
-  .notification-body {
-    padding: 10px 12px;
-    height: 55px;
-  }
-  
-  .label {
-    font-size: 14px;
-  }
-  
-  .amount {
-    font-size: 16px;
-  }
-  
-  .win-count {
-    font-size: 12px;
-    right: 12px;
-    bottom: 10px;
+    width: calc(100% - 32px);
+    max-width: none;
   }
 }
 

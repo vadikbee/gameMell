@@ -1,7 +1,7 @@
 <template>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <div class="main-color">
+   <div class="main-color">
     <div class="scroll-container">
     <!-- История ставок в основном интерфейсе -->
     <audio ref="backgroundMusic" src="/sounds/backgroundMusic.mp3" loop></audio>
@@ -369,20 +369,33 @@
         
       </div>
 </div>
+    <div class="notifications-wrapper">
+  <transition-group name="slide-fade" tag="div" class="notifications-container">
+    <WinLoseNotification
+      v-for="notification in winNotifications"
+      :key="notification.id"
+      :bets="notification.bets"
+      :timestamp="notification.timestamp"
+      @close="closeWinNotification(notification.id)"
+    />
+  </transition-group>
+  
+  <Confetti 
+    v-if="showConfetti" 
+    @complete="showConfetti = false"
+    :containerWidth="mainBgWidth"
+    :containerHeight="mainBgHeight"
+    :containerLeft="mainBgLeft"
+    :containerTop="mainBgTop"
+    :scaleFactor="scaleFactor"
+  />
+</div>
 </div>
       
     </div>
   </div>
 </div>
-  <transition-group name="slide-fade" tag="div" class="notifications-container">
-  <WinLoseNotification
-    v-for="notification in winNotifications"
-    :key="notification.id"
-    :bets="notification.bets"
-    :timestamp="notification.timestamp"
-    @close="closeWinNotification(notification.id)"
-  />
-</transition-group>
+  
   <!-- Уведомления о выигрыше/проигрыше -->
     <transition name="slide-fade">
       <WinLoseNotification
@@ -431,15 +444,10 @@
  <audio ref="balanceOutcomeSound" src="/sounds/balanceOutcome.mp3"></audio>
  <audio ref="dizzySound" src="/sounds/star.mp3"></audio>
  <audio ref="explosionSound" src="/sounds/bax.mp3"></audio>
+
 <!-- Конфетти эффект -->
- <Confetti 
-        v-if="showConfetti" 
-        @complete="showConfetti = false"
-        :containerWidth="mainBgWidth"
-        :containerHeight="mainBgHeight"
-        :containerLeft="mainBgLeft"
-        :containerTop="mainBgTop"
-      />
+<!-- Добавим контейнер для уведомлений и конфетти -->
+
 </template>
 
 
@@ -1594,6 +1602,7 @@ const setActiveTab = (tab) => {
 };
 
 // 2. Добавляем метод для восстановления выделений
+
 // В app.vue, в методе restoreOvertakingSelections:
 const restoreOvertakingSelections = () => {
   overtakingButtons.value.forEach(btn => {
@@ -3435,7 +3444,14 @@ window.removeEventListener('resize', updateMainBgDimensions);
   scrollbar-color: #7F00FE #1E031E;
 }
 
+.notifications-wrapper {
+  pointer-events: none;
+  z-index: 10000;
+}
 
+.win-lose-notification {
+  pointer-events: auto;
+}
 
 .scroll-container::-webkit-scrollbar {
   width: 8px;
@@ -3818,6 +3834,25 @@ window.removeEventListener('resize', updateMainBgDimensions);
   column-gap: var(--column-gap);
   row-gap: var(--row-gap);
   
+}
+.notifications-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+  
+}
+
+.notifications-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
 }
 /* Стили для взрыва */
 .explosion {

@@ -1899,6 +1899,7 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
 });
 };
 // В функции processWinnings в app.vue
+// app.vue - функция processWinnings
 const processWinnings = (winningsData) => {
   let totalWin = 0;
   const winNotificationsMap = new Map();
@@ -1907,12 +1908,27 @@ const processWinnings = (winningsData) => {
     totalWin += bet.winAmount;
     balance.value += bet.winAmount;
 
-    if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
-      // Обработка ставок на секцию (без изменений)
+    // Для мультиставок обрабатываем все внутренние ставки вместе
+    if (bet.type === 'multibet') {
+      const key = `multibet_${Date.now()}_${Math.random()}`;
+      
+      winNotificationsMap.set(key, {
+        id: ++notificationCounter.value,
+        bets: bet.bets.map(innerBet => ({
+          ...innerBet,
+          description: getBetDescription(innerBet),
+          color: innerBet.bugColors[0] || '#000'
+        })),
+        timestamp: new Date().toISOString(),
+        totalWin: bet.winAmount
+      });
+    } 
+    else if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
+      // Обработка ставок на секцию
       const key = `section_${bet.trapId}`;
       if (!winNotificationsMap.has(key)) {
         winNotificationsMap.set(key, {
-          id: Date.now() + Math.random(),
+          id: ++notificationCounter.value,
           bets: [],
           timestamp: new Date().toISOString(),
           totalWin: 0
@@ -1937,20 +1953,28 @@ const processWinnings = (winningsData) => {
       const key = bet.type;
       if (!winNotificationsMap.has(key)) {
         winNotificationsMap.set(key, {
-          id: Date.now() + Math.random(),
+          id: ++notificationCounter.value,
           bets: [],
           timestamp: new Date().toISOString(),
           totalWin: 0
         });
       }
       const notification = winNotificationsMap.get(key);
-      notification.bets.push(bet);
+      notification.bets.push({
+        ...bet,
+        description: getBetDescription(bet),
+        color: bet.bugColors[0] || '#000'
+      });
       notification.totalWin += bet.winAmount;
     } else {
       // Для других типов ставок (если есть)
       winNotifications.value.push({
-        id: Date.now() + Math.random(),
-        bets: [bet],
+        id: ++notificationCounter.value,
+        bets: [{
+          ...bet,
+          description: getBetDescription(bet),
+          color: bet.bugColors[0] || '#000'
+        }],
         timestamp: new Date().toISOString(),
         totalWin: bet.winAmount
       });

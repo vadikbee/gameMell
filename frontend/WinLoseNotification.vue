@@ -3,7 +3,6 @@
     class="win-lose-notification"
     :class="{ 'expanded': expanded }"
     @click="expand"
-    :style="notificationStyle"
   >
     <div class="notification-header">
       <div class="gradient-border"></div>
@@ -25,34 +24,33 @@
     </div>
     
     <div v-if="expanded" class="details">
-    <div class="bets-summary">
-      {{ t('bets_details') }}
-    </div>
-    <div class="bets-list">
-      <div v-for="(bet, index) in bets" :key="index" class="bet-item">
-        <!-- Индикатор ловушки -->
-        <div class="section-indicator">
-          <img :src="`/images/icons/icon-kybok.png`" alt="Trap" class="trap-icon">
-        </div>
-        
-        <!-- Цвета выигравших тараканов -->
-        <div class="winning-bugs">
-          <div 
-            v-for="(bug, bugIndex) in getWinningBugs(bet)" 
-            :key="bugIndex"
-            class="bug-color-indicator"
-            :style="{ background: bug.color }"
-          ></div>
-        </div>
-        
-        <div class="bet-description">
-          {{ formatBetDescription(bet) }}
-        </div>
-        <div class="bet-amount">
-          +{{ new Intl.NumberFormat('ru-RU').format(bet.winAmount) }}₽
+      <div class="bets-summary">
+        {{ t('bets_details') }}
+      </div>
+      <div class="bets-list">
+        <!-- Отображаем только тараканов, на которых была сделана ставка -->
+        <div v-for="bugId in sectionBet?.bugIds || []" :key="bugId" class="bet-item" :class="{ 'lost-bet': !isBugWinner(bugId) }">
+          <!-- Индикатор для выигравших - trap icon -->
+          <div v-if="isBugWinner(bugId)" class="section-indicator">
+            <img :src="`/images/icons/icon-kybok.png`" alt="Trap" class="trap-icon">
+          </div>
+          
+          <!-- Индикатор для проигравших - lose icon -->
+          <div v-else class="section-indicator">
+            <img :src="`/images/icons/lose.png`" alt="Lose" class="lose-icon">
+          </div>
+          
+          <!-- Цвет таракана -->
+          <div class="bug-color-indicator" :style="{ background: getBugColorById(bugId) }"></div>
+          
+          <div class="bet-description">
+            {{ getBugDescription(bugId) }}
+          </div>
+          <div class="bet-amount" :class="{ 'lost': !isBugWinner(bugId) }">
+            {{ isBugWinner(bugId) ? '+' : '' }}{{ new Intl.NumberFormat('ru-RU').format(getBugWinAmount(bugId)) }}₽
+          </div>
         </div>
       </div>
-    </div>
       <button class="close-button" @click.stop="close">{{ t('close') }}</button>
     </div>
     
@@ -88,21 +86,49 @@ const emit = defineEmits(['close']);
 const expanded = ref(false);
 const currentTime = ref('');
 
-
-// Добавляем новое вычисляемое свойство для позиционирования
-const notificationPosition = computed(() => {
-  return {
-    width: '100%',
-    maxWidth: '350px',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: '1000'
-  };
+// Получаем информацию о ставке на секцию (предполагаем, что она одна)
+const sectionBet = computed(() => {
+  return props.bets.find(bet => bet.type === 'section') || null;
 });
-// Исправляем вычисление общей суммы выигрыша
+
+// Получаем выигравших тараканов
+const winningBugs = computed(() => {
+  return sectionBet.value?.winningBugs || [];
+});
+
+// Проверяем, выиграл ли конкретный таракан
+const isBugWinner = (bugId) => {
+  return winningBugs.value.includes(bugId);
+};
+
+// Получаем сумму выигрыша для конкретного таракана
+const getBugWinAmount = (bugId) => {
+  if (!sectionBet.value || !isBugWinner(bugId)) return 0;
+  
+  const totalBets = sectionBet.value.bugIds.length;
+  const winningBetsCount = winningBugs.value.length;
+  
+  // Выигрыш на одного таракана = (общая ставка / количество тараканов) * коэффициент / количество выигравших
+  const betPerBug = sectionBet.value.amount / totalBets;
+  return winningBetsCount > 0 ? (betPerBug * sectionBet.value.coefficient) / winningBetsCount : 0;
+};
+
+// Получаем описание для конкретного таракана
+const getBugDescription = (bugId) => {
+  const bugName = t(`bug_${bugId + 1}`);
+  const status = isBugWinner(bugId) ? t('won') : t('lost');
+  return t('section_bug_bet', { 
+    trap: sectionBet.value?.trapId || 0,
+    bug: bugName,
+    status: status
+  });
+};
+
+// Обновляем вычисление общей суммы выигрыша
 const formattedTotalAmount = computed(() => {
-  const total = props.bets.reduce((sum, bet) => sum + bet.winAmount, 0);
+  if (!sectionBet.value) return '0₽';
+  
+  const total = sectionBet.value.winAmount || 0;
   return new Intl.NumberFormat('ru-RU').format(total) + '₽';
 });
 
@@ -117,16 +143,6 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}`;
 };
 
-const getWinningBugs = (bet) => {
-  if (bet.type === 'section' && bet.winningBugs) {
-    // Convert bug IDs to color objects
-    return bet.winningBugs.map(bugId => ({
-      color: getBugColorById(bugId)
-    }));
-  }
-  return bet.bugColors ? bet.bugColors.map(color => ({ color })) : [];
-};
-
 const getBugColorById = (bugId) => {
   const colorMap = {
     0: '#FFFF00', // yellow
@@ -138,24 +154,6 @@ const getBugColorById = (bugId) => {
     6: '#00FF00'  // green
   };
   return colorMap[bugId] || '#CCCCCC'; // default gray
-};
-
-// Добавляем функцию для форматирования описания ставки
-const formatBetDescription = (bet) => {
-  if (bet.type === 'section') {
-    // Используем только выигравших тараканов для описания
-    const winningBugs = bet.winningBugs || [];
-    const bugNames = winningBugs.map(bug => 
-      t(`bug_${bug.id}`)
-    ).join(', ');
-    
-    return t('section_bet_won', { 
-      trap: bet.trapId,
-      count: winningBugs.length,
-      bugs: bugNames
-    });
-  }
-  return bet.description;
 };
 
 // Развернуть/свернуть детали
@@ -189,9 +187,8 @@ onUnmounted(() => {
 <style scoped>
 .win-lose-notification {
   position: absolute;
-  /* Убираем фиксированные значения и используем вычисляемые свойства */
   width: calc(100% - 40px);
-  max-width: 350px;
+  max-width: 400px;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -214,7 +211,8 @@ onUnmounted(() => {
 }
 
 .win-lose-notification.expanded {
-  height: 205px;
+  height: auto;
+  max-height: 320px;
   overflow-y: auto;
 }
 
@@ -337,7 +335,7 @@ onUnmounted(() => {
 .details {
   padding: 0 15px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  height: calc(205px - 100px);
+  height: auto;
   box-sizing: border-box;
 }
 
@@ -350,7 +348,7 @@ onUnmounted(() => {
 }
 
 .bets-list {
-  height: 100px;
+  max-height: 220px;
   overflow-y: auto;
 }
 
@@ -366,7 +364,31 @@ onUnmounted(() => {
   padding: 0 10px;
 }
 
-.bet-color-indicator {
+.bet-item.lost-bet {
+  opacity: 0.7;
+}
+
+.section-indicator {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.trap-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.lose-icon {
+  width: 20px;
+  height: 20px;
+  filter: grayscale(100%);
+}
+
+.bug-color-indicator {
   width: 16px;
   height: 16px;
   border-radius: 4px;
@@ -380,6 +402,7 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 5px;
 }
 
 .bet-amount {
@@ -387,7 +410,12 @@ onUnmounted(() => {
   font-size: 15px;
   font-family: 'Bai Jamjuree', sans-serif;
   color: #000000;
-  margin-left: 10px;
+  min-width: 100px;
+  text-align: right;
+}
+
+.bet-amount.lost {
+  color: #999;
 }
 
 .close-button {
@@ -433,42 +461,7 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-
-
-/* Специальные стили для ставок на секцию */
-.section-indicator {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-}
-
-.trap-icon {
-  width: 20px;
-  height: 20px;
-  
-}
-
-/* Стили для списка ставок */
-.bet-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 10px;
-  margin-bottom: 2px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  height: 20px;
-}
-
-.bet-color-indicator {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 10px;
-}
-/* Стили для основного скроллбара уведомления */
+/* Стили для скроллбаров */
 .win-lose-notification.expanded::-webkit-scrollbar {
   width: 8px;
 }
@@ -493,7 +486,6 @@ onUnmounted(() => {
   scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
 }
 
-/* Стили для скроллбара списка ставок (bets-list) */
 .win-lose-notification .bets-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -517,36 +509,5 @@ onUnmounted(() => {
 .win-lose-notification .bets-list {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
-}
-.bet-description {
-  flex: 1;
-  font-size: 14px;
-  font-family: 'Bai Jamjuree', sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 5px;
-}
-
-.bet-amount {
-  font-weight: 500;
-  font-size: 15px;
-  font-family: 'Bai Jamjuree', sans-serif;
-  color: #000000;
-  min-width: 100px;
-  text-align: right;
-}
-
-.winning-bugs {
-  display: flex;
-  margin-right: 10px;
-}
-
-.bug-color-indicator {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  margin-right: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 </style>

@@ -363,23 +363,23 @@ public function calculateWinnings(Request $request)
                     }
 
                     if (count($winningBugs) > 0) {
-                        $winAmountPerBug = ($bet['amount'] / count($bugIds)) * $coefficient;
-                        $totalWin = $winAmountPerBug * count($winningBugs);
-                        
-                        $winningBets[] = [
-                            'type' => 'section',
-                            'amount' => $bet['amount'],
-                            'winAmount' => $totalWin,
-                            'winAmountPerBug' => $winAmountPerBug,
-                            'trapId' => $trapId,
-                            'bugIds' => $bugIds,
-                            'winningBugs' => $winningBugs,
-                            'coefficient' => $coefficient,
-                            'bugColors' => array_map(function($id) use ($idToColor) {
-                                return $idToColor[$id];
-                            }, $winningBugs)
-                        ];
-                    } else {
+    $winAmountPerBug = ($bet['amount'] / count($bugIds)) * $coefficient;
+    $totalWin = $winAmountPerBug * count($winningBugs);
+    
+    $winningBets[] = [
+        'type' => 'section',
+        'amount' => $bet['amount'],
+        'winAmount' => $totalWin,
+        'winAmountPerBug' => $winAmountPerBug,
+        'trapId' => $trapId,
+        'bugIds' => $bugIds, // Все ID тараканов в ставке
+        'winningBugs' => $winningBugs, // Только выигравшие ID
+        'coefficient' => $coefficient,
+        'bugColors' => array_map(function($id) use ($idToColor) {
+            return $idToColor[$id];
+        }, $winningBugs) // Только цвета выигравших
+    ];
+} else {
                         $losingBets[] = $bet;
                     }
                     break;

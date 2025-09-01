@@ -54,6 +54,19 @@
   "section_bet_won": "Section {trap} reached by {count} bugs: {bugs}",
   "select_bug_to_overtake": "Select a bug to overtake",
   "insufficient_funds": "Insufficient funds",
-  "select_bet_option": "Please select a bet option"
+  "select_bet_option": "Please select a bet option",
+
+
+"bug_0": "yellow",
+  "bug_1": "orange",
+  "bug_2": "dark orange",
+  "bug_3": "blue",
+  "bug_4": "red",
+  "bug_5": "purple",
+  "bug_6": "green",
+
+    "section_bug_bet": "Section {trap} - Cockroach {bug} {status}",
+  "won": "won",
+  "lost": "lost"
   
 }

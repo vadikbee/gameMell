@@ -70,7 +70,10 @@
   "lost": "lost",
 
   "position_bet_with_color": "The cockroach {color} took {position} place",
-"overtaking_bet_with_colors": "The cockroach {color1} overtook the cockroach {color2}"
+"overtaking_bet_with_colors": "The cockroach {color1} overtook the cockroach {color2}",
+
+"light_theme": "Light",
+  "dark_theme": "Dark"
 
   
   

@@ -68,6 +68,9 @@
   "lost": "проиграл",
 
    "position_bet_with_color": "Таракан {color} занял {position} место",
-  "overtaking_bet_with_colors": "Таракан {color1} обогнал таракана {color2}"
+  "overtaking_bet_with_colors": "Таракан {color1} обогнал таракана {color2}",
+
+    "light_theme": "Светлая",
+  "dark_theme": "Тёмная"
   
 }

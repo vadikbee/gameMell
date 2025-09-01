@@ -17,14 +17,15 @@
         <div class="panel-up">
     <!-- Левая группа: язык и звук -->
     <div class="left-group">
-      <div class="language-switcher" @click="switchLanguage">
-        {{ currentLanguage }}
-      </div>
-      <div class="music-control" @click="toggleMusic">
-        <div class="music-icon" :class="{ 'music-off': !isMusicPlaying }"></div>
-        <div v-if="!isMusicPlaying" class="music-hint">!</div>
-      </div>
-    </div>
+  <div class="language-switcher" @click="switchLanguage">
+    {{ currentLanguage }}
+  </div>
+  <ThemeToggle /> <!-- Добавьте эту строку -->
+  <div class="music-control" @click="toggleMusic">
+    <div class="music-icon" :class="{ 'music-off': !isMusicPlaying }"></div>
+    <div v-if="!isMusicPlaying" class="music-hint">!</div>
+  </div>
+</div>
 
     <!-- Правая группа: баланс и иконка (порядок изменен) -->
     <div class="right-group">
@@ -462,6 +463,7 @@ import PodiumResults from './PodiumResults.vue';
 import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
 import WinLoseNotification from './WinLoseNotification.vue';
+import ThemeToggle from './ThemeToggle.vue';
 
 const showConfetti = ref(false);
 // Исправляем работу со звуком
@@ -3935,7 +3937,23 @@ window.removeEventListener('resize', updateMainBgDimensions);
   100% { transform: translate(-50%, -50%) scale(1.1); }
 }
 
+/* Светлая тема (по умолчанию) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f0f0;
+  --text-color: #000000;
+  --border-color: #e0e0e0;
+  --accent-color: #3C42E3;
+}
 
+/* Темная тема */
+.dark-theme {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-color: #ffffff;
+  --border-color: #404040;
+  --accent-color: #5C62FF;
+}
 
 .menu-button.diagonal.locked {
   pointer-events: none;

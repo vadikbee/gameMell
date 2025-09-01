@@ -102,16 +102,14 @@ const isBugWinner = (bugId) => {
 };
 
 // Получаем сумму выигрыша для конкретного таракана
+// Получаем сумму выигрыша для конкретного таракана
 const getBugWinAmount = (bugId) => {
   if (!sectionBet.value || !isBugWinner(bugId)) return 0;
   
-  const totalBets = sectionBet.value.bugIds.length;
-  const winningBetsCount = winningBugs.value.length;
-  
-  // Выигрыш на одного таракана = (общая ставка / количество тараканов) * коэффициент / количество выигравших
-  const betPerBug = sectionBet.value.amount / totalBets;
-  return winningBetsCount > 0 ? (betPerBug * sectionBet.value.coefficient) / winningBetsCount : 0;
+  // Возвращаем выигрыш за конкретного таракана без деления
+  return sectionBet.value.winAmountPerBug;
 };
+
 
 // Получаем описание для конкретного таракана
 const getBugDescription = (bugId) => {
@@ -128,7 +126,8 @@ const getBugDescription = (bugId) => {
 const formattedTotalAmount = computed(() => {
   if (!sectionBet.value) return '0₽';
   
-  const total = sectionBet.value.winAmount || 0;
+  // Суммируем выигрыши всех выигравших тараканов
+  const total = sectionBet.value.winAmountPerBug * winningBugs.value.length;
   return new Intl.NumberFormat('ru-RU').format(total) + '₽';
 });
 

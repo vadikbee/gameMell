@@ -825,7 +825,7 @@ const playOutcomeSound = () => {
 const placeSectionBet = async () => {
   try {
     playBetClick();
-    const coefficient = sectionCoefficients.value[selectedTrap.value];
+    
     // Преобразуем ID тараканов из формата интерфейса (1-7) в формат гонки (0-6)
     const raceBugIds = selectedBugs.value.map(id => id - 1);
     
@@ -874,21 +874,22 @@ const placeSectionBet = async () => {
     if (button) {
       button.betAmount = (button.betAmount || 0) + totalAmount;
     }
-
+    const coefficient = sectionCoefficients.value[selectedTrap.value];
     // Отправка на бэкенд
     const response = await fetch('/api/save-bet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
         user_id: 1,
         amount: totalAmount,
         type: 'trap',
-        selection: selectedBugs.value, // Оригинальные ID для бэкенда
+        selection: selectedBugs.value,
         trapId: selectedTrap.value,
+        coefficient: coefficient, // Add this line
         color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
         time: new Date().toTimeString().split(' ')[0]
-      })
-    });
+    })
+});
     
     if (!response.ok) throw new Error('Failed to save section bet');
     

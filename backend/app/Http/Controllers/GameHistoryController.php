@@ -353,42 +353,57 @@ if (file_exists($configPath)) {
     }
     break;
                 
-                case 'section':
-                    $winningBugs = [];
-                    $bugIds = $bet['bugIds'] ?? [];
-                    $trapId = $bet['trapId'] ?? null;
-                    $coefficient = $sectionCoefficients[$trapId] ?? 1;
-                    foreach ($bugIds as $bugId) {
-                        $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
-                            return $r['color'] === $idToColor[$bugId];
-                        });
-                        
-                        if ($result && isset($result['trapId']) && $result['trapId'] == $trapId) {
-                            $winningBugs[] = $bugId;
-                        }
-                    }
-
-                    if (count($winningBugs) > 0) {
-    $winAmountPerBug = ($bet['amount'] / count($bugIds)) * $coefficient;
-    $totalWin = $winAmountPerBug * count($winningBugs);
+     case 'section':
+    $winningBugs = [];
+    $bugIds = $bet['bugIds'] ?? [];
+    $trapId = $bet['trapId'] ?? null;
     
-    $winningBets[] = [
-        'type' => 'section',
-        'amount' => $bet['amount'],
-        'winAmount' => $totalWin,
-        'winAmountPerBug' => $winAmountPerBug,
-        'trapId' => $trapId,
-        'bugIds' => $bugIds, // Все ID тараканов в ставке
-        'winningBugs' => $winningBugs, // Только выигравшие ID
-        'coefficient' => $coefficient,
-        'bugColors' => array_map(function($id) use ($idToColor) {
-            return $idToColor[$id];
-        }, $winningBugs) // Только цвета выигравших
-    ];
-} else {
-                        $losingBets[] = $bet;
-                    }
-                    break;
+    // Get coefficients from config
+    $configPath = storage_path('app/bet_buttons.json');
+    $coefficients = [];
+    if (file_exists($configPath)) {
+        $config = json_decode(file_get_contents($configPath), true);
+        $coefficients = $config['coefficients']['section'] ?? [];
+    }
+    
+    $coefficient = $coefficients[$trapId] ?? 1; // Use dynamic coefficient
+
+    foreach ($bugIds as $bugId) {
+        $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
+            return $r['color'] === $idToColor[$bugId];
+        });
+        
+        if ($result && isset($result['trapId']) && $result['trapId'] == $trapId) {
+            $winningBugs[] = $bugId;
+        }
+    }
+
+    if (count($winningBugs) > 0) {
+        // Calculate win per bug and sum them
+        $betPerBug = $bet['amount'] / count($bugIds);
+        $totalWin = 0;
+        
+        foreach ($winningBugs as $winningBug) {
+            $totalWin += $betPerBug * $coefficient;
+        }
+        
+        $winningBets[] = [
+            'type' => 'section',
+            'amount' => $bet['amount'],
+            'winAmount' => $totalWin,
+            'winAmountPerBug' => $betPerBug * $coefficient, // Добавляем выигрыш на одного таракана
+            'trapId' => $trapId,
+            'bugIds' => $bugIds,
+            'winningBugs' => $winningBugs,
+            'coefficient' => $coefficient,
+            'bugColors' => array_map(function($id) use ($idToColor) {
+                return $idToColor[$id];
+            }, $winningBugs)
+        ];
+    } else {
+        $losingBets[] = $bet;
+    }
+    break;
                     
                 default:
                     $losingBets[] = $bet;

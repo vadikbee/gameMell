@@ -1900,66 +1900,75 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
 };
 // В функции processWinnings в app.vue
 const processWinnings = (winningsData) => {
-    let totalWin = 0;
-    const winNotificationsMap = new Map(); // Группируем уведомления по ID ставки
-    
-    winningsData.winningBets.forEach(bet => {
-        totalWin += bet.winAmount;
-        balance.value += bet.winAmount;
-        
-        if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
-            // Для ставок на секцию группируем по trapId
-            const key = `section_${bet.trapId}`;
-            
-            if (!winNotificationsMap.has(key)) {
-                winNotificationsMap.set(key, {
-                    id: Date.now() + Math.random(),
-                    bets: [],
-                    timestamp: new Date().toISOString(),
-                    totalWin: 0
-                });
-            }
-            
-            const notification = winNotificationsMap.get(key);
-            
-            // Добавляем всех выигравших тараканов из этой ставки
-            bet.winningBugs.forEach(bugId => {
-                const bugColor = bugColors.value[bugId];
-                notification.bets.push({
-                    ...bet,
-                    description: `${t('section')} ${bet.trapId} - ${getBugName(bugId)} ${t('won')}`,
-                    winAmount: bet.winAmountPerBug,
-                    color: bugColor,
-                    bugId: bugId
-                });
-            });
-            
-            notification.totalWin += bet.winAmount;
-        } else {
-            // Для других типов ставок добавляем как есть
-            winNotifications.value.push({
-                id: Date.now() + Math.random(),
-                bets: [bet],
-                timestamp: new Date().toISOString(),
-                totalWin: bet.winAmount
-            });
-        }
-    });
-    
-    // Добавляем сгруппированные уведомления о секциях
-    winNotificationsMap.forEach(notification => {
-        winNotifications.value.push(notification);
-    });
-    
-    // Очищаем текущие ставки после расчета
-    currentRaceBets.value = [];
-    
-    if (totalWin > 0) {
-        playIncomeSound();
-        showConfetti.value = true;
-    }
-};
+  let totalWin = 0;
+  const winNotificationsMap = new Map();
 
+  winningsData.winningBets.forEach(bet => {
+    totalWin += bet.winAmount;
+    balance.value += bet.winAmount;
+
+    if (bet.type === 'section' && bet.winningBugs && bet.winningBugs.length > 0) {
+      // Обработка ставок на секцию (без изменений)
+      const key = `section_${bet.trapId}`;
+      if (!winNotificationsMap.has(key)) {
+        winNotificationsMap.set(key, {
+          id: Date.now() + Math.random(),
+          bets: [],
+          timestamp: new Date().toISOString(),
+          totalWin: 0
+        });
+      }
+      const notification = winNotificationsMap.get(key);
+      
+      bet.winningBugs.forEach(bugId => {
+        const bugColor = bugColors.value[bugId];
+        notification.bets.push({
+          ...bet,
+          description: `${t('section')} ${bet.trapId} - ${getBugName(bugId)} ${t('won')}`,
+          winAmount: bet.winAmountPerBug,
+          color: bugColor,
+          bugId: bugId
+        });
+      });
+      
+      notification.totalWin += bet.winAmount;
+    } else if (bet.type === 'result' || bet.type === 'overtaking') {
+      // Группируем ставки result и overtaking по типу
+      const key = bet.type;
+      if (!winNotificationsMap.has(key)) {
+        winNotificationsMap.set(key, {
+          id: Date.now() + Math.random(),
+          bets: [],
+          timestamp: new Date().toISOString(),
+          totalWin: 0
+        });
+      }
+      const notification = winNotificationsMap.get(key);
+      notification.bets.push(bet);
+      notification.totalWin += bet.winAmount;
+    } else {
+      // Для других типов ставок (если есть)
+      winNotifications.value.push({
+        id: Date.now() + Math.random(),
+        bets: [bet],
+        timestamp: new Date().toISOString(),
+        totalWin: bet.winAmount
+      });
+    }
+  });
+
+  // Добавляем сгруппированные уведомления
+  winNotificationsMap.forEach(notification => {
+    winNotifications.value.push(notification);
+  });
+
+  currentRaceBets.value = [];
+  
+  if (totalWin > 0) {
+    playIncomeSound();
+    showConfetti.value = true;
+  }
+};
 // Добавим функцию для получения имени таракана по ID
 const getBugName = (bugId) => {
     const names = {

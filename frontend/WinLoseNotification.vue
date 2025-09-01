@@ -1,8 +1,9 @@
-<template>
+<template> 
   <div 
     class="win-lose-notification"
     :class="{ 'expanded': expanded }"
     @click="expand"
+    :style="notificationStyle"
   >
     <div class="notification-header">
       <div class="gradient-border"></div>
@@ -28,11 +29,11 @@
         {{ t('bets_details') }}
       </div>
       <div class="bets-list">
-        <!-- Отображаем только тараканов, на которых была сделана ставка -->
-        <div v-for="bugId in sectionBet?.bugIds || []" :key="bugId" class="bet-item" :class="{ 'lost-bet': !isBugWinner(bugId) }">
+        <!-- Отображаем все ставки -->
+        <div v-for="(bet, index) in bets" :key="index" class="bet-item" :class="{ 'lost-bet': !bet.winAmount }">
           <!-- Индикатор для выигравших - trap icon -->
-          <div v-if="isBugWinner(bugId)" class="section-indicator">
-            <img :src="`/images/icons/icon-kybok.png`" alt="Trap" class="trap-icon">
+          <div v-if="bet.winAmount" class="section-indicator">
+            <img :src="`/images/icons/icon-kybok.png`" alt="Win" class="trap-icon">
           </div>
           
           <!-- Индикатор для проигравших - lose icon -->
@@ -40,14 +41,11 @@
             <img :src="`/images/icons/lose.png`" alt="Lose" class="lose-icon">
           </div>
           
-          <!-- Цвет таракана -->
-          <div class="bug-color-indicator" :style="{ background: getBugColorById(bugId) }"></div>
-          
           <div class="bet-description">
-            {{ getBugDescription(bugId) }}
+            {{ getBetDescription(bet) }}
           </div>
-          <div class="bet-amount" :class="{ 'lost': !isBugWinner(bugId) }">
-            {{ isBugWinner(bugId) ? '+' : '' }}{{ new Intl.NumberFormat('ru-RU').format(getBugWinAmount(bugId)) }}₽
+          <div class="bet-amount" :class="{ 'lost': !bet.winAmount }">
+            {{ bet.winAmount ? '+' : '' }}{{ new Intl.NumberFormat('ru-RU').format(bet.winAmount || 0) }}₽
           </div>
         </div>
       </div>
@@ -86,48 +84,9 @@ const emit = defineEmits(['close']);
 const expanded = ref(false);
 const currentTime = ref('');
 
-// Получаем информацию о ставке на секцию (предполагаем, что она одна)
-const sectionBet = computed(() => {
-  return props.bets.find(bet => bet.type === 'section') || null;
-});
-
-// Получаем выигравших тараканов
-const winningBugs = computed(() => {
-  return sectionBet.value?.winningBugs || [];
-});
-
-// Проверяем, выиграл ли конкретный таракан
-const isBugWinner = (bugId) => {
-  return winningBugs.value.includes(bugId);
-};
-
-// Получаем сумму выигрыша для конкретного таракана
-// Получаем сумму выигрыша для конкретного таракана
-const getBugWinAmount = (bugId) => {
-  if (!sectionBet.value || !isBugWinner(bugId)) return 0;
-  
-  // Возвращаем выигрыш за конкретного таракана без деления
-  return sectionBet.value.winAmountPerBug;
-};
-
-
-// Получаем описание для конкретного таракана
-const getBugDescription = (bugId) => {
-  const bugName = t(`bug_${bugId + 1}`);
-  const status = isBugWinner(bugId) ? t('won') : t('lost');
-  return t('section_bug_bet', { 
-    trap: sectionBet.value?.trapId || 0,
-    bug: bugName,
-    status: status
-  });
-};
-
-// Обновляем вычисление общей суммы выигрыша
+// Общая сумма выигрыша
 const formattedTotalAmount = computed(() => {
-  if (!sectionBet.value) return '0₽';
-  
-  // Суммируем выигрыши всех выигравших тараканов
-  const total = sectionBet.value.winAmountPerBug * winningBugs.value.length;
+  const total = props.bets.reduce((sum, bet) => sum + (bet.winAmount || 0), 0);
   return new Intl.NumberFormat('ru-RU').format(total) + '₽';
 });
 
@@ -142,17 +101,26 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}`;
 };
 
-const getBugColorById = (bugId) => {
-  const colorMap = {
-    0: '#FFFF00', // yellow
-    1: '#FFA500', // orange
-    2: '#8B0000', // dark-orange
-    3: '#0000FF', // blue
-    4: '#FF0000', // red
-    5: '#800080', // purple
-    6: '#00FF00'  // green
-  };
-  return colorMap[bugId] || '#CCCCCC'; // default gray
+// Описание для ставки
+const getBetDescription = (bet) => {
+  if (bet.description) {
+    return bet.description;
+  }
+  
+  switch (bet.type) {
+    case 'position':
+      return t('position_bet', { bug: bet.bugId, position: bet.position });
+    case 'overtaking':
+      return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
+    case 'section':
+      return t('section_bet', { 
+        trap: bet.trapId,
+        count: bet.bugIds ? bet.bugIds.length : 0,
+        bugs: bet.bugIds ? bet.bugIds.join(', ') : ''
+      });
+    default:
+      return t('unknown_bet');
+  }
 };
 
 // Развернуть/свернуть детали

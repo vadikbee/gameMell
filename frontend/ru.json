@@ -65,6 +65,9 @@
 
     "section_bug_bet": "Секция {trap} - Таракан {bug} {status}",
   "won": "выиграл",
-  "lost": "проиграл"
+  "lost": "проиграл",
+
+   "position_bet_with_color": "Таракан {color} занял {position} место",
+  "overtaking_bet_with_colors": "Таракан {color1} обогнал таракана {color2}"
   
 }

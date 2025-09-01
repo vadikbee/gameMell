@@ -1,3 +1,4 @@
+
 <template> 
   <div 
     class="win-lose-notification"
@@ -31,9 +32,19 @@
       <div class="bets-list">
         <!-- Отображаем все ставки -->
         <div v-for="(bet, index) in bets" :key="index" class="bet-item" :class="{ 'lost-bet': !bet.winAmount }">
-          <!-- Индикатор для выигравших - trap icon -->
+          <!-- Индикатор для выигравших - цветные кружки или trap icon -->
           <div v-if="bet.winAmount" class="section-indicator">
-            <img :src="`/images/icons/icon-kybok.png`" alt="Win" class="trap-icon">
+            <!-- Для ставок на результат и обгон показываем цветные кружки -->
+            <div v-if="bet.type === 'position' || bet.type === 'overtaking'" class="color-indicators">
+              <div 
+                v-for="(color, colorIndex) in bet.bugColors" 
+                :key="colorIndex"
+                class="color-indicator"
+                :style="{ backgroundColor: color }"
+              ></div>
+            </div>
+            <!-- Для ставок на секцию оставляем иконку ловушки -->
+            <img v-else :src="`/images/icons/icon-kybok.png`" alt="Win" class="trap-icon">
           </div>
           
           <!-- Индикатор для проигравших - lose icon -->
@@ -101,6 +112,20 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}`;
 };
 
+// Функция для получения названия цвета по hex-коду
+const getColorName = (hexColor) => {
+  const colorMap = {
+    '#FFFF00': t('yellow'),
+    '#FFA500': t('orange'),
+    '#8B0000': t('dark_orange'),
+    '#0000FF': t('blue'),
+    '#FF0000': t('red'),
+    '#800080': t('purple'),
+    '#00FF00': t('green')
+  };
+  return colorMap[hexColor] || hexColor;
+};
+
 // Описание для ставки
 const getBetDescription = (bet) => {
   if (bet.description) {
@@ -109,9 +134,15 @@ const getBetDescription = (bet) => {
   
   switch (bet.type) {
     case 'position':
-      return t('position_bet', { bug: bet.bugId, position: bet.position });
+      return t('position_bet_with_color', { 
+        color: getColorName(bet.bugColors[0]),
+        position: bet.position 
+      });
     case 'overtaking':
-      return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
+      return t('overtaking_bet_with_colors', { 
+        color1: getColorName(bet.bugColors[0]),
+        color2: getColorName(bet.bugColors[1])
+      });
     case 'section':
       return t('section_bet', { 
         trap: bet.trapId,
@@ -342,6 +373,19 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   margin-right: 8px;
+}
+
+/* Стили для цветных индикаторов */
+.color-indicators {
+  display: flex;
+  gap: 2px;
+}
+
+.color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #000;
 }
 
 .trap-icon {

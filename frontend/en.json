@@ -67,6 +67,11 @@
 
     "section_bug_bet": "Section {trap} - Cockroach {bug} {status}",
   "won": "won",
-  "lost": "lost"
+  "lost": "lost",
+
+  "position_bet_with_color": "The cockroach {color} took {position} place",
+"overtaking_bet_with_colors": "The cockroach {color1} overtook the cockroach {color2}"
+
+  
   
 }

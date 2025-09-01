@@ -204,6 +204,12 @@ public function getLastGames()
     }
 public function calculateWinnings(Request $request)
 {
+    $configPath = storage_path('app/bet_buttons.json');
+$sectionCoefficients = [];
+if (file_exists($configPath)) {
+    $config = json_decode(file_get_contents($configPath), true);
+    $sectionCoefficients = $config['coefficients']['section'] ?? [];
+}
     try {
           Log::info('Starting winnings calculation with data:', $request->all());
          Log::info('Starting winnings calculation');
@@ -351,7 +357,7 @@ public function calculateWinnings(Request $request)
                     $winningBugs = [];
                     $bugIds = $bet['bugIds'] ?? [];
                     $trapId = $bet['trapId'] ?? null;
-                    
+                    $coefficient = $sectionCoefficients[$trapId] ?? 1;
                     foreach ($bugIds as $bugId) {
                         $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
                             return $r['color'] === $idToColor[$bugId];

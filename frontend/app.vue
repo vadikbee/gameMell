@@ -480,6 +480,7 @@ const lastGameMenuVisible = ref(false);
 const countdownSound = ref(null);
 const explosionSound = ref(null);
 const lockedBugsArray = ref([]);
+const socket = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
 // Добавьте переменную для отслеживания состояния звука
 const countdownPlayed = ref(false);

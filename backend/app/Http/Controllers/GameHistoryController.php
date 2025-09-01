@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -202,9 +203,9 @@ public function getLastGames()
     {
         return storage_path('app/' . self::HISTORY_FILE);
     }
-// GameHistoryController.php - функция calculateWinnings
 public function calculateWinnings(Request $request)
 {
+    
     $configPath = storage_path('app/bet_buttons.json');
     $sectionCoefficients = [];
     if (file_exists($configPath)) {
@@ -213,6 +214,7 @@ public function calculateWinnings(Request $request)
     }
     
     try {
+        
         Log::info('Starting winnings calculation with data:', $request->all());
         Log::info('Starting winnings calculation');
 
@@ -446,6 +448,24 @@ public function calculateWinnings(Request $request)
 
         Log::info('Calculation completed. Winning bets: ' . count($combinedWinningBets) . ', Losing bets: ' . count($losingBets));
 
+        // После успешного расчета отправляем WebSocket-событие
+        try {
+            $gameInstanceId = config('game.instance_id', 1);
+            $broadcastData = [
+                'channel' => 'gamemaster.' . $gameInstanceId . '.public',
+                'event' => 'gameplay.gameBets.gameBetsEvaluated',
+                'data' => [
+                    'broadcast_id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'broadcast_at' => now()->toISOString(),
+                    'game_session_id' => 2048 // Замените на реальный ID сессии
+                ]
+            ];
+
+            Http::timeout(3)->post('http://localhost:3001/broadcast', $broadcastData);
+        } catch (\Exception $e) {
+            Log::error('Broadcast error: ' . $e->getMessage());
+        }
+
         return response()->json([
             'winningBets' => $combinedWinningBets,
             'losingBets' => $losingBets
@@ -457,4 +477,7 @@ public function calculateWinnings(Request $request)
         return response()->json(['error' => 'Calculation failed: '.$e->getMessage()], 500);
     }
 }
+
+
+
 }

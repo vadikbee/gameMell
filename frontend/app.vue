@@ -3152,8 +3152,22 @@ window.removeEventListener('resize', updateMainBgDimensions);
 </script>
 <style scoped>
 
+/* Запрет выделения для всех элементов */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
-
+/* Но разрешим для элементов, которые должны быть доступны для выделения (если такие будут) */
+.input-text,
+.allow-select {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
 
 .icon-button-clicked {
   animation: icon-click 0.3s ease;

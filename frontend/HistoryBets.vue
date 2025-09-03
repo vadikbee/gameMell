@@ -127,12 +127,18 @@ const calculateTotal = (bet) => {
 
 
 const getBetType = (bet) => {
+  const normalizeForColor = (id) => (id <= 7 ? id : id - 1);
+
+   
+   if (bet.type === 'result') {
+    return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+  }
   
      // Для ставок на обгон
   if (bet.type === 'overtaking') {
     return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
   }
-
+ 
 
   // Для ставок на позицию
   if (bet.type === 'position' || bet.type === 'win') {
@@ -188,6 +194,16 @@ const getBugName = (id) => {
 const formattedBets = computed(() => {
   return (props.bets || []).slice(0, 10).map(item => {
     const bet = item.data || item;
+
+  // Конвертация ставок типа result
+    if (bet.type === 'result' && bet.selection && bet.selection.length === 2) {
+      return {
+        ...bet,
+        type: 'result',
+        bugId: bet.selection[0],
+        position: bet.selection[1]
+      };
+    }
 
     // Для ставок на секцию (включая выбор 2 тараканов)
     if (bet.type === 'trap' && bet.trapId !== undefined && bet.trapId !== 0) {

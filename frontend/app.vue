@@ -1423,6 +1423,7 @@ const placeBet = async () => {
         
         console.log('Adding result bet to nextRaceBets:', bet);
         nextRaceBets.value.push(bet);
+         await saveBetToServer(bet);
       }
     }   else if (activeTab.value === 'overtaking') {
       const selectedPairs = [];

@@ -37,7 +37,7 @@ class BetHistoryController extends Controller
             // Для других ставок сохраняем цвета
             $validated['color'] = $request->input('color', '');
         }
-            
+
             // Если время не пришло - генерируем текущее
             if (empty($validated['time'])) {
                 $validated['time'] = now()->format('H:i:s');
@@ -93,11 +93,11 @@ class BetHistoryController extends Controller
     private function getFilePath()
     {
         $storagePath = storage_path('app');
-        
+
         if (!file_exists($storagePath)) {
             mkdir($storagePath, 0755, true);
         }
-        
+
         return $storagePath . '/' . self::HISTORY_FILE;
     }
     // BetHistoryController.php
@@ -133,7 +133,7 @@ public function repeatBets(Request $request, $code)
         }
 
         $betsHistory = json_decode(file_get_contents($betsHistoryPath), true);
-        
+
         // Фильтруем ставки по account_session (в демо-режиме используем user_id = 1)
         $userBets = array_filter($betsHistory, function($bet) {
             return isset($bet['data']['user_id']) && $bet['data']['user_id'] == 1;
@@ -151,7 +151,7 @@ public function repeatBets(Request $request, $code)
                 'timestamp' => now()->toDateTimeString(),
                 'data' => $bet['data']
             ];
-            
+
             $repeatedBets[] = $newBet;
             $betsHistory[] = $newBet;
         }
@@ -198,20 +198,20 @@ public function getLatestUserBets(Request $request, $code)
         }
 
         $history = json_decode(file_get_contents($filePath), true) ?? [];
-        
+
         // Фильтруем ставки за последние 30 минут для user_id = 1 (демо-режим)
         $thirtyMinutesAgo = Carbon::now()->subMinutes(30);
         $userBets = array_filter($history, function($bet) use ($thirtyMinutesAgo) {
             $betTime = Carbon::parse($bet['timestamp']);
-            return $betTime->gte($thirtyMinutesAgo) && 
-                   isset($bet['data']['user_id']) && 
+            return $betTime->gte($thirtyMinutesAgo) &&
+                   isset($bet['data']['user_id']) &&
                    $bet['data']['user_id'] == 1;
         });
 
         // Форматируем ставки согласно схеме ответа
         $formattedBets = array_map(function($bet) {
             $betData = $bet['data'];
-            
+
             return [
                 'id' => $bet['id'] ?? uniqid(),
                 'is_win' => false, // Заглушка - требуется реальная логика определения
@@ -239,7 +239,7 @@ private function generateBetKey($betData)
 {
     $type = $betData['type'] ?? '';
     $selection = $betData['selection'] ?? [];
-    
+
     switch ($type) {
         case 'win':
             return "result:{$this->getColorName($betData['color'])}:1";
@@ -263,7 +263,62 @@ private function getColorName($hexColor)
         '#800080' => 'purple',
         '#00FF00' => 'green'
     ];
-    
+
     return $colorMap[$hexColor] ?? 'unknown';
+
+
+
+}
+public function saveBetsBatch(Request $request)
+{
+    try {
+        $data = $request->validate([
+            'bets' => 'required|array',
+            'bets.*.user_id' => 'required|integer',
+            'bets.*.amount' => 'required|numeric',
+            'bets.*.type' => 'required|in:win,place,trap,position,overtaking,section',
+            'bets.*.bugId' => 'sometimes|integer',
+            'bets.*.position' => 'sometimes|integer',
+            'bets.*.overtaker' => 'sometimes|integer',
+            'bets.*.overtaken' => 'sometimes|integer',
+            'bets.*.trapId' => 'sometimes|integer',
+            'bets.*.selection' => 'sometimes|array',
+            'bets.*.coefficient' => 'sometimes|numeric'
+        ]);
+
+        $filePath = $this->getFilePath();
+        $history = [];
+
+        if (file_exists($filePath)) {
+            $history = json_decode(file_get_contents($filePath), true) ?? [];
+        }
+
+        $savedBets = [];
+        foreach ($data['bets'] as $betData) {
+            $bet = [
+                'id' => uniqid(),
+                'timestamp' => now()->toDateTimeString(),
+                'data' => $betData
+            ];
+
+            array_unshift($history, $bet);
+            $savedBets[] = $bet;
+        }
+
+        // Сохраняем только последние MAX_BETS ставок
+        file_put_contents(
+            $filePath,
+            json_encode(array_slice($history, 0, self::MAX_BETS))
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'saved_count' => count($savedBets)
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Save bets batch error: '.$e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 }
 }

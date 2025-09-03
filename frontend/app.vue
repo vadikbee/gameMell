@@ -1371,15 +1371,48 @@ watch(overtakingCoefficients, (newCoefficients) => {
     btn.coefficient = newCoefficients[index];
   });
 });
+const sendBetsBatch = async (bets) => {
+  try {
+    const response = await fetch('/api/save-bets-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bets })
+    });
+    
+    if (!response.ok) throw new Error('Failed to save bets batch');
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving bets batch:', error);
+    // Fallback: попробовать отправить ставки по одной
+    for (const bet of bets) {
+      await saveBetToServer(bet);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Задержка 100мс
+    }
+  }
+};
 
+const saveBetsBatch = async (bets) => {
+  try {
+    const response = await fetch('/api/save-bets-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bets })
+    });
+    
+    if (!response.ok) throw new Error('Failed to save bets batch');
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving bets batch:', error);
+    throw error;
+  }
+};
 // В функции placeBet добавлю использование коэффициентов
 const placeBet = async () => {
   try {
-    playBetClick();
-    console.log('Placing bet, active tab:', activeTab.value);
+     playBetClick();
+    
     if (activeTab.value === 'result') {
       const selectedButtons = resultButtons.value.filter(btn => btn.selected);
-      console.log('Selected result buttons:', selectedButtons.length);
       
       if (selectedButtons.length === 0) {
         alert('Выберите позиции для ставки');
@@ -1392,7 +1425,28 @@ const placeBet = async () => {
         return;
       }
 
-      // Немедленное обновление UI
+      // Создаем массив ставок для отправки
+      const betsToSend = selectedButtons.map(button => {
+        const row = Math.floor(button.id / 7);
+        const col = button.id % 7;
+        const bugId = row + 1;
+        const position = col + 1;
+        
+       return {
+    type: 'position',
+    bugId: bugId,
+    position: position,
+    amount: currentBet.value,
+    coefficient: button.coefficient,
+    timestamp: new Date().toISOString(),
+    user_id: 1 // Добавлено поле
+  };
+});
+
+      // Отправляем все ставки одним запросом
+      await saveBetsBatch(betsToSend);
+      
+      // Обновляем UI после успешной отправки
       for (const button of selectedButtons) {
         button.confirmed = true;
         button.betAmount = currentBet.value;
@@ -1403,28 +1457,12 @@ const placeBet = async () => {
       playOutcomeSound();
       showBetPlacedNotification();
 
-      // Отправка на сервер после обновления UI
       // Добавляем ставки в nextRaceBets
-      for (const button of selectedButtons) {
-        const row = Math.floor(button.id / 7);
-        const col = button.id % 7;
-        const bugId = row + 1;
-        const position = col + 1;
-        
-        const bet = {
-          type: 'position',
-          bugId: bugId,
-          position: position,
-          amount: currentBet.value,
-          coefficient: button.coefficient,
-          timestamp: new Date().toISOString(),
-          bugColors: [bugColors.value[row]] // Добавляем цвет таракана
-        };
-        
+      betsToSend.forEach(bet => {
         console.log('Adding result bet to nextRaceBets:', bet);
         nextRaceBets.value.push(bet);
-         await saveBetToServer(bet);
-      }
+      });
+
     }   else if (activeTab.value === 'overtaking') {
       const selectedPairs = [];
       for (const [row, columns] of Object.entries(overtakingSelections.value)) {
@@ -1435,7 +1473,6 @@ const placeBet = async () => {
           });
         }
       }
-      console.log('Selected overtaking pairs:', selectedPairs);
 
       if (selectedPairs.length === 0) {
         alert('Выберите обгоны для ставки');
@@ -1448,48 +1485,55 @@ const placeBet = async () => {
         return;
       }
 
-      // Немедленное обновление UI
-      for (const pair of selectedPairs) {
-  const buttonId = pair.overtaker * 7 + pair.overtaken;
-  const button = overtakingButtons.value.find(b => b.id === buttonId);
-  if (button) {
-    button.confirmed = true;
-    button.betAmount = currentBet.value;
-    button.selected = false;
+      // Создаем массив ставок для отправки
+      const betsToSend = selectedPairs.map(pair => {
+        const buttonId = pair.overtaker * 7 + pair.overtaken;
+        const button = overtakingButtons.value.find(b => b.id === buttonId);
+        const coefficient = button?.coefficient || 1;
 
-    // Удаляем пару из overtakingSelectionssdsd
-    if (overtakingSelections.value[pair.overtaker]) {
-      overtakingSelections.value[pair.overtaker].delete(pair.overtaken);
-    }
-  }
-}
+        return {
+          type: 'overtaking',
+          overtaker: pair.overtaker,
+          overtaken: pair.overtaken,
+          amount: currentBet.value,
+          coefficient: coefficient,
+          timestamp: new Date().toISOString(),
+          bugColors: [
+            bugColors.value[pair.overtaker],
+            bugColors.value[pair.overtaken]
+          ],
+          user_id: 1
+        };
+      });
+
+      // Отправляем все ставки одним запросом
+      await saveBetsBatch(betsToSend);
+
+      // Обновляем UI после успешной отправки
+      for (const pair of selectedPairs) {
+        const buttonId = pair.overtaker * 7 + pair.overtaken;
+        const button = overtakingButtons.value.find(b => b.id === buttonId);
+        if (button) {
+          button.confirmed = true;
+          button.betAmount = currentBet.value;
+          button.selected = false;
+
+          // Удаляем пару из overtakingSelections
+          if (overtakingSelections.value[pair.overtaker]) {
+            overtakingSelections.value[pair.overtaker].delete(pair.overtaken);
+          }
+        }
+      }
 
       balance.value -= totalAmount;
       playOutcomeSound();
       showBetPlacedNotification();
 
-      // Отправка на сервер после обновления UI
-      for (const pair of selectedPairs) {
-        const buttonId = pair.overtaker * 7 + pair.overtaken;
-        const button = overtakingButtons.value.find(b => b.id === buttonId);
-        const coefficient = button?.coefficient || 1;
-
-        const bet = {
-          type: 'overtaking',
-          overtaker: pair.overtaker,
-          overtaken: pair.overtaken,
-          amount: currentBet.value,
-          coefficient: button?.coefficient || 1, // Используется актуальный коэффициент
-          timestamp: new Date().toISOString(),
-          bugColors: [
-            bugColors.value[pair.overtaker],
-            bugColors.value[pair.overtaken]
-          ]
-        };
+      // Добавляем ставки в nextRaceBets
+      betsToSend.forEach(bet => {
         console.log('Adding overtaking bet to nextRaceBets:', bet);
         nextRaceBets.value.push(bet);
-        saveBetToServer(bet); // Не ждем ответа
-      }
+      });
     }
 
   } catch (error) {

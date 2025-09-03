@@ -16,7 +16,7 @@ $cachedGridConfig = null;
 $pathsCache = [];
 
 Route::post('/api/save-bet', function (Request $request) {
-    
+
       try {
     $data = $request->validate([
       'user_id' => 'required|integer',
@@ -33,20 +33,20 @@ Route::post('/api/save-bet', function (Request $request) {
       'time' => 'nullable|string',
       'coefficient' => 'sometimes|numeric'
     ]);
-        
+
         // Сохранение ставки в базу данных или файл
         $bet = [
             'id' => uniqid(),
             'timestamp' => now()->format('Y-m-d H:i:s'),
             'data' => $data
-            
+
         ];
-        
+
         // Логирование данных ставки
         Log::info('Bet saved: ', $bet);
 
         return response()->json(['status' => 'success', 'bet_id' => $bet['id']]);
-        
+
     } catch (\Exception $e) {
         Log::error('Save bet error: ' . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
@@ -124,23 +124,23 @@ Route::options('/gameplay/games/bets/{code}/latest', function () {
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
 Route::get('/gameplay/games/instances/cockroaches-space-maze', function () {
     $configPath = storage_path('/app/bet_buttons.json');
-    
+
     Log::info('Loading config from: ' . $configPath);
-    
+
     if (!file_exists($configPath)) {
         Log::error('Config file not found: ' . $configPath);
         return response()->json(['error' => 'Configuration not found'], 404);
     }
-    
+
     $config = json_decode(file_get_contents($configPath), true);
-    
+
     if (json_last_error() !== JSON_ERROR_NONE) {
         Log::error('Invalid JSON in config file: ' . json_last_error_msg());
         return response()->json(['error' => 'Invalid configuration'], 500);
     }
-    
+
     Log::info('Config loaded successfully', $config);
-    
+
     return response()->json([
         'bet_buttons' => $config['bet_buttons'],
         'currency' => $config['currency'],
@@ -181,12 +181,12 @@ Route::post('/gameplay/games/bets/{code}', function (Request $request, $code) {
         'type' => 'required|in:win,place,trap',
         'selection' => 'required|array' // Выбранные элементы (тарканы/ловушки)
     ]);
-    
+
     // Здесь должна быть логика обработки ставки:
     // 1. Проверка доступности ставки (гонка не началась)
     // 2. Списание средств
     // 3. Сохранение ставки в БД
-    
+
     return response()->json([
         'status' => 'success',
         'bet_id' => rand(1000, 9999),
@@ -241,7 +241,7 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use
             'max_moves' => $request->input('max_moves', 200),
             'include_grid' => $request->input('include_grid', false)
         ]));
-        
+
         // Проверка кэша
         if (isset($pathsCache[$cacheKey])) {
             return response()->json($pathsCache[$cacheKey])
@@ -251,28 +251,28 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use
 
         // Для POST-запросов генерируем пути
         $gridConfigPath = base_path('config/race_grid.json');
-        
+
         // Загружаем конфиг только если он еще не закеширован
         if ($cachedGridConfig === null) {
             if (!file_exists($gridConfigPath)) {
                 throw new \Exception("Grid config file not found: $gridConfigPath");
             }
-            
+
             $cachedGridConfig = json_decode(file_get_contents($gridConfigPath), true);
-            
+
             if (!$cachedGridConfig || !isset($cachedGridConfig['cols'], $cachedGridConfig['rows'])) {
                 throw new \Exception("Invalid grid configuration");
             }
         }
-        
+
         $generator = new \PathGenerator($cachedGridConfig);
-        
+
         $result = $generator->generatePaths(
             $request->input('bug_count', 7),
             $request->input('duration', 10000),
             $request->input('max_moves', 200)
         );
-        
+
         // Добавляем информацию о сетке, если запрошено
         if ($request->input('include_grid', false)) {
             $result['grid'] = array_merge($cachedGridConfig, [
@@ -286,10 +286,10 @@ Route::match(['GET', 'POST'], '/generate-paths', function (Request $request) use
         return response()->json($result)
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        
+
     } catch (\Exception $e) {
         Log::error('Path generation error: ' . $e->getMessage());
-        
+
         return response()->json(['error' => $e->getMessage()], 500)
             ->header('Access-Control-Allow-Origin', '*');
     }
@@ -356,3 +356,7 @@ Route::options('/gameplay/games/sessions/{code}/deactivate', function () {
 ////////////////////////////////////////gameplay/games/sessions/{code}/active///////////////////////////////////////
 
 Route::post('/calculate-winnings', [GameHistoryController::class, 'calculateWinnings']);
+
+
+
+Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);

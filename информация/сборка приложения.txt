@@ -1,0 +1,42 @@
+cd gameMell
+
+Локальная:
+
+фронтенд - 
+
+cd frontend
+npm run dev
+
+бекенд - 
+
+cd backend
+php artisan serve
+
+///////////////////////////////
+cd gameMell
+
+DOCKER:
+
+# Сборка и запуск в development режиме
+docker-compose up --build
+#остановка 
+docker-compose down
+
+
+
+# Сборка и запуск в production режиме
+docker-compose -f docker-compose.yml up --build -d
+# Остановка production режима
+docker-compose -f docker-compose.yml down
+
+
+WEBSOcket - node server.js
+
+
+
+///////доп/////
+чистка от пред контейнеров
+docker system prune -a --volumes --force
+sudo systemctl restart docker
+# Зайдите в контейнер backend
+docker-compose exec backend bash

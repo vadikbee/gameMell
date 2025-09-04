@@ -167,6 +167,7 @@
         <!-- Основная кнопка победы -->
         <div 
           class="button-win"
+          
           @click="handleButtonClick(btn)"
           :style="{ 
             backgroundImage: btn.selected 
@@ -464,6 +465,7 @@ import i18n from './plugins/i18n.js' // Добавить эту строку
 import { useI18n } from 'vue-i18n'
 import WinLoseNotification from './WinLoseNotification.vue';
 import ThemeToggle from './ThemeToggle.vue';
+import { debounce } from 'lodash';
 
 const showConfetti = ref(false);
 // Исправляем работу со звуком
@@ -605,6 +607,10 @@ const currentRaceBets = ref([]);
 const notificationVisible = ref(false);
 const notificationMessage = ref('');
 const notificationClass = ref('');
+// Добавляем ref для хранения кешированных данных
+const cachedGameConfig = ref(null);
+const configLastFetchTime = ref(0);
+const CACHE_DURATION = 2 * 60 * 1000; // 2 минут в миллисекундах
 
 const button1Ref = ref(null);
 const button2Ref = ref(null);
@@ -645,9 +651,34 @@ const saveCurrentBet = () => {
     prevBet: currentBet.value
   });
 }
-watch(lastGameMenuVisible, (visible) => {
+
+// Обновляем функцию получения конфигурации
+const fetchGameConfig = async () => {
+  const now = Date.now();
+  
+  // Если есть кеш и он еще актуален, используем его
+  if (cachedGameConfig.value && (now - configLastFetchTime.value < CACHE_DURATION)) {
+    return cachedGameConfig.value;
+  }
+  
+  try {
+    const response = await fetch('/api/gameplay/games/instances/cockroaches-space-maze');
+    const config = await response.json();
+    
+    // Сохраняем в кеш
+    cachedGameConfig.value = config;
+    configLastFetchTime.value = now;
+    
+    return config;
+  } catch (error) {
+    console.error('Ошибка загрузки конфигурации:', error);
+    // В случае ошибки возвращаем кешированные данные, если они есть
+    return cachedGameConfig.value;
+  }
+};
+/*watch(lastGameMenuVisible, (visible) => {
   if (visible) loadGameHistory();
-});
+});*/
 // Добавляем новое состояние для отслеживания заблокированных тараканов
 const lockedBugs = ref(new Set());
 // Функция для воспроизведения звука обратного отсчета
@@ -690,6 +721,7 @@ const playRaceStartSound = () => {
   }
 };
 const handleButtonClick = (btn) => {
+  
 playStakeActionClick(); // Добавляем звук
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
@@ -2349,6 +2381,7 @@ watch(locale, () => {
 
 // Функция переключения видимости
 const toggleLastGameMenu = () => {
+  
   playStakeActionClick(); // Добавляем звук
   if (centerMenuVisible.value) return;
   

@@ -360,3 +360,10 @@ Route::post('/calculate-winnings', [GameHistoryController::class, 'calculateWinn
 
 
 Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
+
+
+/*Route::middleware('throttle:60,1')->group(function () {
+    // Ваши API маршруты
+    Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
+    Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
+});*/

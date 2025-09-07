@@ -226,7 +226,9 @@
       ref="button1Ref"
       class="button-1" 
       id="Button-1" 
-      :class="{ 'initial-animation': initialAnimationActive }"
+      :class="{ 'initial-animation': initialAnimationActive,
+      'button-disabled': isMenuActionInProgress  
+       }"
       @click="!centerWinMenuVisible && toggleLastGameMenu()"
     >
       <span class="button-text bth-1-text">{{ t('last_games') }}</span>
@@ -241,7 +243,9 @@
       ref="button2Ref"
       class="button-2" 
       id="Button-2" 
-      :class="{ 'initial-animation': initialAnimationActive }"
+      :class="{ 'initial-animation': initialAnimationActive,
+        'button-disabled': isMenuActionInProgress
+       }"
       @click="toggleCenterMenu"
     >
       <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
@@ -251,7 +255,9 @@
       ref="button3Ref"
       class="button-3" 
       id="Button-3" 
-      :class="{ 'initial-animation': initialAnimationActive }"
+      :class="{ 'initial-animation': initialAnimationActive,
+        'button-disabled': isMenuActionInProgress
+       }"
       @click="toggleHistoryBets"
     >
       <span class="button-text">{{ t('history_bets') }}</span>
@@ -575,6 +581,7 @@ const countdown = ref(7); // отсчет до начала гонки
 const raceCountdown = ref(12); // отсчет до конца гонки
 let cycleTimer = null;
 let raceTimer = null;
+const isMenuActionInProgress = ref(false); // <--- ДОБАВЬТЕ ЭТУ СТРОКУ
 // Новые состояния для взаимодействия с тараканами в меню
 
 const hoveredBugIndex = ref(null);
@@ -721,7 +728,9 @@ const playRaceStartSound = () => {
   }
 };
 const handleButtonClick = (btn) => {
-  
+
+  if (isMenuActionInProgress.value) return;
+  isMenuActionInProgress.value = true;
 playStakeActionClick(); // Добавляем звук
   // Снимаем выделение со всех кнопок
   winButtons.value.forEach(button => {
@@ -753,6 +762,9 @@ playStakeActionClick(); // Добавляем звук
     centerWinMenuVisible.value = true;
     selectTrap(btn.id);
   }
+   setTimeout(() => {
+    isMenuActionInProgress.value = false;
+  }, 400); // 400ms cooldown
 };
 
 const startRaceCycle = () => {
@@ -2262,13 +2274,6 @@ if (distance <= 1) {
   animationFrame.value = requestAnimationFrame(animate);
 };
 
-
-// Загружаем историю при открытии меню
-watch(lastGameMenuVisible, (visible) => {
-  if (visible) {
-    loadGameHistory();
-  }
-});
 // Получение стилей для позиционирования кнопки таракана
 const getBugStyle = (index) => {
   const totalBugs = menuBugs.value.length;
@@ -2328,19 +2333,25 @@ watch(historyBetsVisible, (visible) => {
 
 // Обработчик для кнопки истории ставок
 // app.vue
-const toggleHistoryBets = () => {
-  playStakeActionClick(); // Добавляем звук
-  // Всегда открываем центральное меню при нажатии на кнопку истории
-  if (!centerMenuVisible.value) {
-    centerMenuVisible.value = true;
-  }
-  
-  // Переключаем видимость истории ставок
-  historyBetsVisible.value = !historyBetsVisible.value;
-  
-  // Загружаем историю при открытии
-  if (historyBetsVisible.value) {
-    fetchBetHistory();
+const toggleHistoryBets = async () => {
+  if (isMenuActionInProgress.value) return; // Блокируем повторные нажатия
+  isMenuActionInProgress.value = true;
+
+  try {
+    playStakeActionClick();
+
+    // Открываем центральное меню, если оно закрыто
+    if (!centerMenuVisible.value) {
+      centerMenuVisible.value = true;
+    }
+    
+    historyBetsVisible.value = !historyBetsVisible.value;
+
+    if (historyBetsVisible.value) {
+      await fetchBetHistory(); // Ожидаем загрузку данных
+    }
+  } finally {
+    isMenuActionInProgress.value = false; // Снимаем блокировку
   }
 };
 
@@ -2366,17 +2377,27 @@ watch(locale, () => {
 
 
 // Функция переключения видимости
-const toggleLastGameMenu = () => {
+const toggleLastGameMenu = async () => {
+  if (isMenuActionInProgress.value) return; // Блокируем повторные нажатия
+  isMenuActionInProgress.value = true;
   
-  playStakeActionClick(); // Добавляем звук
-  if (centerMenuVisible.value) return;
-  
-  // Закрываем историю ставок при открытии истории игр
-  if (historyBetsVisible.value) {
-    historyBetsVisible.value = false;
+  try {
+    playStakeActionClick();
+    if (centerMenuVisible.value) return;
+
+    // Закрываем другие меню, если они открыты
+    if (historyBetsVisible.value) {
+      historyBetsVisible.value = false;
+    }
+
+    lastGameMenuVisible.value = !lastGameMenuVisible.value;
+
+    if (lastGameMenuVisible.value) {
+      await loadGameHistory(); // Ожидаем загрузку данных
+    }
+  } finally {
+    isMenuActionInProgress.value = false; // Снимаем блокировку
   }
-  
-  lastGameMenuVisible.value = !lastGameMenuVisible.value;
 };
 // Закрываем меню при открытии центрального
 watch(centerMenuVisible, (newVal) => {
@@ -2734,23 +2755,41 @@ console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBug
 
 
 const toggleCenterMenu = () => {
-   playStakeActionClick(); // Добавляем звук
-  // Закрываем другие меню
-  lastGameMenuVisible.value = false;
-  centerWinMenuVisible.value = false;
+  // Если действие уже выполняется, выходим
+  if (isMenuActionInProgress.value) return;
+
+  // 1. Устанавливаем флаг, чтобы заблокировать последующие клики
+  isMenuActionInProgress.value = true;
   
-  // Открываем/закрываем центральное меню
+  playStakeActionClick();
+
+  // 2. Выполняем все необходимые синхронные действия
   centerMenuVisible.value = !centerMenuVisible.value;
   
-  // Автоматически открываем историю ставок при открытии центрального меню
+  // Если центральное меню открылось
   if (centerMenuVisible.value) {
-    historyBetsVisible.value = true;
-    historyBetsInsideCenter.value = true;
-    fetchBetHistory();
-  } else {
-    // При закрытии перемещаем историю наружу
-    historyBetsInsideCenter.value = false;
+    // Закрываем остальные меню
+    lastGameMenuVisible.value = false;
+    centerWinMenuVisible.value = false;
+
+    // Перемещаем историю ставок внутрь, если она была видима
+    if (historyBetsVisible.value) {
+      historyBetsInsideCenter.value = true;
+    }
+  } 
+  // Если центральное меню закрылось
+  else {
+    // Возвращаем историю ставок наружу
+    if (historyBetsVisible.value) {
+      historyBetsInsideCenter.value = false;
+    }
   }
+  
+  // 3. Снимаем блокировку через 400 миллисекунд.
+  // Этого времени достаточно, чтобы предотвратить случайный "спам" кликами.
+  setTimeout(() => {
+    isMenuActionInProgress.value = false;
+  }, 400); 
 };
 
 
@@ -3233,6 +3272,11 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background-position: center;
   width: 24px;
   height: 17px;
+}
+.button-disabled {
+  pointer-events: none; /* Отключает клики */
+  opacity: 0.6;       /* Делает кнопку полупрозрачной */
+  cursor: wait;         /* Показывает курсор ожидания */
 }
 /* Обновленная анимация для серебристых линий */
 @keyframes lineAnimationTop {

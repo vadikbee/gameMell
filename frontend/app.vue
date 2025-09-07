@@ -1496,43 +1496,37 @@ const placeBet = async () => {
       });
 
     }   else if (activeTab.value === 'overtaking') {
-      const selectedPairs = [];
-      for (const [row, columns] of Object.entries(overtakingSelections.value)) {
-        for (const col of columns) {
-          selectedPairs.push({
-            overtaker: Number(row),
-            overtaken: Number(col)
-          });
-        }
-      }
+      // НАЧАЛО ИСПРАВЛЕННОГО БЛОКА
 
-      if (selectedPairs.length === 0) {
+      // ШАГ 1: Собираем ставки ТОЛЬКО из кнопок, которые сейчас выбраны (черные) и не подтверждены
+      const selectedButtons = overtakingButtons.value.filter(btn => btn.selected && !btn.confirmed);
+
+      if (selectedButtons.length === 0) {
         alert('Выберите обгоны для ставки');
         return;
       }
 
-      const totalAmount = currentBet.value * selectedPairs.length;
+      const totalAmount = currentBet.value * selectedButtons.length;
       if (totalAmount > balance.value) {
         alert('Недостаточно средств');
         return;
       }
 
-      // Создаем массив ставок для отправки
-      const betsToSend = selectedPairs.map(pair => {
-        const buttonId = pair.overtaker * 7 + pair.overtaken;
-        const button = overtakingButtons.value.find(b => b.id === buttonId);
-        const coefficient = button?.coefficient || 1;
-
+      // ШАГ 2: Формируем массив ставок на основе отфильтрованных кнопок
+      const betsToSend = selectedButtons.map(button => {
+        const row = Math.floor(button.id / 7);
+        const col = button.id % 7;
+        const coefficient = button.coefficient || 1;
         return {
           type: 'overtaking',
-          overtaker: pair.overtaker,
-          overtaken: pair.overtaken,
+          overtaker: row,
+          overtaken: col,
           amount: currentBet.value,
           coefficient: coefficient,
           timestamp: new Date().toISOString(),
           bugColors: [
-            bugColors.value[pair.overtaker],
-            bugColors.value[pair.overtaken]
+            bugColors.value[row],
+            bugColors.value[col]
           ],
           user_id: 1
         };
@@ -1542,19 +1536,11 @@ const placeBet = async () => {
       await saveBetsBatch(betsToSend);
 
       // Обновляем UI после успешной отправки
-      for (const pair of selectedPairs) {
-        const buttonId = pair.overtaker * 7 + pair.overtaken;
-        const button = overtakingButtons.value.find(b => b.id === buttonId);
-        if (button) {
-          button.confirmed = true;
-          button.betAmount = currentBet.value;
-          button.selected = false;
-
-          // Удаляем пару из overtakingSelections
-          if (overtakingSelections.value[pair.overtaker]) {
-            overtakingSelections.value[pair.overtaker].delete(pair.overtaken);
-          }
-        }
+      // Теперь мы итерируем по массиву кнопок, на которые только что сделали ставку
+      for (const button of selectedButtons) {
+        button.confirmed = true;
+        button.betAmount = currentBet.value;
+        button.selected = false; // Снимаем выделение
       }
 
       balance.value -= totalAmount;
@@ -2593,7 +2579,18 @@ const winButtons = ref([
      bluePoint: [30, 687] // Добавлено значение по умолчанию
   },
 ]);
+// В секции <script setup> в app.vue
+const clearUnconfirmedOvertakingBets = () => {
+  // 1. Очищаем логическое состояние
+  overtakingSelections.value = {};
 
+  // 2. Обновляем визуальное состояние только для неподтвержденных кнопок
+  overtakingButtons.value.forEach(btn => {
+    if (!btn.confirmed) {
+      btn.selected = false;
+    }
+  });
+};
 // Сброс выбора обгона
 
 const resetOvertakingSelection = () => {
@@ -2838,14 +2835,13 @@ await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
     
   });
 
-// В функции handleGenerateClick добавьте:
+// Сбрасываем состояние кнопок обгона
 overtakingButtons.value.forEach(btn => {
-    btn.confirmed = false;
-    btn.betAmount = 0;
-    
+  btn.confirmed = false;
+  btn.betAmount = 0;
   
 });
-
+overtakingSelections.value = {};
 
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);

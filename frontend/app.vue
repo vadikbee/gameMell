@@ -187,7 +187,7 @@
       </div>
       
       <!-- Тараканы -->
-  
+      <div v-if="raceInProgress || explosionActive">
     <div 
       v-for="(bug, index) in bugs" 
       :key="'bug-'+bug.id"
@@ -217,7 +217,7 @@
     @click="makeBugDizzy(index)" 
       ></div>
     </div>
-      
+      </div>
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
   <!-- Новый контейнер для кнопок -->

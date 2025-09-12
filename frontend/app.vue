@@ -1603,8 +1603,10 @@ const raceActualStartTime = ref(null)
 // Прогресс и состояние тараканов
 const bugProgress = ref([]);
 const bugSpeeds = ref([]);
+
 const lastSpeedChange = ref([]);
-const speedChangeIntervals = ref([]);
+const bugSpeedProfiles = ref([]); 
+const nextSpeedChangeIndex = ref([]); // <-- И ЭТО
 const finishZones = ref([]);
 const bugs = ref([]);
 const animationFrame = ref(null);
@@ -2117,153 +2119,153 @@ isPaused.value = false;
 
   // ... предыдущий код ...
 const animate = () => {
+  // 1. ПРОВЕРКА ПАУЗЫ
+  // Если игра на паузе (например, вкладка неактивна), планируем следующий вызов и выходим,
+  // чтобы не выполнять лишних расчетов.
   if (isPaused.value) {
     animationFrame.value = requestAnimationFrame(animate);
     return;
   }
 
+  // 2. РАСЧЕТ ВРЕМЕНИ
   const now = performance.now();
+  // 'deltaTime' - время, прошедшее с последнего кадра в миллисекундах.
   let deltaTime = now - lastUpdateTime.value;
   lastUpdateTime.value = now;
 
-  if (!isTabActive.value) {
-    accumulatedTime.value += deltaTime;
-    animationFrame.value = requestAnimationFrame(animate);
-    return;
-  }
-
+  // Если вкладка была неактивна, то накопилось 'пропущенное' время. Добавляем его.
   if (accumulatedTime.value > 0) {
     deltaTime += accumulatedTime.value;
     accumulatedTime.value = 0;
   }
+  
+  // Ограничиваем максимальное значение deltaTime, чтобы избежать резкого скачка тараканов
+  // после длительного "зависания" вкладки.
+  const safeDeltaTime = Math.min(deltaTime, 100);
+  
+  let activeBugs = 0; // Счетчик тараканов, которые еще не финишировали.
 
-  const safeDeltaTime = Math.min(deltaTime, 100) * 0.25;
-  let activeBugs = 0;
-
+  // 3. ОБХОД ВСЕХ ТАРАКАНОВ И ОБНОВЛЕНИЕ ИХ СОСТОЯНИЯ
   bugs.value.forEach((bug, index) => {
+    // Пропускаем тараканов, которые уже завершили гонку.
     if (bug.finished) return;
     activeBugs++;
 
-    // Если взорван - пропускаем
+    // Пропускаем тараканов, которые взорваны или оглушены.
     if (bug.explodeFrame !== undefined) return;
-    // Проверяем истекло ли время головокружения
-    if (bug.dizzy && performance.now() > bug.dizzyUntil) {
+    if (bug.dizzy && now > bug.dizzyUntil) {
       bug.dizzy = false;
     }
-    
-    // Вычисляем вектор направления
-    let dx = 0, dy = 0;
+    if(bug.dizzy) return;
 
-    // Фаза гонки
+    // --- ОСНОВНАЯ ЛОГИКА ДВИЖЕНИЯ ---
+
+    // Фаза 1: Движение по основному пути
     if (bug.phase === 'racing') {
-    // ПЕРЕМЕЩАЕМ ВЫЧИСЛЕНИЕ ИНДЕКСОВ В НАЧАЛО БЛОКА
-    const totalSteps = bug.path.length;
-    const currentIndex = Math.floor(bugProgress.value[index] * (totalSteps - 1));
-    const safeIndex = Math.max(0, Math.min(currentIndex, totalSteps - 1));
-    
-    // Теперь используем вычисленные индексы
-    const nextIndex = Math.min(currentIndex + 1, totalSteps - 1);
-    
-    dx = bug.path[nextIndex][0] - bug.path[currentIndex][0];
-    dy = bug.path[nextIndex][1] - bug.path[currentIndex][1];
-    bug.angle = Math.atan2(dy, dx) - Math.PI /2; // Изменение здесь
-    
       
-      // Обновление скорости
-      if (now - lastSpeedChange.value[index] > speedChangeIntervals.value[index]) {
-        bugSpeeds.value[index] = 0.0004 + Math.random() * 0.0004;
-        lastSpeedChange.value[index] = now;
-        speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
+      // === А. ОБНОВЛЕНИЕ СКОРОСТИ СОГЛАСНО ПРОФИЛЮ С БЭКЕНДА ===
+      if (lastSpeedChange.value[index] === 0) {
+          lastSpeedChange.value[index] = now;
+      }
+      const speedProfile = bugSpeedProfiles.value[index];
+      if (speedProfile && speedProfile.speed_changes) {
+        const currentChangeIndex = nextSpeedChangeIndex.value[index];
+        if (currentChangeIndex < speedProfile.speed_changes.length) {
+          const nextSpeedChange = speedProfile.speed_changes[currentChangeIndex];
+          if (now - lastSpeedChange.value[index] > nextSpeedChange.interval) {
+            bugSpeeds.value[index] = nextSpeedChange.new_speed;
+            lastSpeedChange.value[index] = now;
+            nextSpeedChangeIndex.value[index]++;
+          }
+        }
       }
       
-      // Обновление позиции
-      bugProgress.value[index] += bugSpeeds.value[index] * (safeDeltaTime / 16);
-      bugProgress.value[index] = Math.max(0, Math.min(bugProgress.value[index], 1));
-      
-     
-      const point = bug.path[safeIndex];
-      
-      if (Array.isArray(point) && point.length >= 2) {
-        bug.position = [point[0], point[1]];
-      } else {
-        console.error(`Invalid path point`, point);
-        bug.finished = true;
+      // === Б. РАСЧЕТ ПРОГРЕССА ===
+      // Прогресс (от 0 до 1) увеличивается на (скорость * время)
+      bugProgress.value[index] += bugSpeeds.value[index] * safeDeltaTime;
+      bugProgress.value[index] = Math.min(bugProgress.value[index], 1);
+
+      // === В. ИНТЕРПОЛЯЦИЯ ПОЗИЦИИ ДЛЯ ПЛАВНОГО ДВИЖЕНИЯ ===
+      const totalSteps = bug.path.length;
+      if (totalSteps > 1) {
+        const exactIndex = bugProgress.value[index] * (totalSteps - 1);
+        const currentIndex = Math.floor(exactIndex);
+        const nextIndex = Math.min(currentIndex + 1, totalSteps - 1);
+        
+        const startPoint = bug.path[currentIndex];
+        const endPoint = bug.path[nextIndex];
+        
+        // 't' - это доля пути, пройденная между двумя точками (от 0 до 1)
+        const t = exactIndex - currentIndex;
+
+        if (startPoint && endPoint) {
+            // Линейная интерполяция: вычисляем новую позицию
+            const newX = startPoint[0] + (endPoint[0] - startPoint[0]) * t;
+            const newY = startPoint[1] + (endPoint[1] - startPoint[1]) * t;
+            bug.position = [newX, newY];
+        
+            // Обновляем угол поворота таракана
+            const dx = endPoint[0] - startPoint[0];
+            const dy = endPoint[1] - startPoint[1];
+            if (dx !== 0 || dy !== 0) {
+               bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
+            }
+        } else {
+            console.error(`Невалидные точки пути для таракана ${index}:`, {startPoint, endPoint});
+            bug.finished = true; // Завершаем движение, если данные некорректны
+        }
       }
-      
-      // Проверка финиша (достигли конца пути)
-       // Проверка финиша (достигли конца пути)
+
+      // === Г. ПРОВЕРКА ФИНИША ===
       if (bugProgress.value[index] >= 1 && !bug.finished) {
         const bugX = bug.position[0];
-        const zone = finishZones.value.find(zone => 
-          bugX >= zone.minX && bugX < zone.maxX
-        );
-        
+        const zone = finishZones.value.find(z => bugX >= z.minX && bugX < z.maxX);
+
         if (zone) {
           bug.targetButtonId = zone.buttonId;
           bug.phase = 'to_blue_point';
           bug.bluePointProgress = 0;
           bug.finishTime = now;
-          
-          
-          // Добавляем таракана в кнопку (максимум 2)
           const button = winButtons.value.find(b => b.id === zone.buttonId);
           if (button && button.bugs.length < 4) {
             button.bugs.push(bug.id);
           }
-            } else {
-          // Если зона не найдена - взрываем
-          bug.explodeFrame = 0;
+        } else {
+          bug.explodeFrame = 0; // Если не попал в зону - взрываем
         }
       }
+    } 
+    // Фаза 2: Прямолинейное движение к финишной кнопке (ваша существующая логика)
+    else if (bug.phase === 'to_blue_point') {
+        const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+        if (button) {
+            const [targetX, targetY] = button.bluePoint;
+            const dx = targetX - bug.position[0];
+            const dy = targetY - bug.position[1];
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const speed = 200; // Скорость в пикселях в секунду
+            const step = Math.min(distance, speed * (safeDeltaTime / 1000));
+            
+            if (distance > 1) {
+                bug.position[0] += (dx / distance) * step;
+                bug.position[1] += (dy / distance) * step;
+                bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
+            } else {
+                bug.finished = true;
+                button.occupied = true;
+                button.finishedBugId = bug.id;
+                bug.trapId = bug.targetButtonId;
+            }
+        }
     }
-    // Фаза движения к точке финиша
-    // Используйте простое движение без проверок:
-else if (bug.phase === 'to_blue_point') {
-  const button = winButtons.value.find(b => b.id === bug.targetButtonId);
-  if (button) {
-    const [targetX, targetY] = button.bluePoint;
-    const dx = targetX - bug.position[0];
-    const dy = targetY - bug.position[1];
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const speed = 200;
-
-    // Рассчитываем шаг на основе времени
-    const step = Math.min(distance, speed * (deltaTime / 1000));
-    
-    if (step > 0) {
-      // Обновляем позицию
-      bug.position[0] += (dx / distance) * step;
-      bug.position[1] += (dy / distance) * step;
-      
-      // Обновляем угол только если расстояние > 1px
-      if (distance > 1) {
-        bug.angle = Math.atan2(dy, dx) - Math.PI / 2;
-      }
-    }
-
-   // В блоке фазы движения к точке финиша
-// В блоке фазы движения к точке финиша
-if (distance <= 1) {
-  bug.finished = true;
-  button.occupied = true;
-  button.finishedBugId = bug.id;
-  bug.finishTime = now;
-  
-  // Сохраняем ID ловушки для ставок на секцию
-  bug.trapId = bug.targetButtonId;
-  
-  // Логируем приход таракана с временем финиша
-  const finishTimeMs = (now - raceStartTime.value).toFixed(0);
-  console.log(`Таракан ${bug.id + 1} (${getBugName(bug.id)}) финишировал за ${finishTimeMs}мс`);
-}
-
-  }
-}
   });
-  
+
+  // 4. ПЛАНИРОВАНИЕ СЛЕДУЮЩЕГО КАДРА
+  // Если в гонке еще остались тараканы, продолжаем анимацию.
   if (activeBugs > 0) {
     animationFrame.value = requestAnimationFrame(animate);
   } else {
+    // Если все тараканы финишировали, останавливаем цикл и сохраняем результаты.
     cancelAnimationFrame(animationFrame.value);
     animationFrame.value = null;
     setTimeout(saveGameResults, 1000);
@@ -2838,144 +2840,123 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
-  console.log('Starting race, nextRaceBets:', nextRaceBets.value);
-  
-  // Переносим ставки в currentRaceBets
-  if (nextRaceBets.value.length > 0) {
-    currentRaceBets.value = [...nextRaceBets.value];
-    nextRaceBets.value = [];
-    console.log('Bets moved to currentRaceBets:', currentRaceBets.value);
-  }
-  unlockAllBugs();
-  const confirmedBets = [];
-// Сбрасываем блокировку тараканов
-  lockedBugs.value = new Set();
-countdownPlayed.value = false; // Сбрасываем флаг
-playRaceStartSound(); // <-- ДОБАВИТЬ ЗДЕСЬ
-// Активируем сессию на сервере
-await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
-    method: 'POST'
-});
+  // Выводим в консоль ставки, которые будут участвовать в гонке
+  console.log('Starting race, current bets:', nextRaceBets.value);
 
-// СОХРАНЯЕМ состояние выбора если меню открыто
-  if (!centerWinMenuVisible.value) {
-    resetBugSelections();
+  // Сбрасываем флаги и состояния перед началом новой гонки
+  unlockAllBugs();
+  lockedBugs.value = new Set();
+  countdownPlayed.value = false;
+
+  // Активируем сессию на сервере
+  try {
+    await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/activate', {
+      method: 'POST'
+    });
+  } catch (error) {
+    console.error("Не удалось активировать сессию на сервере:", error);
   }
-  // ПЕРЕМЕЩАЕМ ставки на следующую игру в currentRaceBets
+
+  // Переносим ставки из `nextRaceBets` в `currentRaceBets`
   if (nextRaceBets.value.length > 0) {
     currentRaceBets.value = [...nextRaceBets.value];
     nextRaceBets.value = [];
   }
-  // Сбрасываем состояния кнопок после проверки ставок
-// Стало: сбрасываем только confirmed кнопки
+  
+  // Сбрасываем состояния кнопок
+  resetBugSelections();
   resultButtons.value.forEach(b => {
     b.confirmed = false;
     b.betAmount = 0;
-    
+  });
+  overtakingButtons.value.forEach(btn => {
+    btn.confirmed = false;
+    btn.betAmount = 0;
   });
 
-// Сбрасываем состояние кнопок обгона
-overtakingButtons.value.forEach(btn => {
-  btn.confirmed = false;
-  btn.betAmount = 0;
-  
-});
-overtakingSelections.value = {};
-
+  // Очищаем предыдущие данные о взрывах
   if (animationExplodeFrame.value) {
     cancelAnimationFrame(animationExplodeFrame.value);
     animationExplodeFrame.value = null;
   }
-  // ПЕРЕМЕЩАЕМ ставки на следующую игру в активные ПЕРЕД началом новой гонки
-  if (nextRaceBets.value.length > 0) {
-    betHistory.value = [...betHistory.value, ...nextRaceBets.value];
-    nextRaceBets.value = [];
-  }
   explosionActive.value = false;
-  bugs.value = [];
-  try {
-    
-    isRaceStarted.value = false;
-    isLoading.value = true;
-    bugs.value = []; // Важно: очищаем предыдущих тараканов
-    
-   // ВМЕСТО ЭТОГО добавим очистку только в начале новой гонки
   
-
-    // Сброс состояния тараканов
-    bugProgress.value = [];
-    bugSpeeds.value = [];
-    lastSpeedChange.value = [];
-    speedChangeIntervals.value = [];
-    
-    // Генерация новых путей
+  try {
+    isLoading.value = true;
+    // 1. Получаем данные (пути и профили скорости) от бэкенда
     const data = await generatePaths();
-    // Добавить проверку
-    if (!data || !data.paths) {
-      throw new Error('Invalid response from path generator');
-    }
-    if (data.grid) {
-    const cellSize = data.grid.cell_size;
-    const offsetX = data.grid.offset_x;
-    
-    // Рассчитываем финишные зоны
-    finishZones.value = data.grid.finish.map(f => ({
-        minX: f.x * cellSize + offsetX,
-        maxX: (f.x + 1) * cellSize + offsetX,
-        buttonId: f.id
-    }));
-}
-    // Настройка зон финиша
-    const cellSize = data.grid.cell_size;
-    const offsetX = data.grid.offset_x;
-    const totalWidth = data.grid.cols * cellSize;
-    const zoneWidth = totalWidth / 7;
 
-    finishZones.value = Array.from({ length: 7 }, (_, i) => ({
-      minX: i * zoneWidth + offsetX,
-      maxX: (i + 1) * zoneWidth + offsetX,
-      buttonId: i + 1
-    }));
+    // 2. Валидация ответа от сервера
+    // Валидация ответа от сервера (теперь проверяем и новое поле)
+    if (!data || !data.paths || !data.speed_profiles ) {
+      console.error('Ошибка: получен неверный или неполный ответ от генератора путей.');
+      isLoading.value = false;
+      return;
+    }
+
+   
+    // Ширина каждой зоны - примерно 52px, как у кнопок.
+    const zoneWidth = 52; 
+    finishZones.value = winButtons.value.map(button => {
+        // Центр кнопки по оси X
+        const centerX = button.bluePoint[0]; 
+        return {
+            // Зона действия - это центр +/- половина ширины
+            minX: centerX - zoneWidth / 2,
+            maxX: centerX + zoneWidth / 2,
+            buttonId: button.id
+        };
+    });
+    // ====================== КОНЕЦ ИЗМЕНЕНИЯ ======================
+
     
-    // Инициализация тараканов
+    // 3. Сохраняем профили скорости в ref для использования в функции animate
+    bugSpeedProfiles.value = data.speed_profiles;
+
+    // 4. Инициализация тараканов на основе полученных данных
     bugs.value = data.paths.map((path, index) => {
-      bugProgress.value[index] = 0;
-      bugSpeeds.value[index] = 0.004 + Math.random() * 0.004;
-      lastSpeedChange.value[index] = Date.now();
-      speedChangeIntervals.value[index] = 500 + Math.random() * 1500;
-      
+      // Проверка на случай, если путь для таракана пустой
       if (!path || path.length === 0) {
         console.error(`Путь для таракана ${index} пустой!`);
         return null;
-    }
-    
-    return {
+      }
+      
+      // Получаем профиль скорости для текущего таракана
+      const speedProfile = bugSpeedProfiles.value[index];
+      
+      // Инициализируем состояния для каждого таракана
+      bugProgress.value[index] = 0;
+      // Используем базовую скорость, полученную с бэкенда
+      bugSpeeds.value[index] = speedProfile.base_speed; 
+      // Таймер последнего изменения скорости (будет установлен в первом кадре анимации)
+      lastSpeedChange.value[index] = 0;
+      // Индекс для отслеживания следующего изменения скорости из массива
+      nextSpeedChangeIndex.value[index] = 0; 
+      
+      // Возвращаем объект таракана для гонки
+      return {
         id: index,
-        position: [...path[0]], // Первая точка пути
+        position: [...path[0]], // Начальная позиция
         path: path,
         finished: false,
-        phase: 'racing',
+        phase: 'racing', // Начальная фаза
         targetButtonId: null,
         bluePointProgress: 0,
         finishTime: null,
         explodeFrame: undefined,
-        exploded: false
-        
-        
-    };
-}).filter(bug => bug !== null); // Фильтруем невалидных тараканов
-    
-    // Фиксируем реальное время начала гонки
+        exploded: false,
+      };
+    }).filter(bug => bug !== null); // Фильтруем невалидных тараканов
+
+    // 5. Фиксируем реальное время начала гонки и запускаем анимацию
     raceActualStartTime.value = Date.now();
     startAnimation();
-    
+
   } catch (error) {
     console.error('Ошибка генерации путей:', error);
   } finally {
     isLoading.value = false;
   }
-  
-  
 };
 // Новая функция обновления прогресс-бара
 const updateProgress = () => {

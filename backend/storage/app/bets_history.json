@@ -1,156 +1,293 @@
 [
     {
-        "id": "68c7158e5e679",
-        "timestamp": "2025-09-14 19:20:46",
+        "id": "68c73f0e6296b",
+        "timestamp": "2025-09-14 22:17:50",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "overtaking",
+            "overtaker": 2,
+            "overtaken": 5,
             "coefficient": 2.4,
-            "timestamp": "2025-09-14T19:20:46.225Z",
             "bugColors": [
-                "#8B0000",
-                "#0000FF"
-            ],
-            "overtaker": 3,
-            "overtaken": 4
+                "#FFA500",
+                "#FF0000"
+            ]
         }
     },
     {
-        "id": "68c7158e5e672",
-        "timestamp": "2025-09-14 19:20:46",
+        "id": "68c73f0e62962",
+        "timestamp": "2025-09-14 22:17:50",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "overtaking",
+            "overtaker": 2,
+            "overtaken": 4,
             "coefficient": 2.4,
-            "timestamp": "2025-09-14T19:20:46.225Z",
             "bugColors": [
                 "#FFA500",
                 "#0000FF"
-            ],
+            ]
+        }
+    },
+    {
+        "id": "68c73f0e62936",
+        "timestamp": "2025-09-14 22:17:50",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
             "overtaker": 2,
-            "overtaken": 4
-        }
-    },
-    {
-        "id": "68c7158e5e63d",
-        "timestamp": "2025-09-14 19:20:46",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "overtaking",
+            "overtaken": 3,
             "coefficient": 2.4,
-            "timestamp": "2025-09-14T19:20:46.225Z",
             "bugColors": [
-                "#FFFF00",
-                "#0000FF"
-            ],
-            "overtaker": 1,
-            "overtaken": 4
+                "#FFA500",
+                "#8B0000"
+            ]
         }
     },
     {
-        "id": "68c7144148cd6",
-        "timestamp": "2025-09-14 19:15:13",
+        "id": "68c73f04c8fda",
+        "timestamp": "2025-09-14 22:17:40",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "position",
-            "coefficient": 27.81,
-            "timestamp": "2025-09-14T19:15:13.108Z",
-            "bugId": 4,
-            "position": 5
-        }
-    },
-    {
-        "id": "68c7144148cd2",
-        "timestamp": "2025-09-14 19:15:13",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "coefficient": 27.81,
-            "timestamp": "2025-09-14T19:15:13.108Z",
             "bugId": 3,
-            "position": 5
+            "position": 4,
+            "coefficient": 12.6
         }
     },
     {
-        "id": "68c7144148ccb",
-        "timestamp": "2025-09-14 19:15:13",
+        "id": "68c73f04c8fd6",
+        "timestamp": "2025-09-14 22:17:40",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "position",
-            "coefficient": 27.81,
-            "timestamp": "2025-09-14T19:15:13.108Z",
+            "bugId": 3,
+            "position": 3,
+            "coefficient": 8.15
+        }
+    },
+    {
+        "id": "68c73f04c8fcf",
+        "timestamp": "2025-09-14 22:17:40",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "position",
             "bugId": 2,
-            "position": 5
+            "position": 4,
+            "coefficient": 12.6
         }
     },
     {
-        "id": "68c7144148ca5",
-        "timestamp": "2025-09-14 19:15:13",
+        "id": "68c73f04c8fa4",
+        "timestamp": "2025-09-14 22:17:40",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "position",
-            "coefficient": 27.81,
-            "timestamp": "2025-09-14T19:15:13.108Z",
+            "bugId": 2,
+            "position": 3,
+            "coefficient": 8.15
+        }
+    },
+    {
+        "id": "68c73cf41e86d",
+        "timestamp": "2025-09-14 22:08:52",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "position",
+            "bugId": 2,
+            "position": 5,
+            "coefficient": 27.81
+        }
+    },
+    {
+        "id": "68c73cf41e85e",
+        "timestamp": "2025-09-14 22:08:52",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "position",
+            "bugId": 2,
+            "position": 4,
+            "coefficient": 12.6
+        }
+    },
+    {
+        "id": "68c73cf41e84f",
+        "timestamp": "2025-09-14 22:08:52",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "position",
             "bugId": 1,
-            "position": 5
+            "position": 5,
+            "coefficient": 27.81
         }
     },
     {
-        "id": "68c7141ef40e9",
-        "timestamp": "2025-09-14 19:14:38",
+        "id": "68c73cf41e814",
+        "timestamp": "2025-09-14 22:08:52",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "position",
+            "bugId": 1,
+            "position": 4,
+            "coefficient": 12.6
+        }
+    },
+    {
+        "id": "68c73cefc16bd",
+        "timestamp": "2025-09-14 22:08:47",
         "data": {
             "user_id": 1,
             "amount": 25,
             "type": "overtaking",
+            "overtaker": 4,
+            "overtaken": 2,
             "coefficient": 2.4,
-            "timestamp": "2025-09-14T19:14:38.809Z",
-            "bugColors": [
-                "#FF0000",
-                "#00FF00"
-            ],
-            "overtaker": 5,
-            "overtaken": 7
-        }
-    },
-    {
-        "id": "68c7141ef40e6",
-        "timestamp": "2025-09-14 19:14:38",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "overtaking",
-            "coefficient": 1,
-            "timestamp": "2025-09-14T19:14:38.809Z",
-            "bugColors": [
-                "#FF0000",
-                "#800080"
-            ],
-            "overtaker": 5,
-            "overtaken": 6
-        }
-    },
-    {
-        "id": "68c7141ef40e2",
-        "timestamp": "2025-09-14 19:14:38",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "overtaking",
-            "coefficient": 2.4,
-            "timestamp": "2025-09-14T19:14:38.809Z",
             "bugColors": [
                 "#0000FF",
-                "#00FF00"
+                "#FFA500"
+            ]
+        }
+    },
+    {
+        "id": "68c73cefc16b3",
+        "timestamp": "2025-09-14 22:08:47",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 6,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#800080"
+            ]
+        }
+    },
+    {
+        "id": "68c73cefc16a9",
+        "timestamp": "2025-09-14 22:08:47",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 5,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#FF0000"
+            ]
+        }
+    },
+    {
+        "id": "68c73cefc169a",
+        "timestamp": "2025-09-14 22:08:47",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 4,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#0000FF"
+            ]
+        }
+    },
+    {
+        "id": "68c73cefc1667",
+        "timestamp": "2025-09-14 22:08:47",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 2,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#FFA500"
+            ]
+        }
+    },
+    {
+        "id": "68c73ce9f40cd",
+        "timestamp": "2025-09-14 22:08:41",
+        "data": {
+            "user_id": 1,
+            "amount": 100,
+            "type": "trap",
+            "selection": [
+                4,
+                6,
+                7,
+                5
             ],
-            "overtaker": 4,
-            "overtaken": 7
+            "trapId": 5,
+            "coefficient": 12.6,
+            "time": "2025-09-14T22:08:41.757Z",
+            "color": "linear-gradient(180deg, #FF170F 0%, #FF005E 100%)"
+        }
+    },
+    {
+        "id": "68c73cc9a85df",
+        "timestamp": "2025-09-14 22:08:09",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "trap",
+            "selection": [
+                4
+            ],
+            "trapId": 5,
+            "coefficient": 12.6,
+            "time": "2025-09-14T22:08:09.441Z",
+            "color": "linear-gradient(180deg, #FF170F 0%, #FF005E 100%)"
+        }
+    },
+    {
+        "id": "68c73cc4e7534",
+        "timestamp": "2025-09-14 22:08:04",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 6,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#800080"
+            ]
+        }
+    },
+    {
+        "id": "68c73cc4e7525",
+        "timestamp": "2025-09-14 22:08:04",
+        "data": {
+            "user_id": 1,
+            "amount": 25,
+            "type": "overtaking",
+            "overtaker": 3,
+            "overtaken": 5,
+            "coefficient": 2.4,
+            "bugColors": [
+                "#8B0000",
+                "#FF0000"
+            ]
         }
     }
 ]

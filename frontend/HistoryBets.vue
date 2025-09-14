@@ -7,8 +7,8 @@
       <!-- Group iteration -->
       <div v-for="(group, groupIndex) in groupedBets" :key="groupIndex" class="bet-group">
         <!-- Main item for the group -->
-        <div 
-          class="bet-item" 
+        <div
+          class="bet-item"
           :class="{'clickable': group.isGroup}"
           @click="group.isGroup ? toggleGroup(group.groupKey) : null"
         >
@@ -26,7 +26,7 @@
               {{ getBetType(group.displayBet) }}
             </div>
             <div class="bet-amount">
-              {{ group.totalAmount }}в‚Ѕ Г— {{ getMultiplier(group.displayBet) }} = {{ calculateTotal(group) }}в‚Ѕ
+              {{ group.totalAmount }}&#226;‚¬ x {{ getMultiplier(group.displayBet) }} = {{ calculateTotal(group) }}
             </div>
           </div>
           <div class="bet-time">{{ formatTime(group.displayBet.timestamp) }}</div>
@@ -37,11 +37,12 @@
         <div v-if="group.isGroup && group.isExpanded" class="expanded-details">
           <div v-for="bet in group.bets" :key="bet.id || Math.random()" class="bet-item bet-item-detail">
             <div class="bet-colors">
-              <div v-for="(color, i) in getBetColors(bet)" :key="i" class="color-indicator" :style="{ background: color }"></div>
+              <div v-for="(color, i) in getBetColors(bet)" :key="i" class="color-indicator" :style="{
+              background: color }"></div>
             </div>
             <div class="bet-info">
               <div class="bet-description">{{ getBetType(bet) }}</div>
-              <div class="bet-amount">{{ bet.amount }}в‚Ѕ</div>
+              <div class="bet-amount">{{ bet.amount }}&#226;‚¬</div>
             </div>
             <div class="bet-time">{{ formatTime(bet.timestamp) }}</div>
           </div>
@@ -56,6 +57,7 @@ import { computed, defineProps, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+
 const props = defineProps({
   bets: Array,
   isCenterMenuOpen: Boolean,
@@ -64,6 +66,7 @@ const props = defineProps({
 });
 
 const expandedGroups = ref(new Set());
+
 const toggleGroup = (groupKey) => {
   if (expandedGroups.value.has(groupKey)) {
     expandedGroups.value.delete(groupKey);
@@ -127,6 +130,7 @@ const getBetType = (bet) => {
 };
 
 const getMultiplier = (bet) => bet?.coefficient || 1;
+
 const calculateTotal = (group) => {
   if (!group || !group.displayBet) return 0;
   const multiplier = getMultiplier(group.displayBet);
@@ -148,12 +152,12 @@ const groupedBets = computed(() => {
     groups[groupKey].bets.push(bet);
     groups[groupKey].totalAmount += bet.amount;
   }
-  
   return Object.values(groups).map(group => {
     const isGroup = group.bets.length > 1;
     return { ...group, isGroup, groupKey: isGroup ? group.groupKey : null, displayBet: group.bets[0], isExpanded: expandedGroups.value.has(group.groupKey) };
   });
 });
+
 </script>
 
 <style scoped>

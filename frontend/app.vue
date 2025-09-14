@@ -187,37 +187,34 @@
       </div>
       
       <!-- Тараканы -->
-      <div v-if="raceInProgress || explosionActive">
-    <div 
-      v-for="(bug, index) in bugs" 
-      :key="'bug-'+bug.id"
-    >
-      <!-- Взрыв показываем только для не финишировавших -->
-      <div 
-        v-if="bug.explodeFrame !== undefined && !bug.finished"
-        class="explosion"
-        :style="{
-          backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
-          left: `${bug.position[0]}px`,
-          top: `${bug.position[1]}px`
-        }"
-      ></div>
-  
-  <!-- Таракан показываем если не взорван ИЛИ если он финишировал -->
-   <div 
-    v-else-if="!bug.exploded || bug.finished"
-    class="tarakan"
-    :class="{ dizzy: bug.dizzy }"
-    :style="{
-      backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
-      left: `${bug.position[0]}px`,
-      top: `${bug.position[1]}px`,
-      transform: `translate(-50%, -50%) rotate(${bug.angle}rad)`
-    }"
-    @click="makeBugDizzy(index)" 
-      ></div>
-    </div>
-      </div>
+      <!-- Тараканы -->
+<div v-if="raceInProgress || explosionActive">
+    <template v-for="(bug, index) in bugs" :key="'bug-'+bug.id">
+        <!-- Взрыв показываем только для не финишировавших -->
+        <div
+            v-if="bug.explodeFrame !== undefined && !bug.finished"
+            class="explosion"
+            :style="{
+                backgroundImage: `url('${explosionImages[bug.explodeFrame]}')`,
+                left: `${bug.position[0]}px`,
+                top: `${bug.position[1]}px`
+            }"
+        ></div>
+        <!-- Таракан показываем если он не взорван И НЕ финишировал -->
+        <div
+            v-else-if="!bug.exploded && !bug.finished"
+            class="tarakan"
+            :class="{ dizzy: bug.dizzy }"
+            :style="{
+                backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
+                left: `${bug.position[0]}px`,
+                top: `${bug.position[1]}px`,
+                transform: `translate(-50%, -50%) rotate(${bug.angle}rad)`
+            }"
+            @click="makeBugDizzy(index)"
+        ></div>
+    </template>
+</div>
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
   <!-- Новый контейнер для кнопок -->
@@ -869,15 +866,16 @@ const playOutcomeSound = () => {
   }
 };
 
+// Найдите эту функцию в app.vue и замените её целиком
 const placeSectionBet = async () => {
   try {
     playBetClick();
-    
+
     // Преобразуем ID тараканов из формата интерфейса (1-7) в формат гонки (0-6)
     const raceBugIds = selectedBugs.value.map(id => id - 1);
-    
+
     console.log(`Создаем ставку на секцию ${selectedTrap.value} с тараканами: ${selectedBugs.value.join(', ')} (в формате гонки: ${raceBugIds.join(', ')})`);
-    
+
     // Блокируем выбранных тараканов
     const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
     lockedBugsArray.value = newLocked;
@@ -890,7 +888,7 @@ const placeSectionBet = async () => {
     // Проверка минимальной ставки
     const minBet = 25;
     if (currentBet.value < minBet) {
-      alert(`Минимальная ставка: ${minBet}₽`);
+      alert(`Минимальная ставка: ${minBet}P`);
       return;
     }
 
@@ -902,19 +900,11 @@ const placeSectionBet = async () => {
     
     // Создаем ОДНУ ставку для всех выбранных тараканов
     const totalAmount = currentBet.value * selectedBugs.value.length;
-    
+
     // Списание общей суммы
     balance.value -= totalAmount;
     showBetPlacedNotification();
     playOutcomeSound();
-
-    // Добавляем одну ставку в массив (используем raceBugIds для формата гонки)
-    nextRaceBets.value.push({
-      type: 'section',
-      trapId: selectedTrap.value,
-      bugIds: raceBugIds, // Используем преобразованные ID
-      amount: totalAmount
-    });
 
     // Обновляем отображение суммы ставки на кнопке
     const button = winButtons.value.find(b => b.id === selectedTrap.value);
@@ -922,37 +912,45 @@ const placeSectionBet = async () => {
       button.betAmount = (button.betAmount || 0) + totalAmount;
     }
     const coefficient = sectionCoefficients.value[selectedTrap.value];
-    // Отправка на бэкенд
-   const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        user_id: 1,
-        amount: totalAmount,
-        type: 'trap',
-        selection: selectedBugs.value,
-        trapId: selectedTrap.value,
-        coefficient: coefficient, // Add this line
-        color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
-        time: new Date().toTimeString().split(' ')[0]
-    })
-});
-    
-    if (!response.ok) throw new Error('Failed to save section bet');
-    
-    fetchBetHistory();
 
-     // После успешного сохранения ставки
-        currentBet.value = 25; // Сброс к минимальной ставке
-        undoStack.value = []; // Очистка стека отмены
+    // ----- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ЗДЕСЬ -----
+    // Отправка на бэкенд. Данные обернуты в массив "bets".
+    const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        // Объект ставки должен быть внутри массива 'bets'
+        bets: [{
+          user_id: 1,
+          amount: totalAmount,
+          type: 'trap',
+          selection: selectedBugs.value,
+          trapId: selectedTrap.value,
+          coefficient: coefficient,
+          color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
+          time: new Date().toISOString() 
+        }]
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to save section bet');
+
+    // Теперь, когда ставка сохранена, обновляем историю
+    await fetchBetHistory();
+
+    // После успешного сохранения ставки
+    currentBet.value = 25; // Сброс к минимальной ставке
+    undoStack.value = []; // Очистка стека отмены
+    
   } catch (error) {
     console.error('Error saving section bet:', error);
+    // Важно: в случае ошибки нужно вернуть списанные средства
+    // (логику возврата средств нужно добавить при необходимости)
   } finally {
     resetBugSelections();
     resetWinButtonSelection();
     centerWinMenuVisible.value = false;
   }
-
 };
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
@@ -1197,7 +1195,6 @@ const resetAllBets = () => {
     clearPendingBetsSound.value.volume = soundVolume.value;
     clearPendingBetsSound.value.play().catch(e => console.error("Clear sound error:", e));
   }
-  
   // Сбрасываем только ставки, не трогая выбор кнопок
   selectedWinnerBugIds.value = [];
   undoStack.value.push({
@@ -1205,19 +1202,15 @@ const resetAllBets = () => {
     prevBet: currentBet.value
   });
   currentBet.value = 25;
- // Полный сброс только для confirmed ставок
+  // Полный сброс только для confirmed ставок
   resultButtons.value.forEach(b => {
     b.confirmed = false;
     b.betAmount = 0;
   });
-  
   overtakingButtons.value.forEach(b => {
-      b.confirmed = false;
-      b.betAmount = 0;
-    
+    b.confirmed = false;
+    b.betAmount = 0;
   });
-  
-
 };
 // Восстановление неподтвержденных выделений при открытии меню
 

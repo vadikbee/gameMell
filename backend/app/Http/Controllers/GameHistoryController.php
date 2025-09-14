@@ -223,7 +223,7 @@ public function calculateWinnings(Request $request)
     'results.*.position' => 'nullable|integer',
     'results.*.color' => 'required|string',
     'results.*.trapId' => 'nullable|integer',
-    'bets' => 'required|array',
+    'bets' => 'present|array', // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
     'bets.*.type' => 'required|string',
     'bets.*.amount' => 'required|numeric',
     'bets.*.bugId' => 'sometimes|integer', // changed from required_if

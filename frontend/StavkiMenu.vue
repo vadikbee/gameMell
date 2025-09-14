@@ -112,9 +112,9 @@ const emit = defineEmits([
 
 // Используем параметры из API
 const stavkiButtons = computed(() => {
-  if (!gameConfig.value) return [];
-  
-  return gameConfig.value.bet_buttons.map(amount => ({
+  // Добавляем проверку на 'options' для надежности
+  if (!gameConfig.value || !gameConfig.value.options) return [];
+  return gameConfig.value.options.bet_buttons.map(amount => ({
     id: amount.toString(),
     amount: amount
   }));

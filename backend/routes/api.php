@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameHistoryController;
 use App\Http\Controllers\BetHistoryController;
+use App\Http\Controllers\GameInstanceController;
 
 require_once base_path('path_generator/PathGenerator.php');
 require_once base_path('path_generator/a_star.php');
@@ -122,38 +123,14 @@ Route::options('/gameplay/games/bets/{code}/latest', function () {
 });
 ////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
-Route::get('/gameplay/games/instances/cockroaches-space-maze', function () {
-    $configPath = storage_path('/app/bet_buttons.json');
 
-    Log::info('Loading config from: ' . $configPath);
 
-    if (!file_exists($configPath)) {
-        Log::error('Config file not found: ' . $configPath);
-        return response()->json(['error' => 'Configuration not found'], 404);
-    }
-
-    $config = json_decode(file_get_contents($configPath), true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        Log::error('Invalid JSON in config file: ' . json_last_error_msg());
-        return response()->json(['error' => 'Invalid configuration'], 500);
-    }
-
-    Log::info('Config loaded successfully', $config);
-
-    return response()->json([
-        'bet_buttons' => $config['bet_buttons'],
-        'currency' => $config['currency'],
-        'min_bet' => $config['min_bet'],
-        'max_bet' => $config['max_bet'],
-        'bet_step' => $config['bet_step'],
-        'coefficients' => $config['coefficients']
-    ]);
-});
+// Эндпоинт для получения деталей игрового инстанса
+Route::get('/gameplay/games/instances/{code}', [GameInstanceController::class, 'getInstanceDetails']);
 
 // Обработка CORS для OPTIONS запроса
-Route::options('/gameplay/games/instances/cockroaches-space-maze', function () {
-    return response('', 204)
+Route::options('/gameplay/games/instances/{code}', function () {
+    return response("", 204)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -367,3 +344,12 @@ Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
     Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
     Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
 });*/
+Route::post('/gameplay/games/instances/{code}/demo/url', [GameSessionController::class, 'getDemoUrl']);
+
+// Обработка CORS для OPTIONS запроса
+Route::options('/gameplay/games/instances/{code}/demo/url', function () {
+    return response("", 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});

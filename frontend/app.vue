@@ -1023,32 +1023,37 @@ const stavkiButtons = computed(() => {
     amount: amount
   }));
 });
-// Добавим computed свойства для коэффициентов
 
-// Убедимся, что коэффициенты всегда берутся из API
-// В computed свойствах коэффициентов замените console.error на console.warn
+
 const resultCoefficients = computed(() => {
-  if (!gameConfig.value?.coefficients?.result) {
-    console.warn('Result coefficients not found, using defaults');
-    return Array(49).fill(1);
+  if (!gameConfig.value?.options?.coefficients?.result) {
+    console.warn('Result coefficients not found or not yet loaded, using defaults.');
+    // Возвращаем пустой массив, чтобы .map() не вызывал ошибку
+    return []; 
   }
-  return gameConfig.value.coefficients.result;
+  return gameConfig.value.options.coefficients.result;
 });
 
 const overtakingCoefficients = computed(() => {
-  if (!gameConfig.value?.coefficients?.overtaking) {
-    console.warn('Overtaking coefficients not found, using defaults');
-    return Array(49).fill(1);
+  
+  // Проверяем всю цепочку свойств до 'overtaking'
+  if (!gameConfig.value?.options?.coefficients?.overtaking) {
+    console.warn('Overtaking coefficients not yet loaded, using defaults.');
+    return []; // Возвращаем пустой массив
   }
-  return gameConfig.value.coefficients.overtaking;
+  return gameConfig.value.options.coefficients.overtaking;
 });
-
 const sectionCoefficients = computed(() => {
-  if (!gameConfig.value?.coefficients?.section) {
-    console.warn('Section coefficients not found, using defaults');
-    return { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
+  // Используем ?. для безопасного доступа.
+  // Если gameConfig.value, options, или coefficients не существуют,
+  // вся цепочка вернет undefined, и условие сработает.
+  if (!gameConfig.value?.options?.coefficients?.section) {
+    console.warn('Section coefficients not found or not yet loaded, using defaults.');
+    // Возвращаем значение по умолчанию, чтобы приложение не падало
+    return {}; 
   }
-  return gameConfig.value.coefficients.section;
+  // Этот код выполнится только когда все данные будут на месте
+  return gameConfig.value.options.coefficients.section;
 });
 
 // Добавление ставки

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class GameSessionController extends Controller
 {
@@ -32,7 +33,7 @@ class GameSessionController extends Controller
 
     // Проверяем существование активной сессии
     $sessionData = $this->getActiveSessionData();
-    
+
     if (!$sessionData || !$sessionData['is_active']) {
         return response()->json([], 404);
     }
@@ -55,7 +56,7 @@ class GameSessionController extends Controller
 private function getPreviousSession()
 {
     $historyPath = storage_path('app/game_history.json');
-    
+
     if (!file_exists($historyPath)) {
         return null;
     }
@@ -108,7 +109,7 @@ private function getPreviousSession()
     ];
 
     $this->saveActiveSessionData($sessionData);
-    
+
     return response()->json($sessionData);
 }
 
@@ -123,7 +124,7 @@ private function getPreviousSession()
             $sessionData['ended_at'] = Carbon::now()->toISOString();
             $this->saveActiveSessionData($sessionData);
         }
-        
+
         return response()->json(['status' => 'success']);
     }
 
@@ -133,7 +134,7 @@ private function getPreviousSession()
     private function getActiveSessionData()
     {
         $filePath = storage_path('app/' . self::ACTIVE_SESSION_FILE);
-        
+
         if (!file_exists($filePath)) {
             return null;
         }
@@ -149,5 +150,37 @@ private function getPreviousSession()
     {
         $filePath = storage_path('app/' . self::ACTIVE_SESSION_FILE);
         file_put_contents($filePath, json_encode($data));
+    }
+
+
+ public function getDemoUrl(Request $request, $code)
+    {
+        // 1. Валидация входных данных
+        $validator = Validator::make(['code' => $code], [
+            'code' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // 2. Проверка существования игрового инстанса
+        // В реальном проекте здесь будет запрос к БД или конфигу.
+        // Для примера, мы проверяем только известный нам код.
+        if ($code !== 'cockroaches-space-maze') {
+            return response()->json(['error' => 'Game instance not found'], 404);
+        }
+
+        // 3. Генерация уникального ID для демо-сессии
+        $demoSessionId = 'demo_' . Str::random(16);
+
+        // 4. Формирование URL
+        // config('app.url') возьмет базовый URL из вашего .env файла (APP_URL)
+        $url = config('app.url') . '/?code=' . $code . '&session=' . $demoSessionId;
+
+        // 5. Возвращаем успешный ответ
+        return response()->json([
+            'url' => $url,
+        ]);
     }
 }

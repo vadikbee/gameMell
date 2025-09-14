@@ -1,0 +1,52 @@
+{
+  "cockroaches-space-maze": {
+    "id": 1,
+    "name": "Cockroaches Space Maze",
+    "code": "cockroaches-space-maze",
+    "options": {
+      "bet_buttons": [25, 50, 100, 150],
+      "currency": "RUB",
+      "min_bet": 25,
+      "max_bet": 10000,
+      "bet_step": 1,
+      "coefficients": {
+        "result": [
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4,
+          6.35, 6.72, 8.15, 12.6, 27.81, 100.8, 806.4
+        ],
+        "overtaking": [
+          0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 0
+        ],
+        "section": { "1": 12.6, "2": 12.6, "3": 12.6, "4": 12.6, "5": 12.6, "6": 12.6, "7": 12.6 }
+      }
+    },
+    "game": { "is_maintenance": false },
+    "wallet": {},
+    "game_currencies": [ { "id": 1, "iso_code": "RUB", "is_default": true, "options": {} } ]
+  },
+  "super-fast-bugs": {
+    "id": 2,
+    "name": "Super Fast Bugs",
+    "code": "super-fast-bugs",
+    "options": {
+      "bet_buttons": [10, 20, 50, 100],
+      "currency": "USD",
+      "min_bet": 10,
+      "max_bet": 5000,
+      "bet_step": 5,
+      "coefficients": {
+         "result": [ 5.0, 7.5, 10.0 ],
+         "overtaking": [ 2.0, 2.0, 2.0 ],
+         "section": { "1": 10.0, "2": 10.0, "3": 10.0 }
+      }
+    },
+    "game": { "is_maintenance": false },
+    "wallet": {},
+    "game_currencies": [ { "id": 2, "iso_code": "USD", "is_default": true, "options": {} } ]
+  }
+}

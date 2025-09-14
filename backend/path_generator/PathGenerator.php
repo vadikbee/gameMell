@@ -143,7 +143,7 @@ public function generatePaths(int $bugCount, int $duration, int $maxMoves): arra
         // Создаем индивидуальный профиль скорости для текущего таракана.
         $profile = [
             // Базовая скорость имеет небольшое случайное отклонение от идеальной.
-            'base_speed' => $baseSpeedFactor * (mt_rand(90, 110) / 100.0),
+            'base_speed' => $baseSpeedFactor * (mt_rand(90, 110) / 100.0) * 1.25,
             'speed_changes' => []
         ];
 

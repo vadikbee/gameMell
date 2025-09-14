@@ -374,59 +374,61 @@ public function calculateWinnings(Request $request)
                     }
                     break;
 
-                case 'section':
-                    $winningBugs = [];
-                    $bugIds = $bet['bugIds'] ?? [];
-                    $trapId = $bet['trapId'] ?? null;
+                case 'trap':
+case 'section':
+    // СНАЧАЛА ищем 'bugIds', ЕСЛИ НЕТ - ищем 'selection'
+    $bugIds = $bet['bugIds'] ?? $bet['selection'] ?? [];
+    $trapId = $bet['trapId'] ?? null;
 
-                    // Get coefficients from config
-                    $coefficient = $sectionCoefficients[$trapId] ?? 1; // Use dynamic coefficient
+    // Проверяем, что у нас есть и тараканы в ставке, и trapId
+    if (empty($bugIds) || $trapId === null) {
+        $losingBets[] = $bet;
+        break;
+    }
 
-                    foreach ($bugIds as $bugId) {
-                        $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
-                            return $r['color'] === $idToColor[$bugId];
-                        });
+    $coefficient = $sectionCoefficients[$trapId] ?? 1;
 
-                        if ($result && isset($result['trapId']) && $result['trapId'] == $trapId) {
-                            $winningBugs[] = $bugId;
-                        }
-                    }
+    // Находим результат для выигрышного trapId
+    $winningResult = collect($results)->first(function ($r) use ($trapId) {
+        return isset($r['trapId']) && $r['trapId'] == $trapId && $r['position'] !== null;
+    });
 
-                    if (count($winningBugs) > 0) {
-                        // Calculate win per bug and sum them
-                        $betPerBug = $bet['amount'] / count($bugIds);
-                        $totalWin = 0;
+    if ($winningResult) {
+        // Получаем ID победившего таракана
+        $winnerBugId = $colorToId[$winningResult['color']] ?? -1;
 
-                        foreach ($winningBugs as $winningBug) {
-                            $totalWin += $betPerBug * $coefficient;
-                        }
+        // Проверяем, есть ли победитель среди тех, на кого мы ставили
+        if (in_array($winnerBugId, $bugIds)) {
+            // Если да - вся ставка выиграла!
+            $totalWin = $bet['amount'] * $coefficient;
 
-                        $winningBet = [
-                            'type' => 'section',
-                            'amount' => $bet['amount'],
-                            'winAmount' => $totalWin,
-                            'trapId' => $trapId,
-                            'bugIds' => $bugIds,
-                            'winningBugs' => $winningBugs,
-                            'coefficient' => $coefficient,
-                            'bugColors' => array_map(function($id) use ($idToColor) {
-                                return $idToColor[$id];
-                            }, $winningBugs)
-                        ];
+            $winningBet = [
+                'type' => 'section',
+                'amount' => $bet['amount'],
+                'winAmount' => $totalWin,
+                'trapId' => $trapId,
+                'bugIds' => $bugIds,
+                'winningBugs' => [$winnerBugId], // Показываем реального победителя
+                'coefficient' => $coefficient,
+                'bugColors' => [$winningResult['color']]
+            ];
 
-                        // Группируем выигрышные ставки
-                        if (!isset($multibetGroups[$betGroup])) {
-                            $multibetGroups[$betGroup] = [];
-                        }
-                        $multibetGroups[$betGroup][] = $winningBet;
-                    } else {
-                        $losingBets[] = $bet;
-                    }
-                    break;
+            if (!isset($multibetGroups[$betGroup])) {
+                $multibetGroups[$betGroup] = [];
+            }
+            $multibetGroups[$betGroup][] = $winningBet;
 
-                default:
-                    $losingBets[] = $bet;
-                    break;
+        } else {
+            // Победитель в этой секции есть, но мы на него не ставили
+            $losingBets[] = $bet;
+        }
+    } else {
+        // Никто не финишировал в указанной секции
+        $losingBets[] = $bet;
+    }
+    break;
+
+
             }
         }
 

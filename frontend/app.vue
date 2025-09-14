@@ -48,11 +48,11 @@
     {{ makeBetsText }}
   </div>
 </div>
-      <HistoryBets 
+<HistoryBets 
   v-if="historyBetsVisible && !historyBetsInsideCenter" 
   ref="historyBetsRef"
   :isCenterMenuOpen="centerMenuVisible" 
-  :bets="betHistoryFromApi"
+  :bets="betHistoryFromApi"  
   :title="t('history_bets')"
   class="outside-center"
 />
@@ -1447,111 +1447,119 @@ const sendBetsBatch = async (bets) => {
   }
 };
 
-const saveBetsBatch = async (bets) => {
-  try {
-    const apiUrl = '/api/v1/gameplay/bets/cockroaches-space-maze';
+const saveBetsBatch = async (betsToSave) => {
+  if (!betsToSave || betsToSave.length === 0) {
+    console.warn('saveBetsBatch called with no bets to save.');
+    return;
+  }
 
-const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    // Тело запроса остается тем же - объект с ключом 'bets'
-    body: JSON.stringify({ bets: betsToSend }) 
-});
+  try {
+    const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bets: betsToSave })
+    });
+
+    if (!response.ok) {
+      // Если сервер вернул ошибку, выбрасываем ее, чтобы catch в placeBet ее поймал
+      throw new Error(`Server responded with status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Bets saved successfully:', result);
+
     
-    if (!response.ok) throw new Error('Failed to save bets batch');
-    return await response.json();
+    // После успешного сохранения, добавляем эти ставки в начало массива истории.
+    // Мы создаем объекты в том формате, в котором их ожидает HistoryBets (с полем 'data').
+    const newHistoryItems = betsToSave.map(bet => ({
+      id: new Date().getTime() + Math.random(), // Генерируем временный ID
+      timestamp: new Date().toISOString(),
+      data: bet 
+    }));
+    
+    // Добавляем новые ставки в начало существующей истории
+    betHistoryFromApi.value.unshift(...newHistoryItems);
+
+    // Опционально: можно ограничить длину массива истории, чтобы он не рос бесконечно
+    if (betHistoryFromApi.value.length > 20) {
+        betHistoryFromApi.value.length = 20; // Оставляем только последние 20 записей
+    }
+    
+    return result; // Возвращаем результат для дальнейшей обработки, если нужно
+
   } catch (error) {
-    console.error('Error saving bets batch:', error);
-    throw error;
+    console.error('Error in saveBetsBatch:', error);
+    // Пробрасываем ошибку дальше, чтобы ее мог поймать `placeBet`
+    throw error; 
   }
 };
 // В функции placeBet добавлю использование коэффициентов
+// app.vue
+
 const placeBet = async () => {
   try {
-    // 1. Воспроизводим звук клика в самом начале
     playBetClick();
-
-    // 2. Определяем, с какими кнопками мы работаем, в зависимости от активной вкладки
-    let sourceButtons = [];
-    if (activeTab.value === 'result') {
-      sourceButtons = resultButtons.value;
-    } else if (activeTab.value === 'overtaking') {
-      sourceButtons = overtakingButtons.value;
-    } else {
-      // На случай, если появится новый тип ставки, а логика не будет добавлена
-      alert('Неизвестный тип ставки. Пожалуйста, выберите вкладку.');
-      return;
-    }
-
-    // 3. Собираем все ставки, которые выбраны, но еще не были подтверждены
+    const sourceButtons = activeTab.value === 'result' 
+        ? resultButtons.value 
+        : overtakingButtons.value;
     const selectedButtons = sourceButtons.filter(btn => btn.selected && !btn.confirmed);
 
-    // 4. Проверяем, есть ли что отправлять
     if (selectedButtons.length === 0) {
-      alert('Пожалуйста, выберите хотя бы одну ставку для подтверждения.');
+      alert(`Выберите ${activeTab.value === 'result' ? 'позиции' : 'обгоны'} для ставки`);
       return;
     }
 
-    // 5. Проверяем баланс
     const totalAmount = currentBet.value * selectedButtons.length;
     if (totalAmount > balance.value) {
-      alert('Недостаточно средств на балансе.');
+      alert('Недостаточно средств');
       return;
     }
 
-    // 6. Формируем массив ставок (betsToSend) для отправки на API
-    // Логика формирования разная для каждого типа ставки
     const betsToSend = selectedButtons.map(button => {
+      const row = Math.floor(button.id / 7);
+      const col = button.id % 7;
+      
       if (activeTab.value === 'result') {
-        const row = Math.floor(button.id / 7);
-        const col = button.id % 7;
         return {
-          user_id: 1, // Замените на реальный ID пользователя
-          type: 'position',
-          amount: currentBet.value,
-          bugId: row + 1,
-          position: col + 1,
-          coefficient: button.coefficient,
-          timestamp: new Date().toISOString()
+          user_id: 1, type: 'position', amount: currentBet.value,
+          bugId: row + 1, // Sending bug ID (1-7)
+          position: col + 1, // Sending position (1-7)
+          coefficient: button.coefficient, timestamp: new Date().toISOString(),
         };
       } else { // overtaking
-        const row = Math.floor(button.id / 7);
-        const col = button.id % 7;
         return {
-          user_id: 1, // Замените на реальный ID пользователя
-          type: 'overtaking',
-          amount: currentBet.value,
-          overtaker: row,
-          overtaken: col,
-          coefficient: button.coefficient || 1,
-          timestamp: new Date().toISOString(),
-          bugColors: [bugColors.value[row], bugColors.value[col]]
+          user_id: 1, type: 'overtaking', amount: currentBet.value,
+          overtaker: row + 1, // Sending overtaker ID (1-7)
+          overtaken: col + 1, // Sending overtaken ID (1-7)
+          coefficient: button.coefficient || 1, timestamp: new Date().toISOString(),
+          bugColors: [bugColors.value[row], bugColors.value[col]],
         };
       }
     });
 
-    
+    await saveBetsBatch(betsToSend);
 
-    // 8. Обновляем UI только ПОСЛЕ успешной отправки
+    const newHistoryItems = betsToSend.map(bet => ({
+        id: Date.now() + Math.random(),
+        timestamp: bet.timestamp,
+        data: bet
+    }));
+    betHistoryFromApi.value.unshift(...newHistoryItems);
+
     for (const button of selectedButtons) {
       button.confirmed = true;
-      button.betAmount = (button.betAmount || 0) + currentBet.value; // Корректно суммируем, если уже были ставки
-      button.selected = false; // Снимаем выделение
+      button.betAmount = (button.betAmount || 0) + currentBet.value;
+      button.selected = false;
     }
 
     balance.value -= totalAmount;
     playOutcomeSound();
     showBetPlacedNotification();
-
-    // Добавляем ставки в массив для следующей гонки
-    betsToSend.forEach(bet => {
-      nextRaceBets.value.push(bet);
-    });
-
+    betsToSend.forEach(bet => nextRaceBets.value.push(bet));
+    
   } catch (error) {
-    // Если saveBetsBatch выбросит ошибку, мы поймаем ее здесь
     console.error('Ошибка при размещении ставки:', error);
-    alert('Произошла ошибка при сохранении ставки. Пожалуйста, попробуйте еще раз.');
+    alert('Произошла ошибка при сохранении ставки.');
   }
 };
 watch(activeTab, (newTab) => {

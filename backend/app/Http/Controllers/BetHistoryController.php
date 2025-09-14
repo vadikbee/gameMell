@@ -269,32 +269,73 @@ private function getColorName($hexColor)
 
 
 }
-public function saveBetsBatch(Request $request)
-{
-    try {
-        $data = $request->validate([
-            'bets' => 'required|array',
-            'bets.*.user_id' => 'required|integer',
-            'bets.*.amount' => 'required|numeric',
-            'bets.*.type' => 'required|in:win,place,trap,position,overtaking,section',
-            'bets.*.bugId' => 'sometimes|integer',
-            'bets.*.position' => 'sometimes|integer',
-            'bets.*.overtaker' => 'sometimes|integer',
-            'bets.*.overtaken' => 'sometimes|integer',
-            'bets.*.trapId' => 'sometimes|integer',
-            'bets.*.selection' => 'sometimes|array',
-            'bets.*.coefficient' => 'sometimes|numeric'
-        ]);
 
-        $filePath = $this->getFilePath();
-        $history = [];
 
-        if (file_exists($filePath)) {
-            $history = json_decode(file_get_contents($filePath), true) ?? [];
+ public function storeBets(Request $request, $code) // $code пока не используется, но может понадобиться
+    {
+        // Проверяем, пришел ли пакет ставок (ключ 'bets' с массивом)
+        if ($request->has('bets') && is_array($request->input('bets'))) {
+            // --- ЛОГИКА ДЛЯ ПАКЕТНОЙ ОБРАБОТКИ (из saveBetsBatch) ---
+            $validated = $request->validate([
+                'bets' => 'present|array',
+                'bets.*.user_id' => 'required|integer',
+                'bets.*.amount' => 'required|numeric',
+                'bets.*.type' => 'required|string',
+                // ... другие правила валидации для элементов пакета
+            ]);
+
+            return $this->saveBetsBatch($validated['bets']);
+
+        } else {
+            // --- ЛОГИКА ДЛЯ ОДИНОЧНОЙ СТАВКИ (из saveBet) ---
+            $validated = $request->validate([
+                'user_id' => 'required|integer',
+                'amount' => 'required|numeric',
+                'type' => 'required|string|in:win,place,trap,position,overtaking,section',
+                'selection' => 'present|array',
+                 // ... другие правила валидации для одиночной ставки
+            ]);
+
+            return $this->saveSingleBet($validated);
         }
+    }
 
-        $savedBets = [];
-        foreach ($data['bets'] as $betData) {
+    /**
+     * Приватный метод для сохранения пакета ставок (логика из старого saveBetsBatch)
+     */
+    private function saveBetsBatch(array $bets)
+    {
+        try {
+            $filePath = $this->getFilePath();
+            $history = file_exists($filePath) ? json_decode(file_get_contents($filePath), true) ?? [] : [];
+
+            foreach ($bets as $betData) {
+                array_unshift($history, [
+                    'id' => uniqid(),
+                    'timestamp' => now()->toDateTimeString(),
+                    'data' => $betData
+                ]);
+            }
+
+            $history = array_slice($history, 0, self::MAX_BETS);
+            file_put_contents($filePath, json_encode($history));
+
+            return response()->json(['status' => 'success', 'saved_count' => count($bets)]);
+        } catch (\Exception $e) {
+            Log::error('Save bets batch error: '.$e->getMessage());
+            return response()->json(['error' => 'Failed to save batch'], 500);
+        }
+    }
+
+    /**
+     * Приватный метод для сохранения одиночной ставки (логика из старого saveBet)
+     */
+    private function saveSingleBet(array $betData)
+    {
+        try {
+            $filePath = $this->getFilePath();
+            $history = file_exists($filePath) ? json_decode(file_get_contents($filePath), true) ?? [] : [];
+
             $bet = [
                 'id' => uniqid(),
                 'timestamp' => now()->toDateTimeString(),
@@ -302,23 +343,13 @@ public function saveBetsBatch(Request $request)
             ];
 
             array_unshift($history, $bet);
-            $savedBets[] = $bet;
+            $history = array_slice($history, 0, self::MAX_BETS);
+            file_put_contents($filePath, json_encode($history));
+
+            return response()->json(['status' => 'success', 'bet_id' => $bet['id']]);
+        } catch (\Exception $e) {
+            Log::error('Save single bet error: '.$e->getMessage());
+            return response()->json(['error' => 'Failed to save bet'], 500);
         }
-
-        // Сохраняем только последние MAX_BETS ставок
-        file_put_contents(
-            $filePath,
-            json_encode(array_slice($history, 0, self::MAX_BETS))
-        );
-
-        return response()->json([
-            'status' => 'success',
-            'saved_count' => count($savedBets)
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Save bets batch error: '.$e->getMessage());
-        return response()->json(['error' => $e->getMessage()], 500);
     }
-}
 }

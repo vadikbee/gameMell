@@ -16,47 +16,11 @@ $cachedGridConfig = null;
 // Кешированные сгенерированные пути
 $pathsCache = [];
 
-Route::post('/api/save-bet', function (Request $request) {
 
-      try {
-    $data = $request->validate([
-      'user_id' => 'required|integer',
-      'amount' => 'required|numeric',
-      'type' => 'required|in:win,place,trap,position,overtaking,section',
-      // Условные параметры
-      'bugId' => 'required_if:type,position|integer',
-      'position' => 'required_if:type,position|integer',
-      'overtaker' => 'required_if:type,overtaking|integer',
-      'overtaken' => 'required_if:type,overtaking|integer',
-      'selection' => 'required_if:type,section|array',
-      'trapId' => 'required_if:type,section|integer',
-      'color' => 'nullable|string',
-      'time' => 'nullable|string',
-      'coefficient' => 'sometimes|numeric'
-    ]);
-
-        // Сохранение ставки в базу данных или файл
-        $bet = [
-            'id' => uniqid(),
-            'timestamp' => now()->format('Y-m-d H:i:s'),
-            'data' => $data
-
-        ];
-
-        // Логирование данных ставки
-        Log::info('Bet saved: ', $bet);
-
-        return response()->json(['status' => 'success', 'bet_id' => $bet['id']]);
-
-    } catch (\Exception $e) {
-        Log::error('Save bet error: ' . $e->getMessage());
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
 
 
 // Добавим новые маршруты
-Route::post('/api/save-bet', [BetHistoryController::class, 'saveBet']);
+
 Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
 Route::get('/get-bets', [BetHistoryController::class, 'getLatestBets']);
 
@@ -114,13 +78,8 @@ Route::options('/gameplay/games/accounts/{code}/{session}', function () {
 });
 ///////////////////////////////////////получения данных игрового аккаунта///////////////////////////////////////
 ////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
-Route::get('/gameplay/games/bets/{code}/latest', [BetHistoryController::class, 'getLatestUserBets']);
-Route::options('/gameplay/games/bets/{code}/latest', function () {
-    return response('', 204)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-});
+
+Route::post('/v1/gameplay/bets/{code}', [BetHistoryController::class, 'storeBets']);
 ////////////////////////////////////////gameplay/games/bets/{code}/lates///////////////////////////////////////
 ///////////////////////////////////////ЭНДПОИНТ (game instance)///////////////////////////////////////
 
@@ -336,14 +295,9 @@ Route::post('/calculate-winnings', [GameHistoryController::class, 'calculateWinn
 
 
 
-Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
 
 
-/*Route::middleware('throttle:60,1')->group(function () {
-    // Ваши API маршруты
-    Route::post('/save-bet', [BetHistoryController::class, 'saveBet']);
-    Route::post('/save-bets-batch', [BetHistoryController::class, 'saveBetsBatch']);
-});*/
+
 Route::post('/gameplay/games/instances/{code}/demo/url', [GameSessionController::class, 'getDemoUrl']);
 
 // Обработка CORS для OPTIONS запроса

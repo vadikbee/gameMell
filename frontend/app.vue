@@ -923,7 +923,7 @@ const placeSectionBet = async () => {
     }
     const coefficient = sectionCoefficients.value[selectedTrap.value];
     // Отправка на бэкенд
-    const response = await fetch('/api/save-bet', {
+   const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -952,6 +952,7 @@ const placeSectionBet = async () => {
     resetWinButtonSelection();
     centerWinMenuVisible.value = false;
   }
+
 };
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
@@ -1391,11 +1392,14 @@ const saveBetToServer = async (bet) => {
       };
     }
 
-    const response = await fetch('/api/save-bet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const apiUrl = '/api/v1/gameplay/bets/cockroaches-space-maze';
+
+const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    // Тело запроса остается тем же - объект с ключом 'bets'
+    body: JSON.stringify({ bets: betsToSend }) 
+});
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -1422,11 +1426,14 @@ watch(overtakingCoefficients, (newCoefficients) => {
 });
 const sendBetsBatch = async (bets) => {
   try {
-    const response = await fetch('/api/save-bets-batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bets })
-    });
+    const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        // Отправляем объект с ключом 'bets', который содержит массив ставок
+        bets: betsToSend 
+    })
+});
     
     if (!response.ok) throw new Error('Failed to save bets batch');
     return await response.json();
@@ -1442,11 +1449,14 @@ const sendBetsBatch = async (bets) => {
 
 const saveBetsBatch = async (bets) => {
   try {
-    const response = await fetch('/api/save-bets-batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bets })
-    });
+    const apiUrl = '/api/v1/gameplay/bets/cockroaches-space-maze';
+
+const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    // Тело запроса остается тем же - объект с ключом 'bets'
+    body: JSON.stringify({ bets: betsToSend }) 
+});
     
     if (!response.ok) throw new Error('Failed to save bets batch');
     return await response.json();
@@ -1458,121 +1468,90 @@ const saveBetsBatch = async (bets) => {
 // В функции placeBet добавлю использование коэффициентов
 const placeBet = async () => {
   try {
-     playBetClick();
-    
+    // 1. Воспроизводим звук клика в самом начале
+    playBetClick();
+
+    // 2. Определяем, с какими кнопками мы работаем, в зависимости от активной вкладки
+    let sourceButtons = [];
     if (activeTab.value === 'result') {
-      const selectedButtons = resultButtons.value.filter(btn => btn.selected);
-      
-      if (selectedButtons.length === 0) {
-        alert('Выберите позиции для ставки');
-        return;
-      }
-
-      const totalAmount = currentBet.value * selectedButtons.length;
-      if (totalAmount > balance.value) {
-        alert('Недостаточно средств');
-        return;
-      }
-
-      // Создаем массив ставок для отправки
-      const betsToSend = selectedButtons.map(button => {
-        const row = Math.floor(button.id / 7);
-        const col = button.id % 7;
-        const bugId = row + 1;
-        const position = col + 1;
-        
-       return {
-    type: 'position',
-    bugId: bugId,
-    position: position,
-    amount: currentBet.value,
-    coefficient: button.coefficient,
-    timestamp: new Date().toISOString(),
-    user_id: 1 // Добавлено поле
-  };
-});
-
-      // Отправляем все ставки одним запросом
-      await saveBetsBatch(betsToSend);
-      
-      // Обновляем UI после успешной отправки
-      for (const button of selectedButtons) {
-        button.confirmed = true;
-        button.betAmount = currentBet.value;
-        button.selected = false;
-      }
-
-      balance.value -= totalAmount;
-      playOutcomeSound();
-      showBetPlacedNotification();
-
-      // Добавляем ставки в nextRaceBets
-      betsToSend.forEach(bet => {
-        console.log('Adding result bet to nextRaceBets:', bet);
-        nextRaceBets.value.push(bet);
-      });
-
-    }   else if (activeTab.value === 'overtaking') {
-      // НАЧАЛО ИСПРАВЛЕННОГО БЛОКА
-
-      // ШАГ 1: Собираем ставки ТОЛЬКО из кнопок, которые сейчас выбраны (черные) и не подтверждены
-      const selectedButtons = overtakingButtons.value.filter(btn => btn.selected && !btn.confirmed);
-
-      if (selectedButtons.length === 0) {
-        alert('Выберите обгоны для ставки');
-        return;
-      }
-
-      const totalAmount = currentBet.value * selectedButtons.length;
-      if (totalAmount > balance.value) {
-        alert('Недостаточно средств');
-        return;
-      }
-
-      // ШАГ 2: Формируем массив ставок на основе отфильтрованных кнопок
-      const betsToSend = selectedButtons.map(button => {
-        const row = Math.floor(button.id / 7);
-        const col = button.id % 7;
-        const coefficient = button.coefficient || 1;
-        return {
-          type: 'overtaking',
-          overtaker: row,
-          overtaken: col,
-          amount: currentBet.value,
-          coefficient: coefficient,
-          timestamp: new Date().toISOString(),
-          bugColors: [
-            bugColors.value[row],
-            bugColors.value[col]
-          ],
-          user_id: 1
-        };
-      });
-
-      // Отправляем все ставки одним запросом
-      await saveBetsBatch(betsToSend);
-
-      // Обновляем UI после успешной отправки
-      // Теперь мы итерируем по массиву кнопок, на которые только что сделали ставку
-      for (const button of selectedButtons) {
-        button.confirmed = true;
-        button.betAmount = currentBet.value;
-        button.selected = false; // Снимаем выделение
-      }
-
-      balance.value -= totalAmount;
-      playOutcomeSound();
-      showBetPlacedNotification();
-
-      // Добавляем ставки в nextRaceBets
-      betsToSend.forEach(bet => {
-        console.log('Adding overtaking bet to nextRaceBets:', bet);
-        nextRaceBets.value.push(bet);
-      });
+      sourceButtons = resultButtons.value;
+    } else if (activeTab.value === 'overtaking') {
+      sourceButtons = overtakingButtons.value;
+    } else {
+      // На случай, если появится новый тип ставки, а логика не будет добавлена
+      alert('Неизвестный тип ставки. Пожалуйста, выберите вкладку.');
+      return;
     }
 
+    // 3. Собираем все ставки, которые выбраны, но еще не были подтверждены
+    const selectedButtons = sourceButtons.filter(btn => btn.selected && !btn.confirmed);
+
+    // 4. Проверяем, есть ли что отправлять
+    if (selectedButtons.length === 0) {
+      alert('Пожалуйста, выберите хотя бы одну ставку для подтверждения.');
+      return;
+    }
+
+    // 5. Проверяем баланс
+    const totalAmount = currentBet.value * selectedButtons.length;
+    if (totalAmount > balance.value) {
+      alert('Недостаточно средств на балансе.');
+      return;
+    }
+
+    // 6. Формируем массив ставок (betsToSend) для отправки на API
+    // Логика формирования разная для каждого типа ставки
+    const betsToSend = selectedButtons.map(button => {
+      if (activeTab.value === 'result') {
+        const row = Math.floor(button.id / 7);
+        const col = button.id % 7;
+        return {
+          user_id: 1, // Замените на реальный ID пользователя
+          type: 'position',
+          amount: currentBet.value,
+          bugId: row + 1,
+          position: col + 1,
+          coefficient: button.coefficient,
+          timestamp: new Date().toISOString()
+        };
+      } else { // overtaking
+        const row = Math.floor(button.id / 7);
+        const col = button.id % 7;
+        return {
+          user_id: 1, // Замените на реальный ID пользователя
+          type: 'overtaking',
+          amount: currentBet.value,
+          overtaker: row,
+          overtaken: col,
+          coefficient: button.coefficient || 1,
+          timestamp: new Date().toISOString(),
+          bugColors: [bugColors.value[row], bugColors.value[col]]
+        };
+      }
+    });
+
+    
+
+    // 8. Обновляем UI только ПОСЛЕ успешной отправки
+    for (const button of selectedButtons) {
+      button.confirmed = true;
+      button.betAmount = (button.betAmount || 0) + currentBet.value; // Корректно суммируем, если уже были ставки
+      button.selected = false; // Снимаем выделение
+    }
+
+    balance.value -= totalAmount;
+    playOutcomeSound();
+    showBetPlacedNotification();
+
+    // Добавляем ставки в массив для следующей гонки
+    betsToSend.forEach(bet => {
+      nextRaceBets.value.push(bet);
+    });
+
   } catch (error) {
-    console.error('Error saving bet:', error);
+    // Если saveBetsBatch выбросит ошибку, мы поймаем ее здесь
+    console.error('Ошибка при размещении ставки:', error);
+    alert('Произошла ошибка при сохранении ставки. Пожалуйста, попробуйте еще раз.');
   }
 };
 watch(activeTab, (newTab) => {

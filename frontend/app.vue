@@ -1908,7 +1908,10 @@ const handleVisibilityChange = () => {
 };
 const saveGameResults = async () => {
   console.log('Saving game results, currentRaceBets:', currentRaceBets.value);
-  
+   if (currentRaceBets.value.length === 0) {
+        console.log('No bets in current race to calculate winnings.');
+        return;
+    }
     // Собираем только финишировавших тараканов и сортируем по времени финиша
     const finishedBugs = bugs.value
         .filter(bug => bug.finished)
@@ -2253,7 +2256,7 @@ const animate = () => {
     // Если все тараканы финишировали, останавливаем цикл и сохраняем результаты.
     cancelAnimationFrame(animationFrame.value);
     animationFrame.value = null;
-    setTimeout(saveGameResults, 1000);
+    
   }
 };
 // ... остальной код ...
@@ -2826,7 +2829,7 @@ const generatePaths = async () => {
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
   // Выводим в консоль ставки, которые будут участвовать в гонке
-  console.log('Starting race, current bets:', nextRaceBets.value);
+ console.log('Starting race cycle. Bets waiting in nextRaceBets:', nextRaceBets.value);
 
   // Сбрасываем флаги и состояния перед началом новой гонки
   unlockAllBugs();

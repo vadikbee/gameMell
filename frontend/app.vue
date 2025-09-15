@@ -18,9 +18,21 @@
     <!-- Левая группа: язык и звук -->
     <div class="left-group">
   <div class="language-switcher" @click="switchLanguage">
-    {{ currentLanguage }}
+    <img src="/images/icons/lang-icon.png" alt="language" /> 
   </div>
-  <ThemeToggle /> <!-- Добавьте эту строку -->
+  <ThemeToggle />
+   <!-- ИЗМЕНЕНО: Старый switcher заменен на dropdown -->
+                <div class="game-mode-dropdown" ref="modeDropdownRef">
+                  <button class="main-mode-button" @click="toggleModeMenu">
+                    <span>{{ currentGameModeName }}</span>
+                    <span class="arrow-down" :class="{'toggled': isModeMenuOpen}"></span>
+                  </button>
+                  <div v-if="isModeMenuOpen" class="mode-menu-content">
+                    <button @click="selectMode('classic')">{{ t('Classic') }}</button>
+                    <button @click="selectMode('random')">{{ t('Random') }}</button>
+                    <button @click="selectMode('favorite')">{{ t('Favorite') }}</button>
+                  </div>
+                </div>
   <div class="music-control" @click="toggleMusic">
     <div class="music-icon" :class="{ 'music-off': !isMusicPlaying }"></div>
     <div v-if="!isMusicPlaying" class="music-hint">!</div>
@@ -470,6 +482,8 @@ import WinLoseNotification from './WinLoseNotification.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import { debounce } from 'lodash';
 
+
+
 const showConfetti = ref(false);
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
@@ -865,6 +879,10 @@ const playOutcomeSound = () => {
     console.error("Outcome sound error:", e);
   }
 };
+// НОВОЕ: Функция для открытия/закрытия меню
+const toggleModeMenu = () => {
+  isModeMenuOpen.value = !isModeMenuOpen.value;
+};
 
 // Найдите эту функцию в файле app.vue и замените её целиком
 const placeSectionBet = async () => {
@@ -932,8 +950,10 @@ const placeSectionBet = async () => {
     // ДОБАВЛЕНА ЛОГИКА: Добавляем ставку в список для следующей гонки
     nextRaceBets.value.push(betToSend);
 
+
     // Теперь, когда ставка сохранена, обновляем историю
     // Создаем "плоский" объект для истории
+
 const newHistoryItem = {
     ...betToSend, // Распаковываем все свойства созданной ставки
     id: Date.now() + Math.random(), // Добавляем временный ID
@@ -957,6 +977,7 @@ fetchBetHistory();
     centerWinMenuVisible.value = false;
   }
 };
+
 // Добавляем новую функцию для сброса выделения
 const resetWinButtonSelection = () => {
   winButtons.value.forEach(button => {
@@ -1016,7 +1037,9 @@ const currentBet = ref(25);
 const balance = ref(10000); // Начальный баланс
 const betHistory = ref([]); // История ставок
 const undoStack = ref([]); // Стек для отмены операций
-
+const gameMode = ref('classic');
+const isModeMenuOpen = ref(false); // НОВОЕ: Состояние для видимости меню
+const modeDropdownRef = ref(null); // НОВОЕ: Ref для отслеживания кликов вне меню
 // Используем параметры из API
 
 const stavkiButtons = computed(() => {
@@ -1037,6 +1060,115 @@ const resultCoefficients = computed(() => {
   }
   return gameConfig.value.options.coefficients.result;
 });
+// НОВОЕ: Состояния для режима "Favorite"
+const favoriteBug = ref(null);
+const isFavoriteBetActive = ref(false);
+const activeFavoriteBet = ref(null);
+
+// НОВОЕ: Функция для переключения режима игры
+const setGameMode = (mode) => {
+  gameMode.value = mode;
+  if (mode !== 'favorite') {
+    isFavoriteBetActive.value = false;
+    activeFavoriteBet.value = null;
+    favoriteBug.value = null;
+  }
+};
+// НОВОЕ: Функция для выбора режима И закрытия меню
+const selectMode = (mode) => {
+  setGameMode(mode);
+  isModeMenuOpen.value = false;
+};
+const currentGameModeName = computed(() => {
+  const mode = gameMode.value;
+  if (mode === 'random') return t('Random');
+  if (mode === 'favorite') return t('Favorite');
+  return t('Classic'); // classic по умолчанию
+});
+// НОВОЕ: Логика для закрытия меню при клике вне его
+const handleOutsideClick = (event) => {
+  if (isModeMenuOpen.value && modeDropdownRef.value && !modeDropdownRef.value.contains(event.target)) {
+    isModeMenuOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick);
+});
+// НОВОЕ: Логика для "Random Bet"
+const placeRandomBet = () => {
+  if (!isBettingPhase.value) {
+    alert('Ставки принимаются только в перерыве между гонками.');
+    return;
+  }
+  const betAmount = currentBet.value;
+  if (balance.value < betAmount * 7) {
+    alert('Недостаточно средств для случайной ставки на всех тараканов.');
+    return;
+  }
+
+  const betsForRace = [];
+  const allBugs = [1, 2, 3, 4, 5, 6, 7];
+
+  allBugs.forEach(bugId => {
+    const randomTrapId = Math.floor(Math.random() * 7) + 1;
+    const bet = {
+      user_id: 1,
+      type: 'section',
+      amount: betAmount,
+      bugIds: [bugId - 1], // Для внутренней логики
+      selection: [bugId], // Для отображения
+      trapId: randomTrapId,
+      timestamp: new Date().toISOString(),
+      id: Date.now() + Math.random(),
+      coefficient: sectionCoefficients.value[randomTrapId] || 1,
+      bugColors: [bugColors.value[bugId-1]]
+    };
+    betsForRace.push(bet);
+  });
+  
+  // Добавляем ставки в текущую гонку и историю
+  currentRaceBets.value.push(...betsForRace);
+  betHistoryFromApi.value.unshift(...betsForRace);
+  
+  balance.value -= betAmount * 7;
+  showBetPlacedNotification();
+  playOutcomeSound();
+};
+
+// НОВОЕ: Логика для "Favorite"
+const selectFavoriteBug = (bugId) => {
+    favoriteBug.value = favoriteBug.value === bugId ? null : bugId;
+};
+
+const placeFavoriteBet = () => {
+    if (!favoriteBug.value) {
+        alert('Пожалуйста, выберите своего таракана-фаворита.');
+        return;
+    }
+    if (balance.value < currentBet.value) {
+        alert('Недостаточно средств.');
+        return;
+    }
+    
+    balance.value -= currentBet.value;
+    
+    activeFavoriteBet.value = {
+        bugId: favoriteBug.value,
+        amount: currentBet.value,
+        type: 'favorite', // Новый тип для истории
+        timestamp: new Date().toISOString(),
+        id: Date.now() + Math.random(),
+        bugColors: [bugColors.value[favoriteBug.value-1]]
+    };
+    isFavoriteBetActive.value = true;
+    betHistoryFromApi.value.unshift(activeFavoriteBet.value);
+    showBetPlacedNotification();
+};
 
 const overtakingCoefficients = computed(() => {
   
@@ -1920,7 +2052,23 @@ const saveGameResults = async () => {
             trapId: bug.trapId // Добавляем trapId в результаты
         };
     });
-    
+     if (isFavoriteBetActive.value) {
+        const favoriteResult = results.find(r => (r.color === bugColors.value[activeFavoriteBet.value.bugId - 1]) && r.position !== null);
+        
+        if (favoriteResult) {
+            // ВЫИГРЫШ
+            const winCoefficient = 5; // Примерный коэффициент, можно взять из конфига
+            const winAmount = activeFavoriteBet.value.amount * winCoefficient;
+            balance.value += winAmount;
+            showWinNotification(winAmount, [{ ...activeFavoriteBet.value, winAmount }]);
+            playIncomeSound();
+        } else {
+            // ПРОИГРЫШ
+            showLoseNotification(activeFavoriteBet.value.amount, [activeFavoriteBet.value]);
+            isFavoriteBetActive.value = false;
+            activeFavoriteBet.value = null;
+        }
+    }
  try {
         // Сохраняем результаты
         const saveResponse = await fetch('/api/game-history/save', {
@@ -3424,6 +3572,154 @@ window.removeEventListener('resize', updateMainBgDimensions);
   50% { transform: scale(0.95); }
   100% { transform: scale(1.05); }
 }
+/* Стиль для иконки языка */
+.language-switcher img {
+  width: 20px;
+  height: 20px;
+}
+/* Уменьшаем саму кнопку ThemeToggle */
+:deep(.theme-toggle) {
+  width: 30px;
+  height: 30px;
+}
+
+/* Стили для переключателя режимов */
+.game-mode-switcher {
+  display: flex;
+  background: rgba(0,0,0,0.5);
+  border-radius: 8px;
+  margin-left: 10px;
+}
+.game-mode-switcher button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+.game-mode-switcher button.active {
+  background: #4CAF50;
+}
+
+/* Стили для новых режимов в нижней панели */
+.buttons-container-single, .favorite-bet-container, .favorite-active-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: white;
+}
+.random-bet-button, .place-bet-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  color: white;
+  background-color: #5C62FF;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.favorite-bet-container h3 {
+  margin-bottom: 10px;
+}
+.bug-selector-favorite {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.game-mode-dropdown {
+  position: relative; /* Родительский элемент для позиционирования меню */
+  margin-left: 10px;
+}
+.main-mode-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0,0,0,0.5);
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #444;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  z-index: 1001;
+}
+.main-mode-button:hover {
+  background-color: #333;
+  z-index: 1001;
+}
+
+.main-mode-button .arrow-down {
+  width: 0; 
+  height: 0; 
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #fff;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+  z-index: 1001;
+}
+
+.main-mode-button .arrow-down.toggled {
+    transform: rotate(180deg);
+    z-index: 1001;
+}
+
+.mode-menu-content {
+  position: absolute;
+  top: calc(100% + 5px); /* Располагаем под кнопкой с отступом */
+  left: 0;
+  width: 100%;
+  min-width: 100px; /* Чтобы не было слишком узким */
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  z-index: 1001;
+  overflow: hidden; /* Чтобы дочерние элементы не вылезали за радиус */
+}
+
+.mode-menu-content button {
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 12px;
+  font-family: 'Bahnschrift', sans-serif;
+  cursor: pointer;
+  display: block; /* Чтобы кнопка занимала всю ширину */
+  z-index: 1001;
+}
+
+.mode-menu-content button:hover {
+  background-color: #5C62FF;
+  z-index: 1001;
+}
+.bug-choice {
+  width: 50px;
+  height: 50px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.bug-choice.selected {
+  border-color: #FFD700;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px #FFD700;
+}
+.bug-choice img {
+  width: 100%;
+  height: 100%;
+}
 .language-switcher {
   width: 30px;
   height: 30px;
@@ -4235,7 +4531,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   align-items: center;
   padding: 0 10px;
   box-sizing: border-box;
-  z-index: 6;
+  z-index: 16;
 }
 .left-group {
   display: flex;

@@ -2,7 +2,7 @@
 <template>
   <div class="theme-toggle" @click="toggleTheme">
     <div class="theme-icon">{{ isDark ? '🌙' : '☀️' }}</div>
-    <div class="theme-text">{{ isDark ? t('dark_theme') : t('light_theme') }}</div>
+    
   </div>
 </template>
 
@@ -51,10 +51,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 0px 0px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  margin-left: 15px;
+  background: rgba(0, 0, 0, 0.1);
+  left: 15px;
   transition: all 0.3s ease;
 }
 
@@ -63,16 +63,11 @@ onMounted(() => {
 }
 
 .theme-icon {
-  margin-right: 8px;
-  font-size: 16px;
+  transform: translate(20%, -0%);
+  position: absolute;
+  
 }
 
-.theme-text {
-  font-family: 'Bai Jamjuree', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-color);
-}
 
 /* Адаптация для темной темы */
 :global(.dark-theme) .theme-toggle {

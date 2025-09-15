@@ -1,6 +1,60 @@
 [
     {
         "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 3,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T11:08:26.164Z",
+        "id": "68c7f3aa511aa"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T11:08:26.164Z",
+        "id": "68c7f3aa511a2"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "trap",
+        "selection": [
+            5
+        ],
+        "trapId": 5,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T11:08:23.508Z",
+        "id": "68c7f3a7a5e3f"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "trap",
+        "selection": [
+            4
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T11:08:08.211Z",
+        "id": "68c7f3986a9f3"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 6,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T11:07:30.598Z",
+        "id": "68c7f372c6346"
+    },
+    {
+        "user_id": 1,
         "amount": 325,
         "type": "position",
         "bugId": 2,
@@ -170,58 +224,5 @@
         "coefficient": 12.6,
         "timestamp": "2025-09-15T10:34:39.335Z",
         "id": "68c7ebbf783bc"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:34:39.335Z",
-        "id": "68c7ebbf783b7"
-    },
-    {
-        "user_id": 1,
-        "amount": 2000,
-        "type": "trap",
-        "selection": [
-            3,
-            4
-        ],
-        "trapId": 3,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:34:35.438Z",
-        "id": "68c7ebbb8f279"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 3,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:16:36.108Z",
-        "id": "68c7e7843e1d1"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 3,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:16:36.108Z",
-        "id": "68c7e7843e1d0"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:16:36.108Z",
-        "id": "68c7e7843e1cf"
     }
 ]

@@ -1,0 +1,8 @@
+# pack-refs with: peeled fully-peeled sorted 
+c3db37b6eb5c3653da36cd0f5bd51f3b9dcb164a refs/heads/baranov_branch
+30fb6631512bd7c03663626b0f491a0c0b717589 refs/heads/ccurecc_brunch
+a8547b28c406fdf0239f0408ff637120010962ff refs/heads/main
+26bdff4650ad798e061e3e473ef2f58cef115cbb refs/heads/master
+9c76678e88bc051459b7e1a38b19d266162705fb refs/pull/1/head
+e8cfd0524171a1fe0340129b41925d9b18e1bbbf refs/pull/2/head
+e8cfd0524171a1fe0340129b41925d9b18e1bbbf refs/pull/3/head

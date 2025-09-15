@@ -14,6 +14,82 @@ class BetHistoryController extends Controller
     const HISTORY_FILE = 'bets_history.json';
     const MAX_BETS = 20; // Увеличим для надежности
 
+
+     public function repeatBets(Request $request, $code)
+    {
+        // --- 1. Валидация ---
+        $validator = Validator::make($request->all(), [
+            'account_session' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Для примера, user_id будет статичным, в реальном проекте он будет получен из сессии
+        $userId = 1;
+
+        // --- 2. Получение последней завершенной игры ---
+        $lastGame = $this->getLastCompletedGame();
+        if (!$lastGame) {
+            return response()->json(['error' => 'No previous games found to repeat bets from.'], 404);
+        }
+
+        // --- 3. Проверка активной сессии ---
+        $activeSession = $this->getActiveSession();
+        if (!$activeSession) {
+            return response()->json(['error' => 'No active game session to place bets in.'], 404);
+        }
+
+        // --- 4. Поиск ставок в последней игре ---
+        $lastGameTimestamp = Carbon::parse($lastGame['timestamp']);
+        $gameStartTime = $lastGameTimestamp->copy()->subSeconds(12); // Предполагаем длительность игры 12 секунд
+
+        $allBets = $this->loadHistory();
+        $betsToRepeat = collect($allBets)->filter(function ($bet) use ($userId, $gameStartTime, $lastGameTimestamp) {
+            $betTimestamp = Carbon::parse($bet['timestamp']);
+            return $bet['user_id'] === $userId && $betTimestamp->between($gameStartTime, $lastGameTimestamp);
+        });
+
+        if ($betsToRepeat->isEmpty()) {
+            return response()->json(['error' => 'You did not place any bets in the last game.'], 404);
+        }
+
+        // --- 5. Создание и сохранение новых ставок ---
+        $newBets = [];
+        foreach ($betsToRepeat as $oldBet) {
+            // Создаем копию старой ставки с новым ID и временем
+            $newBet = $oldBet;
+            $newBet['id'] = uniqid();
+            $newBet['timestamp'] = now()->toDateTimeString();
+            // В реальном приложении здесь можно было бы добавить `session_id`
+            // $newBet['session_id'] = $activeSession['id'];
+
+            unset($newBet['time']); // Удаляем устаревшее поле, если оно есть
+            $newBets[] = $newBet;
+        }
+
+        // Добавляем новые ставки в начало истории
+        array_unshift($allBets, ...$newBets);
+        $this->saveHistory($allBets);
+
+        // --- 6. Возвращаем успешный ответ ---
+        // Форматируем ответ согласно ТЗ, насколько это возможно с текущей структурой
+        $responseBets = collect($newBets)->map(function ($bet) {
+            return [
+                'bet_amount' => $bet['amount'],
+                // 'game_coefficient_id' отсутствует в нашей модели, но есть 'coefficient'
+                'coefficient' => $bet['coefficient'],
+                'type' => $bet['type'],
+                // Добавляем другие поля для наглядности
+                'bugId' => $bet['bugId'] ?? null,
+                'position' => $bet['position'] ?? null,
+            ];
+        })->all();
+
+        return response()->json($responseBets);
+    }
+
     /**
      * Сохраняет пачку ставок.
      */
@@ -89,7 +165,7 @@ public function getLatestBets()
     try {
         $history = $this->loadHistory();
 
-        // ВОТ ИСПРАВЛЕНИЕ:
+
         // Мы явно указываем Laravel отдать JSON в кодировке UTF-8
         // и не экранировать Unicode-символы (вроде знака евро).
         return response()->json(

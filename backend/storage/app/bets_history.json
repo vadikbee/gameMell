@@ -1,13 +1,131 @@
 [
     {
         "user_id": 1,
+        "amount": 325,
+        "type": "position",
+        "bugId": 2,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:43:03.069Z",
+        "id": "68c7edb74bb2f"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "position",
+        "bugId": 2,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:43:03.069Z",
+        "id": "68c7edb74bb2e"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "position",
+        "bugId": 1,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:43:03.069Z",
+        "id": "68c7edb74bb2c"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "position",
+        "bugId": 1,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:43:03.069Z",
+        "id": "68c7edb74bb24"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "overtaking",
+        "overtaker": 5,
+        "overtaken": 3,
+        "coefficient": 2.4,
+        "timestamp": "2025-09-15T10:42:59.230Z",
+        "bugColors": [
+            "#FF0000",
+            "#8B0000"
+        ],
+        "id": "68c7edb38ea86"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "overtaking",
+        "overtaker": 5,
+        "overtaken": 2,
+        "coefficient": 2.4,
+        "timestamp": "2025-09-15T10:42:59.230Z",
+        "bugColors": [
+            "#FF0000",
+            "#FFA500"
+        ],
+        "id": "68c7edb38ea85"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "overtaking",
+        "overtaker": 4,
+        "overtaken": 3,
+        "coefficient": 2.4,
+        "timestamp": "2025-09-15T10:42:59.230Z",
+        "bugColors": [
+            "#0000FF",
+            "#8B0000"
+        ],
+        "id": "68c7edb38ea83"
+    },
+    {
+        "user_id": 1,
+        "amount": 325,
+        "type": "overtaking",
+        "overtaker": 4,
+        "overtaken": 2,
+        "coefficient": 2.4,
+        "timestamp": "2025-09-15T10:42:59.230Z",
+        "bugColors": [
+            "#0000FF",
+            "#FFA500"
+        ],
+        "id": "68c7edb38ea7a"
+    },
+    {
+        "user_id": 1,
+        "amount": 50,
+        "type": "trap",
+        "selection": [
+            5
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:41:13.844Z",
+        "id": "68c7ed4a0dc79"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 6,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:40:03.046Z",
+        "id": "68c7ed034b249"
+    },
+    {
+        "user_id": 1,
         "amount": 25,
         "type": "position",
         "bugId": 5,
         "position": 5,
         "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:16:00.790Z",
-        "id": "68c7e760e46d8"
+        "timestamp": "2025-09-15T10:40:03.046Z",
+        "id": "68c7ed034b248"
     },
     {
         "user_id": 1,
@@ -16,18 +134,32 @@
         "bugId": 5,
         "position": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:16:00.790Z",
-        "id": "68c7e760e46d7"
+        "timestamp": "2025-09-15T10:40:03.046Z",
+        "id": "68c7ed034b23f"
+    },
+    {
+        "user_id": 1,
+        "amount": 75,
+        "type": "trap",
+        "selection": [
+            3,
+            4,
+            6
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:39:57.403Z",
+        "id": "68c7ecfd9f388"
     },
     {
         "user_id": 1,
         "amount": 25,
         "type": "position",
-        "bugId": 5,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:16:00.790Z",
-        "id": "68c7e760e46d0"
+        "bugId": 6,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:34:39.335Z",
+        "id": "68c7ebbf783bd"
     },
     {
         "user_id": 1,
@@ -36,8 +168,8 @@
         "bugId": 3,
         "position": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:51.143Z",
-        "id": "68c7e75748815"
+        "timestamp": "2025-09-15T10:34:39.335Z",
+        "id": "68c7ebbf783bc"
     },
     {
         "user_id": 1,
@@ -46,78 +178,41 @@
         "bugId": 2,
         "position": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:51.143Z",
-        "id": "68c7e75748814"
+        "timestamp": "2025-09-15T10:34:39.335Z",
+        "id": "68c7ebbf783b7"
     },
     {
         "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 1,
-        "position": 4,
+        "amount": 2000,
+        "type": "trap",
+        "selection": [
+            3,
+            4
+        ],
+        "trapId": 3,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:51.143Z",
-        "id": "68c7e7574880f"
+        "timestamp": "2025-09-15T10:34:35.438Z",
+        "id": "68c7ebbb8f279"
     },
     {
         "user_id": 1,
         "amount": 25,
         "type": "position",
         "bugId": 3,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:37.131Z",
-        "id": "68c7e74944236"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:37.131Z",
-        "id": "68c7e74944235"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 1,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:37.131Z",
-        "id": "68c7e74944230"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 4,
         "position": 5,
         "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:15:29.551Z",
-        "id": "68c7e741a9a9c"
+        "timestamp": "2025-09-15T10:16:36.108Z",
+        "id": "68c7e7843e1d1"
     },
     {
         "user_id": 1,
         "amount": 25,
         "type": "position",
-        "bugId": 4,
+        "bugId": 3,
         "position": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:29.551Z",
-        "id": "68c7e741a9a9b"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 4,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:29.551Z",
-        "id": "68c7e741a9a96"
+        "timestamp": "2025-09-15T10:16:36.108Z",
+        "id": "68c7e7843e1d0"
     },
     {
         "user_id": 1,
@@ -126,77 +221,7 @@
         "bugId": 2,
         "position": 5,
         "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:15:23.011Z",
-        "id": "68c7e73b2734e"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:23.011Z",
-        "id": "68c7e73b2734d"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:23.011Z",
-        "id": "68c7e73b27349"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 1,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:15:16.395Z",
-        "id": "68c7e73485039"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 1,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:15:16.395Z",
-        "id": "68c7e73485038"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 1,
-        "position": 3,
-        "coefficient": 8.15,
-        "timestamp": "2025-09-15T10:15:16.395Z",
-        "id": "68c7e73485033"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 5,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:15:10.389Z",
-        "id": "68c7e72e82519"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 4,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:15:10.389Z",
-        "id": "68c7e72e82518"
+        "timestamp": "2025-09-15T10:16:36.108Z",
+        "id": "68c7e7843e1cf"
     }
 ]

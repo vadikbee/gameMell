@@ -866,7 +866,7 @@ const playOutcomeSound = () => {
   }
 };
 
-// Найдите эту функцию в app.vue и замените её целиком
+// Найдите эту функцию в файле app.vue и замените её целиком
 const placeSectionBet = async () => {
   try {
     playBetClick();
@@ -875,7 +875,7 @@ const placeSectionBet = async () => {
     const raceBugIds = selectedBugs.value.map(id => id - 1);
 
     console.log(`Создаем ставку на секцию ${selectedTrap.value} с тараканами: ${selectedBugs.value.join(', ')} (в формате гонки: ${raceBugIds.join(', ')})`);
-
+    
     // Блокируем выбранных тараканов
     const newLocked = [...lockedBugsArray.value, ...selectedBugs.value];
     lockedBugsArray.value = newLocked;
@@ -884,64 +884,61 @@ const placeSectionBet = async () => {
       alert('Выберите тараканов для ставки');
       return;
     }
-
+    
     // Проверка минимальной ставки
-    const minBet = 25;
+    const minBet = 25; // Это значение должно браться из betConfig
     if (currentBet.value < minBet) {
       alert(`Минимальная ставка: ${minBet}P`);
       return;
     }
 
     // Проверка достаточности средств
-    if (currentBet.value * selectedBugs.value.length > balance.value) {
+    const totalAmount = currentBet.value * selectedBugs.value.length;
+    if (totalAmount > balance.value) {
       alert('Недостаточно средств на балансе');
       return;
     }
-    
-    // Создаем ОДНУ ставку для всех выбранных тараканов
-    const totalAmount = currentBet.value * selectedBugs.value.length;
 
     // Списание общей суммы
     balance.value -= totalAmount;
     showBetPlacedNotification();
     playOutcomeSound();
 
-    // Обновляем отображение суммы ставки на кнопке
-    const button = winButtons.value.find(b => b.id === selectedTrap.value);
-    if (button) {
-      button.betAmount = (button.betAmount || 0) + totalAmount;
-    }
     const coefficient = sectionCoefficients.value[selectedTrap.value];
-
-    // ----- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ЗДЕСЬ -----
-    // Отправка на бэкенд. Данные обернуты в массив "bets".
+    
+    // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ЗДЕСЬ ---
+    // Отправка на бэкенд. Данные обернуты в массив "bets"
+    const betToSend = {
+        user_id: 1,
+        amount: totalAmount,
+        type: 'trap',
+        selection: selectedBugs.value,
+        trapId: selectedTrap.value,
+        coefficient: coefficient,
+        bugIds: raceBugIds, // Добавляем bugIds для внутренней логики
+        time: new Date().toISOString()
+    };
+    
     const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        // Объект ставки должен быть внутри массива 'bets'
-        bets: [{
-          user_id: 1,
-          amount: totalAmount,
-          type: 'trap',
-          selection: selectedBugs.value,
-          trapId: selectedTrap.value,
-          coefficient: coefficient,
-          color: 'linear-gradient(180deg, #FF170F 0%, #FF005E 100%)',
-          time: new Date().toISOString() 
-        }]
+        bets: [betToSend] 
       })
     });
 
     if (!response.ok) throw new Error('Failed to save section bet');
 
+    // ДОБАВЛЕНА ЛОГИКА: Добавляем ставку в список для следующей гонки
+    nextRaceBets.value.push(betToSend);
+
     // Теперь, когда ставка сохранена, обновляем историю
     await fetchBetHistory();
-
+    
     // После успешного сохранения ставки
     currentBet.value = 25; // Сброс к минимальной ставке
     undoStack.value = []; // Очистка стека отмены
-    
+
   } catch (error) {
     console.error('Error saving section bet:', error);
     // Важно: в случае ошибки нужно вернуть списанные средства
@@ -1683,28 +1680,38 @@ const restoreOvertakingSelections = () => {
   });
 };
 const explodeAllBugs = (raceEndTime) => {
-  if (!isTabActive.value || bugs.value.length === 0) return;
+  // Добавлена проверка на существование массива bugs
+  if (!isTabActive.value || !bugs.value || bugs.value.length === 0) return;
 
   bugs.value.forEach(bug => {
     if (bug.finished) return;
 
     // Финишируем всех, кто уже начал движение к точке
     if (bug.phase === 'to_blue_point') {
+      // Определяем кнопку, к которой двигался таракан
       const button = winButtons.value.find(b => b.id === bug.targetButtonId);
+
+      // ИСПРАВЛЕНИЕ: Добавлена проверка 'if (button)', чтобы избежать ReferenceError
       if (button) {
         bug.position = [...button.bluePoint];
         bug.finished = true;
-        bug.finishTime = raceEndTime; // Важно: время окончания гонки
-        
+        bug.finishTime = raceEndTime;
+        // Добавляем trapId для корректного расчета выигрыша (важно!)
+        bug.trapId = bug.targetButtonId;
+
         button.occupied = true;
         button.finishedBugId = bug.id;
-        
+
         if (button.bugs.length < 4) {
           button.bugs.push(bug.id);
         }
+      } else {
+        // Если по какой-то причине кнопка не найдена, взрываем таракана
+        bug.explodeFrame = 0;
+        bug.exploded = false;
       }
     } else {
-      // Для остальных запускаем анимацию взрыва
+      // Для всех остальных, кто был на трассе, запускаем анимацию взрыва
       bug.explodeFrame = 0;
       bug.exploded = false;
     }
@@ -1713,7 +1720,6 @@ const explodeAllBugs = (raceEndTime) => {
   // Воспроизведение звука для каждого взрыва
   bugs.value.forEach(bug => {
     if (!bug.finished) {
-      // Для тараканов, которые не финишировали - воспроизводим звук
       if (userInteracted.value && explosionSound.value && soundEnabled.value) {
         try {
           explosionSound.value.currentTime = 0;
@@ -1725,7 +1731,7 @@ const explodeAllBugs = (raceEndTime) => {
       }
     }
   });
-  
+
   startExplosionAnimation();
 };
 

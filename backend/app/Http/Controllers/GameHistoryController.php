@@ -203,281 +203,231 @@ public function getLastGames()
     {
         return storage_path('app/' . self::HISTORY_FILE);
     }
-public function calculateWinnings(Request $request)
-{
+ public function calculateWinnings(Request $request)
+    {
+        $configPath = storage_path('app/bet_buttons.json');
+        $sectionCoefficients = [];
+        if (file_exists($configPath)) {
+            $config = json_decode(file_get_contents($configPath), true);
+            $sectionCoefficients = $config['coefficients']['section'] ?? [];
+        }
 
-    $configPath = storage_path('app/bet_buttons.json');
-    $sectionCoefficients = [];
-    if (file_exists($configPath)) {
-        $config = json_decode(file_get_contents($configPath), true);
-        $sectionCoefficients = $config['coefficients']['section'] ?? [];
+        try {
+            Log::info('Starting winnings calculation');
+            $validated = $request->validate([
+                'results' => 'required|array',
+                'results.*.position' => 'nullable|integer',
+                'results.*.color' => 'required|string',
+                'results.*.trapId' => 'nullable|integer',
+                'bets' => 'present|array',
+                'bets.*.type' => 'required|string',
+                'bets.*.amount' => 'required|numeric',
+                'bets.*.bugId' => 'sometimes|integer',
+                'bets.*.position' => 'sometimes|integer',
+                'bets.*.overtaker' => 'sometimes|integer',
+                'bets.*.overtaken' => 'sometimes|integer',
+                'bets.*.trapId' => 'sometimes|integer',
+                'bets.*.bugIds' => 'sometimes|array',
+                'bets.*.coefficient' => 'sometimes|numeric',
+            ]);
+
+            $results = $validated['results'];
+            $bets = $validated['bets'];
+
+            $colorToId = ['#FFFF00' => 0, '#FFA500' => 1, '#8B0000' => 2, '#0000FF' => 3, '#FF0000' => 4, '#800080' => 5, '#00FF00' => 6];
+            $idToColor = [0 => '#FFFF00', 1 => '#FFA500', 2 => '#8B0000', 3 => '#0000FF', 4 => '#FF0000', 5 => '#800080', 6 => '#00FF00'];
+
+            $losingBets = [];
+            $multibetGroups = [];
+
+            foreach ($bets as $bet) {
+                $betGroup = $bet['multibet_group'] ?? 'default';
+                $winningBet = null;
+
+                switch ($bet['type']) {
+                    case 'position':
+                        $winningBet = $this->calculatePositionBet($bet, $results, $idToColor);
+                        break;
+                    case 'overtaking':
+                        $winningBet = $this->calculateOvertakingBet($bet, $results, $idToColor);
+                        break;
+                    case 'trap':
+                    case 'section':
+                        $winningBet = $this->calculateSectionBet($bet, $results, $sectionCoefficients, $colorToId, $idToColor);
+                        break;
+                }
+
+                if ($winningBet) {
+                    if (!isset($multibetGroups[$betGroup])) {
+                        $multibetGroups[$betGroup] = [];
+                    }
+                    $multibetGroups[$betGroup][] = $winningBet;
+                } else {
+                    $losingBets[] = $bet;
+                }
+            }
+
+            // Объединяем все выигрышные ставки из одной группы в один общий выигрыш
+            $combinedWinningBets = [];
+            foreach ($multibetGroups as $groupBets) {
+                if (count($groupBets) > 0) {
+                    $combinedBet = [
+                        'type' => 'multibet',
+                        'amount' => array_sum(array_column($groupBets, 'amount')),
+                        'winAmount' => array_sum(array_column($groupBets, 'winAmount')),
+                        'bets' => $groupBets,
+                        'coefficient' => 1,
+                        'bugColors' => array_merge(...array_column($groupBets, 'bugColors'))
+                    ];
+                    $combinedWinningBets[] = $combinedBet;
+                }
+            }
+
+            Log::info('Calculation completed. Winning bets: ' . count($combinedWinningBets) . ', Losing bets: ' . count($losingBets));
+
+            // ... (Ваш блок с отправкой WebSocket-события)
+
+            return response()->json([
+                'winningBets' => $combinedWinningBets,
+                'losingBets' => $losingBets
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error calculating winnings: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['error' => 'Calculation failed: ' . $e->getMessage()], 500);
+        }
     }
 
-    try {
+    /**
+     * Рассчитывает выигрыш для ставки типа 'position'.
+     * @param array $bet
+     * @param array $results
+     * @param array $idToColor
+     * @return array|null
+     */
+    private function calculatePositionBet(array $bet, array $results, array $idToColor): ?array
+    {
+        $bugId = ($bet['bugId'] ?? 1) - 1; // Convert to 0-6
+        $expectedPosition = $bet['position'] ?? 1;
 
-        Log::info('Starting winnings calculation with data:', $request->all());
-        Log::info('Starting winnings calculation');
+        $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
+            return isset($r['color'], $idToColor[$bugId]) && $r['color'] === $idToColor[$bugId];
+        });
 
-        $validated = $request->validate([
-    'results' => 'required|array',
-    'results.*.position' => 'nullable|integer',
-    'results.*.color' => 'required|string',
-    'results.*.trapId' => 'nullable|integer',
-    'bets' => 'present|array', // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
-    'bets.*.type' => 'required|string',
-    'bets.*.amount' => 'required|numeric',
-    'bets.*.bugId' => 'sometimes|integer', // changed from required_if
-    'bets.*.position' => 'sometimes|integer', // changed from required_if
-    'bets.*.overtaker' => 'sometimes|integer', // changed from required_if
-    'bets.*.overtaken' => 'sometimes|integer', // changed from required_if
-    'bets.*.trapId' => 'sometimes|integer', // changed from required_if
-    'bets.*.bugIds' => 'sometimes|array', // changed from required_if
-    'bets.*.coefficient' => 'sometimes|numeric',
-]);
+        $isWin = $result && isset($result['position']) && $result['position'] === $expectedPosition;
 
-        Log::info('Validated data:', $validated);
-        Log::info('Request validated successfully');
-        $results = $validated['results'];
-        $bets = $validated['bets'];
-        Log::info('Results data:', $results);
-        Log::info('Bets data:', $bets);
-
-        // Map colors to bug IDs (0-6)
-        $colorToId = [
-            '#FFFF00' => 0, // Желтый
-            '#FFA500' => 1, // Оранжевый
-            '#8B0000' => 2, // Темно-оранжевый
-            '#0000FF' => 3, // Синий
-            '#FF0000' => 4, // Красный
-            '#800080' => 5, // Фиолетовый
-            '#00FF00' => 6  // Зеленый
-        ];
-
-        // Map IDs to colors
-        $idToColor = [
-            0 => '#FFFF00',
-            1 => '#FFA500',
-            2 => '#8B0000',
-            3 => '#0000FF',
-            4 => '#FF0000',
-            5 => '#800080',
-            6 => '#00FF00'
-        ];
-
-        $winningBets = [];
-        $losingBets = [];
-        $multibetGroups = []; // Группировка мультиставок
-
-        Log::info('Processing ' . count($bets) . ' bets');
-
-        foreach ($bets as $bet) {
+        if ($isWin) {
             $coefficient = $bet['coefficient'] ?? 1;
-            Log::info('Processing bet type: ' . $bet['type'] . ' with coefficient: ' . $coefficient);
+            return [
+                'type' => 'position',
+                'amount' => $bet['amount'],
+                'winAmount' => $bet['amount'] * $coefficient,
+                'bugId' => $bugId + 1,
+                'position' => $expectedPosition,
+                'coefficient' => $coefficient,
+                'bugColors' => [$idToColor[$bugId]]
+            ];
+        }
 
-            // Определяем группу для мультиставки
-            $betGroup = $bet['multibet_group'] ?? 'default';
+        return null;
+    }
 
-            switch ($bet['type']) {
-                case 'position':
-                    $bugId = ($bet['bugId'] ?? 1) - 1; // Convert to 0-6
-                    $expectedPosition = $bet['position'] ?? 1;
+    /**
+     * Рассчитывает выигрыш для ставки типа 'overtaking'.
+     * @param array $bet
+     * @param array $results
+     * @param array $idToColor
+     * @return array|null
+     */
+    private function calculateOvertakingBet(array $bet, array $results, array $idToColor): ?array
+    {
+        $overtakerId = ($bet['overtaker'] ?? 1);
+        $overtakenId = ($bet['overtaken'] ?? 1);
 
-                    $result = collect($results)->first(function ($r) use ($bugId, $idToColor) {
-                        return $r['color'] === $idToColor[$bugId];
-                    });
+        $resultsCollection = collect($results);
+        $overtakerResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakerId]);
+        $overtakenResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakenId]);
 
-                    $isWin = $result &&
-                             isset($result['position']) &&
-                             $result['position'] === $expectedPosition;
+        $overtakerFinished = $overtakerResult && isset($overtakerResult['position']) && $overtakerResult['position'] !== null;
+        $overtakenLost = !$overtakenResult || !isset($overtakenResult['position']) || $overtakenResult['position'] === null ||
+            ($overtakerFinished && $overtakerResult['position'] < $overtakenResult['position']);
 
-                    if ($isWin) {
-                        $winAmount = $bet['amount'] * $coefficient;
-                        $winningBet = [
-                            'type' => 'position',
-                            'amount' => $bet['amount'],
-                            'winAmount' => $winAmount,
-                            'bugId' => $bugId + 1,
-                            'position' => $expectedPosition,
-                            'coefficient' => $coefficient,
-                            'bugColors' => [$idToColor[$bugId]]
-                        ];
+        if ($overtakerFinished && $overtakenLost) {
+            $coefficient = $bet['coefficient'] ?? 1;
+            return [
+                'type' => 'overtaking',
+                'amount' => $bet['amount'],
+                'winAmount' => $bet['amount'] * $coefficient,
+                'overtaker' => $overtakerId + 1,
+                'overtaken' => $overtakenId + 1,
+                'coefficient' => $coefficient,
+                'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
+            ];
+        }
 
-                        // Группируем выигрышные ставки
-                        if (!isset($multibetGroups[$betGroup])) {
-                            $multibetGroups[$betGroup] = [];
-                        }
-                        $multibetGroups[$betGroup][] = $winningBet;
-                    } else {
-                        $losingBets[] = $bet;
-                    }
-                    break;
+        return null;
+    }
 
-                case 'overtaking':
-                    Log::info('Processing overtaking bet:', $bet);
-
-                    $overtakerId = ($bet['overtaker'] ?? 1);
-                    $overtakenId = ($bet['overtaken'] ?? 1);
-
-                    Log::info('Converted IDs - Overtaker: '.$overtakerId.', Overtaken: '.$overtakenId);
-
-                    $overtakerResult = collect($results)->first(function ($r) use ($overtakerId, $idToColor) {
-                        return $r['color'] === $idToColor[$overtakerId];
-                    });
-
-                    $overtakenResult = collect($results)->first(function ($r) use ($overtakenId, $idToColor) {
-                        return $r['color'] === $idToColor[$overtakenId];
-                    });
-
-                    Log::info('Overtaker result:', $overtakerResult ?? []);
-                    Log::info('Overtaken result:', $overtakenResult ?? []);
-
-                    // Проверяем, что обгоняющий финишировал
-                    $overtakerFinished = $overtakerResult &&
-                                        isset($overtakerResult['position']) &&
-                                        $overtakerResult['position'] !== null;
-
-                    // Проверяем, что обгоняемый либо не финишировал, либо финишировал после обгоняющего
-                    $overtakenLost = !$overtakenResult ||
-                                    !isset($overtakenResult['position']) ||
-                                    $overtakenResult['position'] === null ||
-                                    ($overtakerFinished && $overtakenResult['position'] !== null &&
-                                     $overtakerResult['position'] < $overtakenResult['position']);
-
-                    $isWin = $overtakerFinished && $overtakenLost;
-
-                    Log::info('Overtaking bet win check result: '.($isWin ? 'WIN' : 'LOSE'));
-
-                    if ($isWin) {
-                        $coefficient = $bet['coefficient'] ?? 1;
-                        $winAmount = $bet['amount'] * $coefficient;
-
-                        Log::info('Overtaking bet WON - Amount: '.$bet['amount'].', Coefficient: '.$coefficient.', Win: '.$winAmount);
-
-                        $winningBet = [
-                            'type' => 'overtaking',
-                            'amount' => $bet['amount'],
-                            'winAmount' => $winAmount,
-                            'overtaker' => $overtakerId + 1,
-                            'overtaken' => $overtakenId + 1,
-                            'coefficient' => $coefficient,
-                            'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
-                        ];
-
-                        // Группируем выигрышные ставки
-                        if (!isset($multibetGroups[$betGroup])) {
-                            $multibetGroups[$betGroup] = [];
-                        }
-                        $multibetGroups[$betGroup][] = $winningBet;
-                    } else {
-                        Log::info('Overtaking bet LOST');
-                        $losingBets[] = $bet;
-                    }
-                    break;
-
-                case 'trap':
-case 'section':
-    // СНАЧАЛА ищем 'bugIds', ЕСЛИ НЕТ - ищем 'selection'
+    /**
+     * Рассчитывает выигрыш для ставки типа 'section' (trap).
+     * @param array $bet
+     * @param array $results
+     * @param array $sectionCoefficients
+     * @param array $colorToId
+     * @param array $idToColor
+     * @return array|null
+     */
+    private function calculateSectionBet(array $bet, array $results, array $sectionCoefficients, array $colorToId, array $idToColor): ?array
+{
     $bugIds = $bet['bugIds'] ?? $bet['selection'] ?? [];
     $trapId = $bet['trapId'] ?? null;
 
-    // Проверяем, что у нас есть и тараканы в ставке, и trapId
+    // Проверяем, что в ставке есть тараканы и указана секция
     if (empty($bugIds) || $trapId === null) {
-        $losingBets[] = $bet;
-        break;
+        return null;
     }
 
-    $coefficient = $sectionCoefficients[$trapId] ?? 1;
+    // Находим ВСЕХ, кто финишировал в нужной секции
+    $finishedInSection = collect($results)->filter(fn($r) => isset($r['trapId']) && $r['trapId'] == $trapId && $r['position'] !== null);
 
-    // Находим результат для выигрышного trapId
-    $winningResult = collect($results)->first(function ($r) use ($trapId) {
-        return isset($r['trapId']) && $r['trapId'] == $trapId && $r['position'] !== null;
-    });
+    if ($finishedInSection->isNotEmpty()) {
+        // Получаем ID всех победителей в этой секции
+        $winnerBugIds = $finishedInSection->map(fn($result) => $colorToId[$result['color']] ?? -1)->all();
 
-    if ($winningResult) {
-        // Получаем ID победившего таракана
-        $winnerBugId = $colorToId[$winningResult['color']] ?? -1;
+        // Находим пересечение: тараканы, на которых мы ставили И которые победили
+        $actualWinnersFromBet = array_intersect($winnerBugIds, $bugIds);
 
-        // Проверяем, есть ли победитель среди тех, на кого мы ставили
-        if (in_array($winnerBugId, $bugIds)) {
-            // Если да - вся ставка выиграла!
-            $totalWin = $bet['amount'] * $coefficient;
+        // Если есть хотя бы один победитель из нашей ставки
+        if (!empty($actualWinnersFromBet)) {
+            $coefficient = $sectionCoefficients[$trapId] ?? 1;
 
-            $winningBet = [
+            // --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+            // Рассчитываем сумму ставки на одного таракана
+            $amountPerBug = $bet['amount'] / count($bugIds);
+
+            // Рассчитываем итоговый выигрыш пропорционально количеству победителей
+            $totalWin = $amountPerBug * count($actualWinnersFromBet) * $coefficient;
+
+            // Рассчитываем выигрыш на одного таракана (для удобного отображения на фронте)
+            $winAmountPerBug = $amountPerBug * $coefficient;
+
+            return [
                 'type' => 'section',
-                'amount' => $bet['amount'],
-                'winAmount' => $totalWin,
+                'amount' => $bet['amount'], // Общая сумма ставки
+                'winAmount' => $totalWin,   // <-- ИСПРАВЛЕНО: Теперь это пропорциональный выигрыш
                 'trapId' => $trapId,
-                'bugIds' => $bugIds,
-                'winningBugs' => [$winnerBugId], // Показываем реального победителя
+                'bugIds' => $bugIds, // На кого ставили
+                'winningBugs' => array_values($actualWinnersFromBet), // Кто реально выиграл
                 'coefficient' => $coefficient,
-                'bugColors' => [$winningResult['color']]
+                'bugColors' => collect($actualWinnersFromBet)->map(fn($id) => $idToColor[$id])->values()->all(),
+                'winAmountPerBug' => $winAmountPerBug // Полезно для UI
             ];
-
-            if (!isset($multibetGroups[$betGroup])) {
-                $multibetGroups[$betGroup] = [];
-            }
-            $multibetGroups[$betGroup][] = $winningBet;
-
-        } else {
-            // Победитель в этой секции есть, но мы на него не ставили
-            $losingBets[] = $bet;
         }
-    } else {
-        // Никто не финишировал в указанной секции
-        $losingBets[] = $bet;
     }
-    break;
 
-
-            }
-        }
-
-        // Объединяем все выигрышные ставки из одной группы в один общий выигрыш
-        $combinedWinningBets = [];
-        foreach ($multibetGroups as $groupBets) {
-            if (count($groupBets) > 0) {
-                $combinedBet = [
-                    'type' => 'multibet',
-                    'amount' => array_sum(array_column($groupBets, 'amount')),
-                    'winAmount' => array_sum(array_column($groupBets, 'winAmount')),
-                    'bets' => $groupBets,
-                    'coefficient' => 1, // Общий коэффициент не применяется для группы
-                    'bugColors' => array_merge(...array_column($groupBets, 'bugColors'))
-                ];
-                $combinedWinningBets[] = $combinedBet;
-            }
-        }
-
-        Log::info('Calculation completed. Winning bets: ' . count($combinedWinningBets) . ', Losing bets: ' . count($losingBets));
-
-        // После успешного расчета отправляем WebSocket-событие
-        try {
-            $gameInstanceId = config('game.instance_id', 1);
-            $broadcastData = [
-                'channel' => 'gamemaster.' . $gameInstanceId . '.public',
-                'event' => 'gameplay.gameBets.gameBetsEvaluated',
-                'data' => [
-                    'broadcast_id' => \Illuminate\Support\Str::uuid()->toString(),
-                    'broadcast_at' => now()->toISOString(),
-                    'game_session_id' => 2048 // Замените на реальный ID сессии
-                ]
-            ];
-
-            Http::timeout(3)->post('http://localhost:3001/broadcast', $broadcastData);
-        } catch (\Exception $e) {
-            Log::error('Broadcast error: ' . $e->getMessage());
-        }
-
-        return response()->json([
-            'winningBets' => $combinedWinningBets,
-            'losingBets' => $losingBets
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error calculating winnings: '.$e->getMessage());
-        Log::error('Stack trace: '.$e->getTraceAsString());
-        return response()->json(['error' => 'Calculation failed: '.$e->getMessage()], 500);
-    }
+    // Если никто из наших тараканов не выиграл, возвращаем null
+    return null;
 }
 
 

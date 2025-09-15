@@ -40,7 +40,7 @@ class BetHistoryController extends Controller
                 'bets.*.trapId' => 'required_if:bets.*.type,trap|integer',
 
                 'bets.*.coefficient' => 'sometimes|numeric',
-                'bets.*.time' => 'sometimes|string', // Принимаем время, но не требуем
+                'bets.*.timestamp' => 'sometimes|string', // Принимаем время, но не требуем
                 'bets.*.color' => 'sometimes|string',
                 'bets.*.bugColors' => 'sometimes|array',
             ]);
@@ -49,53 +49,62 @@ class BetHistoryController extends Controller
 
             $savedBets = [];
             foreach ($validated['bets'] as $betData) {
-                $bet = [
-                    'id' => uniqid(),
-                    'timestamp' => now()->toDateTimeString(), // Сервер всегда генерирует свежую метку времени
-                    'data' => $betData
-                ];
-                array_unshift($history, $bet);
-                $savedBets[] = $bet;
-            }
-
-            $this->saveHistory($history);
-
-            return response()->json([
-                'status' => 'success',
-                'saved_count' => count($savedBets)
+            // ИЗМЕНЕНИЕ 2: Создаем "плоский" объект, а не вложенный
+            // Мы доверяем timestamp от клиента, т.к. он точнее отражает время ставки
+            $betToSave = array_merge($betData, [
+                'id' => uniqid(),
+                // Используем timestamp от клиента, если он есть, иначе генерируем свой
+                'timestamp' => $betData['timestamp'] ?? now()->toDateTimeString(),
             ]);
 
-        } catch (ValidationException $e) {
-            // ЭТОТ БЛОК ОТЛОВИТ ОШИБКУ ВАЛИДАЦИИ
-            Log::error('Save bets batch validation error: ', $e->errors());
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors' => $e->errors()
-            ], 422);
+            // Удаляем временное поле 'time', если оно вдруг пришло
+            unset($betToSave['time']);
 
-        } catch (\Exception $e) {
-            // ЭТОТ БЛОК ОТЛОВИТ ЛЮБЫЕ ДРУГИЕ ОШИБКИ
-            Log::error('Save bets batch generic error: ' . $e->getMessage() . ' on line ' . $e->getLine());
-            return response()->json([
-                'error' => 'An internal server error occurred.',
-                'message' => $e->getMessage()
-            ], 500);
+            array_unshift($history, $betToSave);
+            $savedBets[] = $betToSave;
         }
+
+        $this->saveHistory($history);
+        return response()->json([
+            'status' => 'success',
+            'saved_count' => count($savedBets)
+        ]);
+
+    } catch (ValidationException $e) {
+        Log::error('Save bets batch validation error: ', $e->errors());
+        return response()->json(['message' => 'The given data was invalid.', 'errors' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        Log::error('Save bets batch generic error: ' . $e->getMessage() . ' on line ' . $e->getLine());
+        return response()->json(['error' => 'An internal server error occurred.', 'message' => $e->getMessage()], 500);
     }
+}
 
     /**
      * Возвращает последние ставки.
      */
-    public function getLatestBets()
-    {
-        try {
-            $history = $this->loadHistory();
-            return response()->json($history);
-        } catch (\Exception $e) {
-            Log::error('Error loading bet history: '.$e->getMessage());
-            return response()->json([]);
-        }
+    // ОБНОВЛЕННАЯ И ИСПРАВЛЕННАЯ ВЕРСИЯ:
+
+public function getLatestBets()
+{
+    try {
+        $history = $this->loadHistory();
+
+        // ВОТ ИСПРАВЛЕНИЕ:
+        // Мы явно указываем Laravel отдать JSON в кодировке UTF-8
+        // и не экранировать Unicode-символы (вроде знака евро).
+        return response()->json(
+            $history,
+            200,
+            ['Content-Type' => 'application/json;charset=UTF-8'],
+            JSON_UNESCAPED_UNICODE
+        );
+
+    } catch (\Exception $e) {
+        Log::error('Error loading bet history: ' . $e->getMessage());
+        // Отправляем ошибку тоже с правильными заголовками
+        return response()->json([], 500, ['Content-Type' => 'application/json;charset=UTF-8']);
     }
+}
 
     /**
      * Загружает историю из файла.

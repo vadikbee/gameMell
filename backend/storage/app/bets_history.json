@@ -1,251 +1,202 @@
 [
     {
-        "id": "68c7ddce0df47",
-        "timestamp": "2025-09-15 09:35:10",
-        "data": {
-            "user_id": 1,
-            "amount": 175,
-            "type": "trap",
-            "selection": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "trapId": 2,
-            "coefficient": 12.6,
-            "time": "2025-09-15T09:35:09.897Z"
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 5,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:16:00.790Z",
+        "id": "68c7e760e46d8"
     },
     {
-        "id": "68c7dda180e4a",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 7,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 5,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:16:00.790Z",
+        "id": "68c7e760e46d7"
     },
     {
-        "id": "68c7dda180e42",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 7,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 5,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:16:00.790Z",
+        "id": "68c7e760e46d0"
     },
     {
-        "id": "68c7dda180e3b",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 6,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 3,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:51.143Z",
+        "id": "68c7e75748815"
     },
     {
-        "id": "68c7dda180e33",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 6,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:51.143Z",
+        "id": "68c7e75748814"
     },
     {
-        "id": "68c7dda180e2b",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 5,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 1,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:51.143Z",
+        "id": "68c7e7574880f"
     },
     {
-        "id": "68c7dda180e23",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 5,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 3,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:37.131Z",
+        "id": "68c7e74944236"
     },
     {
-        "id": "68c7dda180e1b",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 4,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:37.131Z",
+        "id": "68c7e74944235"
     },
     {
-        "id": "68c7dda180e13",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 4,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 1,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:37.131Z",
+        "id": "68c7e74944230"
     },
     {
-        "id": "68c7dda180e0c",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 3,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 4,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:15:29.551Z",
+        "id": "68c7e741a9a9c"
     },
     {
-        "id": "68c7dda180e03",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 3,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 4,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:29.551Z",
+        "id": "68c7e741a9a9b"
     },
     {
-        "id": "68c7dda180dfa",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 2,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 4,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:29.551Z",
+        "id": "68c7e741a9a96"
     },
     {
-        "id": "68c7dda180df0",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 2,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:15:23.011Z",
+        "id": "68c7e73b2734e"
     },
     {
-        "id": "68c7dda180de3",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 1,
-            "position": 2,
-            "coefficient": 6.72
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:23.011Z",
+        "id": "68c7e73b2734d"
     },
     {
-        "id": "68c7dda180db0",
-        "timestamp": "2025-09-15 09:34:25",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 1,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 2,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:23.011Z",
+        "id": "68c7e73b27349"
     },
     {
-        "id": "68c7dd872b21e",
-        "timestamp": "2025-09-15 09:33:59",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 7,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 1,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:15:16.395Z",
+        "id": "68c7e73485039"
     },
     {
-        "id": "68c7dd872b216",
-        "timestamp": "2025-09-15 09:33:59",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 6,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 1,
+        "position": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-15T10:15:16.395Z",
+        "id": "68c7e73485038"
     },
     {
-        "id": "68c7dd872b20e",
-        "timestamp": "2025-09-15 09:33:59",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 5,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 1,
+        "position": 3,
+        "coefficient": 8.15,
+        "timestamp": "2025-09-15T10:15:16.395Z",
+        "id": "68c7e73485033"
     },
     {
-        "id": "68c7dd872b205",
-        "timestamp": "2025-09-15 09:33:59",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 4,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 5,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:15:10.389Z",
+        "id": "68c7e72e82519"
     },
     {
-        "id": "68c7dd872b1fc",
-        "timestamp": "2025-09-15 09:33:59",
-        "data": {
-            "user_id": 1,
-            "amount": 25,
-            "type": "position",
-            "bugId": 3,
-            "position": 1,
-            "coefficient": 6.35
-        }
+        "user_id": 1,
+        "amount": 25,
+        "type": "position",
+        "bugId": 4,
+        "position": 5,
+        "coefficient": 27.81,
+        "timestamp": "2025-09-15T10:15:10.389Z",
+        "id": "68c7e72e82518"
     }
 ]

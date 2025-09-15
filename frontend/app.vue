@@ -916,7 +916,7 @@ const placeSectionBet = async () => {
         trapId: selectedTrap.value,
         coefficient: coefficient,
         bugIds: raceBugIds, // Добавляем bugIds для внутренней логики
-        time: new Date().toISOString()
+        timestamp: new Date().toISOString()
     };
     
     const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
@@ -933,7 +933,15 @@ const placeSectionBet = async () => {
     nextRaceBets.value.push(betToSend);
 
     // Теперь, когда ставка сохранена, обновляем историю
-    await fetchBetHistory();
+    // Создаем "плоский" объект для истории
+const newHistoryItem = {
+    ...betToSend, // Распаковываем все свойства созданной ставки
+    id: Date.now() + Math.random(), // Добавляем временный ID
+};
+betHistoryFromApi.value.unshift(newHistoryItem);
+
+// Асинхронно обновляем историю с сервера фоном
+fetchBetHistory();
     
     // После успешного сохранения ставки
     currentBet.value = 25; // Сброс к минимальной ставке
@@ -1437,54 +1445,34 @@ const sendBetsBatch = async (bets) => {
   }
 };
 
-const saveBetsBatch = async (betsToSave) => {
+
+const saveBetsBatch = async (betsToSave) => { // <-- ИЗМЕНЕНИЕ 1: Добавляем аргумент
   if (!betsToSave || betsToSave.length === 0) {
     console.warn('saveBetsBatch called with no bets to save.');
     return;
   }
-
   try {
     const response = await fetch('/api/v1/gameplay/bets/cockroaches-space-maze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // ИЗМЕНЕНИЕ 2: Используем аргумент, а не несуществующую переменную
       body: JSON.stringify({ bets: betsToSave })
     });
 
     if (!response.ok) {
-      // Если сервер вернул ошибку, выбрасываем ее, чтобы catch в placeBet ее поймал
       throw new Error(`Server responded with status: ${response.status}`);
     }
-
     const result = await response.json();
     console.log('Bets saved successfully:', result);
-
-    
-    // После успешного сохранения, добавляем эти ставки в начало массива истории.
-    // Мы создаем объекты в том формате, в котором их ожидает HistoryBets (с полем 'data').
-    const newHistoryItems = betsToSave.map(bet => ({
-      id: new Date().getTime() + Math.random(), // Генерируем временный ID
-      timestamp: new Date().toISOString(),
-      data: bet 
-    }));
-    
-    // Добавляем новые ставки в начало существующей истории
-    betHistoryFromApi.value.unshift(...newHistoryItems);
-
-    // Опционально: можно ограничить длину массива истории, чтобы он не рос бесконечно
-    if (betHistoryFromApi.value.length > 20) {
-        betHistoryFromApi.value.length = 20; // Оставляем только последние 20 записей
-    }
-    
-    return result; // Возвращаем результат для дальнейшей обработки, если нужно
-
+    return result;
   } catch (error) {
     console.error('Error in saveBetsBatch:', error);
-    // Пробрасываем ошибку дальше, чтобы ее мог поймать `placeBet`
-    throw error; 
+    // Пробрасываем ошибку дальше, чтобы ее мог поймать placeBet
+    throw error;
   }
 };
 // В функции placeBet добавлю использование коэффициентов
-// app.vue
+
 
 const placeBet = async () => {
   try {
@@ -1530,11 +1518,10 @@ const placeBet = async () => {
     await saveBetsBatch(betsToSend);
 
     const newHistoryItems = betsToSend.map(bet => ({
-        id: Date.now() + Math.random(),
-        timestamp: bet.timestamp,
-        data: bet
-    }));
-    betHistoryFromApi.value.unshift(...newHistoryItems);
+  ...bet, // Распаковываем все свойства ставки (type, amount, bugId и т.д.)
+  id: Date.now() + Math.random(), // Добавляем временный ID для ключа в VUE
+}));
+betHistoryFromApi.value.unshift(...newHistoryItems);
 
     for (const button of selectedButtons) {
       button.confirmed = true;
@@ -2298,22 +2285,20 @@ const unhoverBug = () => {
 
 const betHistoryFromApi = ref([]);
 
+
 const fetchBetHistory = async () => {
   try {
-    // Добавляем задержку между запросами
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
     const response = await fetch('/api/get-bets');
+    if (!response.ok) {
+      throw new Error(`Server responded with status: ${response.status}`);
+    }
     const data = await response.json();
-     // Логирование полученных данных
-    console.log("Bet history data:", data);
 
-    // Преобразование данных к нужному формату
-    betHistoryFromApi.value = data.map(item => ({
-      ...item.data,
-      time: item.data.time || item.timestamp.split(' ')[1] // Используем время из данных
-    }));
-    
+    // Теперь, когда сервер и клиент говорят на одном языке,
+    // мы просто присваиваем чистые данные напрямую.
+    // Никаких преобразований больше не нужно.
+    betHistoryFromApi.value = data;
+
   } catch (error) {
     console.error('Error fetching bet history:', error);
     betHistoryFromApi.value = [];

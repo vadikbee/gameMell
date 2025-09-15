@@ -26,10 +26,10 @@
               {{ getBetType(group.displayBet) }}
             </div>
             <div class="bet-amount">
-              {{ group.totalAmount }}&#226;‚¬ x {{ getMultiplier(group.displayBet) }} = {{ calculateTotal(group) }}
+              {{ group.totalAmount }} x {{ getMultiplier(group.displayBet) }} = {{ calculateTotal(group) }}
             </div>
           </div>
-          <div class="bet-time">{{ formatTime(group.displayBet.timestamp) }}</div>
+          <div class="bet-time">{{ formatTime(group.time) }}</div>
           <div v-if="group.isGroup" :class="['arrow-icon', { 'expanded': group.isExpanded }]"></div>
         </div>
 
@@ -42,7 +42,7 @@
             </div>
             <div class="bet-info">
               <div class="bet-description">{{ getBetType(bet) }}</div>
-              <div class="bet-amount">{{ bet.amount }}&#226;‚¬</div>
+              <div class="bet-amount">{{ bet.amount }}</div>
             </div>
             <div class="bet-time">{{ formatTime(bet.timestamp) }}</div>
           </div>
@@ -137,8 +137,11 @@ const calculateTotal = (group) => {
   return (group.totalAmount * multiplier).toFixed(2);
 };
 
-const formattedBets = computed(() => (props.bets || []).map(item => item.data || item).slice(0, 10));
-
+const formattedBets = computed(() => {
+  // Теперь, когда сервер присылает чистые данные, сложная обработка не нужна.
+  // Мы просто проверяем, что массив существует, и берем последние 10 записей.
+  return (props.bets || []).slice(0, 10);
+});
 const groupedBets = computed(() => {
   if (!formattedBets.value) return [];
   const groups = {};

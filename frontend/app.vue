@@ -2750,9 +2750,10 @@ console.log(`Toggling button: id=${btn.id}, row=${row}, col=${col}, bug=${getBug
 // Переключение кнопки меню
 
 
-const toggleCenterMenu = () => {
+const toggleCenterMenu = async () => {
   // Если действие уже выполняется, выходим
   if (isMenuActionInProgress.value) return;
+  const isOpening = !centerMenuVisible.value;
 
   // 1. Устанавливаем флаг, чтобы заблокировать последующие клики
   isMenuActionInProgress.value = true;
@@ -2780,7 +2781,23 @@ const toggleCenterMenu = () => {
       historyBetsInsideCenter.value = false;
     }
   }
-  
+  if (isOpening) {
+    // 3. Если МЕНЮ ОТКРЫВАЕТСЯ:
+    // Принудительно делаем историю ставок видимой
+    historyBetsVisible.value = true;
+    // Принудительно устанавливаем ее позицию "внутри" центрального меню
+    historyBetsInsideCenter.value = true;
+    // И загружаем для нее данные
+    await fetchBetHistory();
+
+    // Также убедимся, что другие конкурирующие меню (меню последней игры) закрыты
+    lastGameMenuVisible.value = false;
+
+  } else {
+    // 4. Если МЕНЮ ЗАКРЫВАЕТСЯ:
+    // Логично также скрыть историю ставок, которую мы открыли вместе с ним
+    historyBetsVisible.value = false;
+  }
   // 3. Снимаем блокировку через 400 миллисекунд.
   // Этого времени достаточно, чтобы предотвратить случайный "спам" кликами.
   setTimeout(() => {

@@ -341,33 +341,43 @@ public function getLastGames()
      * @return array|null
      */
     private function calculateOvertakingBet(array $bet, array $results, array $idToColor): ?array
-    {
-        $overtakerId = ($bet['overtaker'] ?? 1);
-        $overtakenId = ($bet['overtaken'] ?? 1);
+{
+    // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Приводим ID к внутреннему формату (0-6) ---
+    $overtakerId = ($bet['overtaker'] ?? 1) - 1; // Convert to 0-6
+    $overtakenId = ($bet['overtaken'] ?? 1) - 1; // Convert to 0-6
 
-        $resultsCollection = collect($results);
-        $overtakerResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakerId]);
-        $overtakenResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakenId]);
-
-        $overtakerFinished = $overtakerResult && isset($overtakerResult['position']) && $overtakerResult['position'] !== null;
-        $overtakenLost = !$overtakenResult || !isset($overtakenResult['position']) || $overtakenResult['position'] === null ||
-            ($overtakerFinished && $overtakerResult['position'] < $overtakenResult['position']);
-
-        if ($overtakerFinished && $overtakenLost) {
-            $coefficient = $bet['coefficient'] ?? 1;
-            return [
-                'type' => 'overtaking',
-                'amount' => $bet['amount'],
-                'winAmount' => $bet['amount'] * $coefficient,
-                'overtaker' => $overtakerId + 1,
-                'overtaken' => $overtakenId + 1,
-                'coefficient' => $coefficient,
-                'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
-            ];
-        }
-
+    // Проверяем, что ID находятся в допустимом диапазоне
+    if (!isset($idToColor[$overtakerId]) || !isset($idToColor[$overtakenId])) {
+        Log::error('Invalid bug ID provided for overtaking bet.', ['bet' => $bet]);
         return null;
     }
+
+    $resultsCollection = collect($results);
+    $overtakerResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakerId]);
+    $overtakenResult = $resultsCollection->first(fn($r) => isset($r['color']) && $r['color'] === $idToColor[$overtakenId]);
+
+    $overtakerFinished = $overtakerResult && isset($overtakerResult['position']) && $overtakerResult['position'] !== null;
+
+    // Проверяем, что обгоняемый либо не финишировал, либо финишировал после
+    $overtakenLost = !$overtakenResult || !isset($overtakenResult['position']) || $overtakenResult['position'] === null ||
+        ($overtakerFinished && $overtakerResult['position'] < $overtakenResult['position']);
+
+    if ($overtakerFinished && $overtakenLost) {
+        $coefficient = $bet['coefficient'] ?? 1;
+        return [
+            'type' => 'overtaking',
+            'amount' => $bet['amount'],
+            'winAmount' => $bet['amount'] * $coefficient,
+            // Возвращаем ID в привычном для фронтенда формате (1-7)
+            'overtaker' => $overtakerId + 1,
+            'overtaken' => $overtakenId + 1,
+            'coefficient' => $coefficient,
+            'bugColors' => [$idToColor[$overtakerId], $idToColor[$overtakenId]]
+        ];
+    }
+
+    return null;
+}
 
     /**
      * Рассчитывает выигрыш для ставки типа 'section' (trap).

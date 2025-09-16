@@ -1,6 +1,30 @@
 [
     {
         "user_id": 1,
+        "amount": 25,
+        "type": "trap",
+        "selection": [
+            6
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-16T13:20:48.122Z",
+        "id": "68c96430416b3"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "trap",
+        "selection": [
+            6
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-16T13:20:36.125Z",
+        "id": "68c9642442579"
+    },
+    {
+        "user_id": 1,
         "amount": 75,
         "type": "trap",
         "selection": [
@@ -210,25 +234,5 @@
         "coefficient": 12.6,
         "timestamp": "2025-09-15T10:40:03.046Z",
         "id": "68c7ed034b249"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 5,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:40:03.046Z",
-        "id": "68c7ed034b248"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 5,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:40:03.046Z",
-        "id": "68c7ed034b23f"
     }
 ]

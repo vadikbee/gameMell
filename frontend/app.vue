@@ -1167,14 +1167,23 @@ const placeFavoriteBet = () => {
     const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
 
     balance.value -= currentBet.value;
-    activeFavoriteBet.value = betData;
+
+    // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+    // 1. НЕ активируем ставку сразу. Эту строку нужно удалить или закомментировать:
+    // activeFavoriteBet.value = betData; 
+    
+    // 2. Ставим флаг, что ставка на фаворита в этом раунде сделана (чтобы нельзя было поставить еще одну)
     isFavoriteBetActive.value = true;
+    
+    // 3. ДОБАВЛЯЕМ ставку в очередь на СЛЕДУЮЩИЙ раунд (как и для других типов ставок)
+    nextRaceBets.value.push(betData);
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
     betHistoryFromApi.value.unshift(betData);
     
     showBetPlacedNotification();
     playOutcomeSound();
     
-    // Закрываем меню ставок после ее размещения
     if (centerWinMenuVisible.value) {
         closeWinMenu();
     }
@@ -2067,7 +2076,7 @@ const saveGameResults = async () => {
     const finishedBugs = bugs.value
         .filter(bug => bug.finished)
         .sort((a, b) => a.finishTime - b.finishTime);
-    
+
     const results = bugs.value.map((bug) => {
         const finishIndex = finishedBugs.findIndex(b => b.id === bug.id);
         return {
@@ -2088,7 +2097,25 @@ const saveGameResults = async () => {
 
     // --- ГЛАВНАЯ ЛОГИКА РЕЖИМА FAVORITE ---
     if (isFavoriteBetActive.value && activeFavoriteBet.value) {
-        // ... (логика для режима "Фаворит" остается без изменений)
+        const favoriteResult = processFavoriteBetResult(activeFavoriteBet.value, results, bugColors.value);
+
+        if (favoriteResult.isWin) {
+            // Логика начисления выигрыша
+            balance.value += favoriteResult.winAmount;
+            showWinNotification(favoriteResult.winAmount, [activeFavoriteBet.value]);
+            playIncomeSound();
+
+            // >>> ГЛАВНОЕ ИСПРАВЛЕНИЕ <<<
+            // Ставка выиграла и продолжает действовать.
+            // ДОБАВЛЯЕМ ЕЕ ОБРАТНО В ОЧЕРЕДЬ НА СЛЕДУЮЩИЙ РАУНД.
+            nextRaceBets.value.push(activeFavoriteBet.value);
+
+        } else if (favoriteResult.shouldDeactivate) {
+            // Таракан проиграл - деактивируем ставку полностью
+            isFavoriteBetActive.value = false;
+            activeFavoriteBet.value = null;
+            favoriteBug.value = null; 
+        }
     }
     
     // --- Расчет выигрыша происходит ТОЛЬКО если были ставки ---
@@ -2109,8 +2136,7 @@ const saveGameResults = async () => {
   // Деактивируем игровую сессию
   await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', { method: 'POST' });
 
-  // Загружаем обновленную историю, чтобы UI обновился
-  await loadGameHistory();
+  
 };
 // В функции processWinnings в app.vue
 // app.vue - функция processWinnings
@@ -2526,9 +2552,7 @@ const toggleLastGameMenu = async () => {
 
     lastGameMenuVisible.value = !lastGameMenuVisible.value;
 
-    if (lastGameMenuVisible.value) {
-      await loadGameHistory(); // Ожидаем загрузку данных
-    }
+    
   } finally {
     isMenuActionInProgress.value = false; // Снимаем блокировку
   }
@@ -2990,8 +3014,18 @@ const generatePaths = async () => {
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
   // Выводим в консоль ставки, которые будут участвовать в гонке
- console.log('Starting race cycle. Bets waiting in nextRaceBets:', nextRaceBets.value);
+  console.log('Starting race cycle. Bets waiting in nextRaceBets:', nextRaceBets.value);
 
+  // --- ДОБАВЛЕНА ЛОГИКА АКТИВАЦИИ СТАВКИ "FAVORITE" ---
+  // В начале нового раунда ищем ставку на фаворита в очереди
+  const favoriteBetForThisRace = nextRaceBets.value.find(bet => bet.type === 'favorite');
+  if (favoriteBetForThisRace) {
+    // Если нашли - устанавливаем ее как активную для текущей гонки
+    activeFavoriteBet.value = favoriteBetForThisRace;
+  } else {
+    // Если ставки на фаворита нет, сбрасываем активную ставку
+    activeFavoriteBet.value = null;
+  }
   // Сбрасываем флаги и состояния перед началом новой гонки
   unlockAllBugs();
   lockedBugs.value = new Set();
@@ -3128,6 +3162,7 @@ const updateProgress = () => {
 
     if (breakElapsed >= breakInterval.value) {
       // Переход к фазе гонки
+      loadGameHistory();
       breakInProgress.value = false;
       raceInProgress.value = true;
       phaseStartTime.value = now;

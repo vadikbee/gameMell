@@ -1490,6 +1490,9 @@ const closeLoseNotification = () => {
 // Генерация описания ставки
 // В app.vue
 const getBetDescription = (bet) => {
+  if (bet.type === 'favorite') {
+    return t('favorite_bet_on', { bug: getBugName(bet.bugId) });
+  }
   if (bet.type === 'position') {
     return t('position_bet', { bug: bet.bugId, position: bet.position });
   } else if (bet.type === 'overtaking') {
@@ -2102,7 +2105,13 @@ const saveGameResults = async () => {
         if (favoriteResult.isWin) {
             // Логика начисления выигрыша
             balance.value += favoriteResult.winAmount;
-            showWinNotification(favoriteResult.winAmount, [activeFavoriteBet.value]);
+           const winningBetData = {
+              ...activeFavoriteBet.value,
+              winAmount: favoriteResult.winAmount,
+              // Добавим коэффициент для полноты данных
+              coefficient: 5 // Коэффициент для "Favorite" из gameModes.js
+            };
+            showWinNotification(favoriteResult.winAmount, [winningBetData]);
             playIncomeSound();
 
             // >>> ГЛАВНОЕ ИСПРАВЛЕНИЕ <<<

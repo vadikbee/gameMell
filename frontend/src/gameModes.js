@@ -1,4 +1,5 @@
 // Файл: gameModes.js
+
 export function generateRandomBets(currentBet, sectionCoefficients, bugColors) {
     const betsForRace = [];
     const allBugs = [1, 2, 3, 4, 5, 6, 7];
@@ -10,6 +11,10 @@ export function generateRandomBets(currentBet, sectionCoefficients, bugColors) {
             type: 'section',
             amount: currentBet,
             selection: [bugId],
+            // --- ДОБАВЛЕНО ИСПРАВЛЕНИЕ ---
+            // Бэкенд ожидает это поле с ID в формате 0-6 для корректного расчета
+            bugIds: [bugId - 1], 
+            // ---------------------------
             trapId: randomTrapId,
             timestamp: new Date().toISOString(),
             id: Date.now() + Math.random(),

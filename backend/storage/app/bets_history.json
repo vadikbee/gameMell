@@ -1,6 +1,19 @@
 [
     {
         "user_id": 1,
+        "amount": 50,
+        "type": "trap",
+        "selection": [
+            3,
+            4
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-16T09:26:17.971Z",
+        "id": "68c92d3a23f41"
+    },
+    {
+        "user_id": 1,
         "amount": 25,
         "type": "position",
         "bugId": 3,
@@ -214,15 +227,5 @@
         "coefficient": 12.6,
         "timestamp": "2025-09-15T10:34:39.335Z",
         "id": "68c7ebbf783bd"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 3,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:34:39.335Z",
-        "id": "68c7ebbf783bc"
     }
 ]

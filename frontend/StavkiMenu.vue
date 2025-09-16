@@ -33,16 +33,43 @@
           @click="$emit('reset-click')"
         >
         
+        <!-- === НАЧАЛО НОВОГО БЛОКА КНОПОК === -->
+        
+
+<div class="control-button group-164-button" @click="handleGroup164Click">
+
+    <!-- Шаг 2: ВНУТРИ родителя размещаем логику v-if / v-else -->
+
+    <!-- Вариант для классического режима -->
+    <div v-if="gameMode === 'classic'" class="classic-bet-button-container">
+        <!-- Задний слой: фон кнопки -->
         <img 
-          src="/images/menus/Group 164.png" 
-          alt="Group 164" 
-          class="control-button group-164-button"
-          @click="handleGroup164Click"
-          @mousedown="isGroup164Clicked = true"
-          @mouseup="isGroup164Clicked = false"
-          @mouseleave="isGroup164Clicked = false"
+            src="/images/menus/Group 164.png" 
+            alt="Bet button background" 
+            class="button-background-image"
         >
-      </div>
+        <!-- Передний слой: изображение текста -->
+        <img 
+            src="/images/menus/Rectangle.png" 
+            alt="Place Bet" 
+            class="bet-text-image"
+        >
+    </div>
+
+    <!-- Вариант для остальных режимов -->
+    <div v-else class="action-bet-button-container">
+        <img 
+            src="/images/menus/Frame 165.png" 
+            alt="Action Bet BG" 
+            class="action-button-image"
+        >
+        <span class="action-button-text">
+            {{ gameMode === 'random' ? t('Random Bet') : t('Favorite Bet') }}
+        </span>
+    </div>
+
+</div>
+</div>
       
       <!-- Контейнер для счетчика ставок -->
       <div class="bet-counter-container">
@@ -79,6 +106,12 @@
 </template>
 
 <script setup>
+// 1. ИМПОРТИРУЕМ useI18n
+import { useI18n } from 'vue-i18n';
+import { computed, onMounted } from 'vue'; // `computed` у вас уже должен быть, если нет - добавьте.
+
+// 2. ИНИЦИАЛИЗИРУЕМ ФУНКЦИЮ ПЕРЕВОДА t
+const { t } = useI18n();
 const { data: gameConfig } = useFetch('/api/gameplay/games/instances/cockroaches-space-maze');
 // Сохраняем результат defineProps в переменную
 const props = defineProps({
@@ -95,19 +128,27 @@ const props = defineProps({
     customClass: {
     type: String,
     default: ''
+  },
+   
+   gameMode: {
+    type: String,
+    default: 'classic' // Режим по умолчанию
   }
 });
-
+// ДОБАВЬТЕ ЭТОТ БЛОК:
+onMounted(() => {
+  console.log('StavkiMenu загружено. Текущий режим игры:', props.gameMode);
+});
 const emit = defineEmits([
-  'otmena-click',
-  'reset-click',
-  'group164-click',
   'decrement-start',
   'increment-start',
   'stop-action',
   'add-bet',
   'x2-click',
-  'win-bet-click'
+  'win-bet-click',
+  'group164-click', // Для 'classic'
+  'random-bet-click', // Для 'random'
+  'favorite-bet-click' // Для 'favorite'
 ]);
 
 // Используем параметры из API
@@ -120,13 +161,19 @@ const stavkiButtons = computed(() => {
   }));
 });
 
-// Новые методы внутри компонента StavkiMenu
+// ОБНОВЛЕННЫЙ обработчик клика по главной кнопке
 const handleGroup164Click = () => {
-  props.playStakeActionClick(); // Добавляем звук
+  props.playStakeActionClick();
   
-  props.context === 'win' 
-    ? emit('win-bet-click') 
-    : emit('group164-click');
+  if (props.gameMode === 'random') {
+    emit('random-bet-click');
+  } else if (props.gameMode === 'favorite') {
+    emit('favorite-bet-click');
+  } else if (props.context === 'win') {
+    emit('win-bet-click');
+  } else {
+    emit('group164-click');
+  }
 };
 
 const handleButtonClick = (amount) => {
@@ -200,22 +247,47 @@ const handleX2Click = () => {
   box-sizing: border-box;
 }
 
-/* Кнопка Group 164 (основная кнопка ставки) */
 .group-164-button {
   position: absolute;
-  bottom: 32.5px;
-  right: 5px ;
-  
-  z-index: 8;
+  bottom: 35px;
+  right: 5px;
+  z-index: 15; /* Высокий z-index, чтобы быть поверх всего */
   cursor: pointer;
   width: 112px;
   height: 68px;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  /* background свойство полностью удалено! */
 }
 
-.group-164-button:hover {
-  transform:  scale(1.05);
+.control-button {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.control-button:hover {
+  transform: scale(1.05);
   filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+/* Новая кнопка для режима Random Bet */
+.random-bet-button {
+  background: url('/images/menus/Frame 165.png') no-repeat center center;
+  background-size: contain;
+  border: none;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* Кнопка для Favorite (наследует стили, но можно задать свои) */
+.favorite-bet-button {
+  background: url('/images/menus/Group 164.png') no-repeat center center;
+  background-size: contain;
+  border: none;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
 /* Уведомление о следующей гонке */
@@ -275,6 +347,48 @@ const handleX2Click = () => {
 /* Стили для контейнера меню ставок в центре */
 /* Стили для центрального меню */
 
+
+/* Контейнер для кнопки режима Random/Favorite */
+.action-bet-button-container {
+  /* position: relative - это база для абсолютного позиционирования текста */
+  position: relative; 
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Фоновое изображение кнопки */
+.action-button-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Стили для самого текста */
+.action-button-text {
+  /* position: absolute - вынимает текст из потока и позволяет разместить его поверх картинки */
+  position: absolute;
+
+  /* Классический трюк для идеального центрирования */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* Дополнительные стили для красоты и читаемости */
+  width: 100%; /* Занимает всю ширину, чтобы text-align работал */
+  text-align: center;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  
+  /* Важно: чтобы текст не мешал клику по кнопке */
+  pointer-events: none; 
+}
 /* Стили для меню ставок в центральном меню *//* Стили для меню ставок в центральном меню */
 /* Кнопки быстрых ставок */
 .stavki-button {
@@ -388,7 +502,35 @@ const handleX2Click = () => {
   left: 25px;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
 }
+/* Контейнер для слоев классической кнопки */
+.classic-bet-button-container {
+  position: relative; /* Создает контекст для позиционирования слоев */
+  width: 100%;
+  height: 100%;
+}
+/* Стиль для заднего слоя (фон кнопки) */
+.button-background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 1; /* Находится сзади */
+}
 
+/* Стиль для переднего слоя (текст-картинка) */
+.bet-text-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Идеально центрирует */
+  
+  /* Здесь можно задать точный размер картинки с текстом, если нужно */
+  /* Например: width: 80px; height: 20px; */
+
+  z-index: 2; /* Находится спереди */
+}
 /* Адаптация для планшетов */
 
 /* Адаптация для мобильных устройств */

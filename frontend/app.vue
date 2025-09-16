@@ -92,6 +92,9 @@
       :playStakeActionClick="playStakeActionClick" 
       @button-click="playStakeActionClick"
       @group164-click="placeBet"
+      :gameMode="gameMode"
+      @random-bet-click="placeRandomBet"
+      @favorite-bet-click="placeFavoriteBet"
       
     />
     
@@ -229,6 +232,7 @@
 </div>
       <!-- Нижняя панель управления -->
       <div class="panel-layer">
+        
   <!-- Новый контейнер для кнопок -->
   <div class="buttons-container">
     <div 
@@ -372,13 +376,19 @@
     @decrement-start="startDecrement"
     @increment-start="startIncrement"
     @stop-action="stopAction"
+    :hideMainBetButton="true"
     @add-bet="addToBet"
     @x2-click="multiplyBet"
     :playBetClick="playBetClick"
     :playStakeActionClick="playStakeActionClick" 
     @group164-click="placeBet"
     custom-class="center-stavki"
+    :gameMode="gameMode"
+  
+  @random-bet-click="placeRandomBet"
+  @favorite-bet-click="placeFavoriteBet"
   />
+   
 </div>
           
 
@@ -481,7 +491,7 @@ import { useI18n } from 'vue-i18n'
 import WinLoseNotification from './WinLoseNotification.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import { debounce } from 'lodash';
-
+import { generateRandomBets, createFavoriteBet, processFavoriteBetResult }  from './src/gameModes.js';
 
 
 const showConfetti = ref(false);
@@ -1101,73 +1111,64 @@ onUnmounted(() => {
 });
 // НОВОЕ: Логика для "Random Bet"
 const placeRandomBet = () => {
-  if (!isBettingPhase.value) {
-    alert('Ставки принимаются только в перерыве между гонками.');
-    return;
-  }
-  const betAmount = currentBet.value;
-  if (balance.value < betAmount * 7) {
-    alert('Недостаточно средств для случайной ставки на всех тараканов.');
-    return;
-  }
+    if (raceInProgress.value) {
+        alert(t('wait_for_next_round'));
+        return;
+    }
+    
+    // Вызываем функцию генерации ставок из gameModes.js
+    const { bets, totalCost } = generateRandomBets(currentBet.value, sectionCoefficients.value, bugColors.value);
 
-  const betsForRace = [];
-  const allBugs = [1, 2, 3, 4, 5, 6, 7];
+    if (balance.value < totalCost) {
+        alert(t('insufficient_funds'));
+        return;
+    }
 
-  allBugs.forEach(bugId => {
-    const randomTrapId = Math.floor(Math.random() * 7) + 1;
-    const bet = {
-      user_id: 1,
-      type: 'section',
-      amount: betAmount,
-      bugIds: [bugId - 1], // Для внутренней логики
-      selection: [bugId], // Для отображения
-      trapId: randomTrapId,
-      timestamp: new Date().toISOString(),
-      id: Date.now() + Math.random(),
-      coefficient: sectionCoefficients.value[randomTrapId] || 1,
-      bugColors: [bugColors.value[bugId-1]]
-    };
-    betsForRace.push(bet);
-  });
-  
-  // Добавляем ставки в текущую гонку и историю
-  currentRaceBets.value.push(...betsForRace);
-  betHistoryFromApi.value.unshift(...betsForRace);
-  
-  balance.value -= betAmount * 7;
-  showBetPlacedNotification();
-  playOutcomeSound();
+    balance.value -= totalCost;
+    nextRaceBets.value.push(...bets); // Добавляем ставки в очередь на следующий забег
+    betHistoryFromApi.value.unshift(...bets.map(b => ({...b, id: Date.now() + Math.random()})));
+    
+    showBetPlacedNotification();
+    playOutcomeSound();
 };
 
 // НОВОЕ: Логика для "Favorite"
 const selectFavoriteBug = (bugId) => {
+    // Позволяет выбрать или снять выбор
     favoriteBug.value = favoriteBug.value === bugId ? null : bugId;
+    alert(`${t('favorite_selected')}: ${getBugName(bugId - 1)}`);
 };
 
+// Размещение ставки на фаворита
 const placeFavoriteBet = () => {
+    if (isFavoriteBetActive.value) {
+        alert(t('favorite_bet_already_active'));
+        return;
+    }
     if (!favoriteBug.value) {
-        alert('Пожалуйста, выберите своего таракана-фаворита.');
+        alert(t('select_a_favorite_bug'));
         return;
     }
     if (balance.value < currentBet.value) {
-        alert('Недостаточно средств.');
+        alert(t('insufficient_funds'));
         return;
     }
-    
+
+    // Вызываем функцию создания ставки из gameModes.js
+    const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
+
     balance.value -= currentBet.value;
-    
-    activeFavoriteBet.value = {
-        bugId: favoriteBug.value,
-        amount: currentBet.value,
-        type: 'favorite', // Новый тип для истории
-        timestamp: new Date().toISOString(),
-        id: Date.now() + Math.random(),
-        bugColors: [bugColors.value[favoriteBug.value-1]]
-    };
+    activeFavoriteBet.value = betData;
     isFavoriteBetActive.value = true;
-    betHistoryFromApi.value.unshift(activeFavoriteBet.value);
+    betHistoryFromApi.value.unshift(betData);
+    
     showBetPlacedNotification();
+    playOutcomeSound();
+    
+    // Закрываем меню после ставки
+    if (centerWinMenuVisible.value) {
+        closeWinMenu();
+    }
 };
 
 const overtakingCoefficients = computed(() => {
@@ -1856,39 +1857,26 @@ const explodeAllBugs = (raceEndTime) => {
 
 // Add this method after the selectTrap function
 // В секции script
+// ОБНОВЛЕННАЯ ФУНКЦИЯ ВЫБОРА ТАРАКАНА
 const toggleBugSelection = (bugId) => {
-  console.log("Selected bug ID:", bugId); // Для отладки
-  if (lockedBugsArray.value.includes(bugId)) return;
   playStakeActionClick();
-   // Логирование с указанием позиции и цвета
-  const positions = ["первый", "второй", "третий", "четвёртый", "пятый", "шестой", "седьмой"];
-  const colors = [
-  "жёлтый",        // ID 1
-  "оранжевый",     // ID 2
-  "тёмно-оранжевый", // ID 3
-  "синий",         // ID 4
-  "красный",       // ID 5
-  "фиолетовый",    // ID 6
-  "зелёный"        // ID 7
-];
+  if (lockedBugsArray.value.includes(bugId)) return;
 
-   console.log(`Выбран ${positions[bugId-1]} таракан (${colors[bugId-1]})`);
+  // Если активен режим "Favorite", этот клик выбирает фаворита
+  if (gameMode.value === 'favorite') {
+    selectFavoriteBug(bugId);
+    return;
+  }
   
-   // Проверяем, не заблокирован ли таракан
-  if (lockedBugs.value.has(bugId)) return;
+  // --- Старая логика для режима "Classic" ---
   if (!selectedTrap.value) return;
-  
   const currentSelections = [...(bugSelections.value[selectedTrap.value] || [])];
   
   if (currentSelections.includes(bugId)) {
-    // Remove selection
     bugSelections.value[selectedTrap.value] = currentSelections.filter(id => id !== bugId);
   } else {
-    // Add selection (без ограничения количества)
     bugSelections.value[selectedTrap.value] = [...currentSelections, bugId];
   }
-  
-  // Update current selection
   selectedBugs.value = bugSelections.value[selectedTrap.value] || [];
 };
 // Вычисляемое свойство для LastGameMenu
@@ -2042,31 +2030,33 @@ const saveGameResults = async () => {
         .filter(bug => bug.finished)
         .sort((a, b) => a.finishTime - b.finishTime);
     
-    // Создаем массив результатов с позициями
     const results = bugs.value.map((bug) => {
-        // Находим индекс финишировавшего таракана
         const finishIndex = finishedBugs.findIndex(b => b.id === bug.id);
         return {
             position: finishIndex !== -1 ? finishIndex + 1 : null,
             color: bugColors.value[bug.id],
-            trapId: bug.trapId // Добавляем trapId в результаты
+            trapId: bug.trapId
         };
     });
-     if (isFavoriteBetActive.value) {
-        const favoriteResult = results.find(r => (r.color === bugColors.value[activeFavoriteBet.value.bugId - 1]) && r.position !== null);
-        
-        if (favoriteResult) {
-            // ВЫИГРЫШ
-            const winCoefficient = 5; // Примерный коэффициент, можно взять из конфига
-            const winAmount = activeFavoriteBet.value.amount * winCoefficient;
-            balance.value += winAmount;
-            showWinNotification(winAmount, [{ ...activeFavoriteBet.value, winAmount }]);
+
+    // === НОВЫЙ БЛОК: ОБРАБОТКА СТАВКИ "FAVORITE" ===
+    if (isFavoriteBetActive.value && activeFavoriteBet.value) {
+        // Вызываем функцию обработки из gameModes.js
+        const result = processFavoriteBetResult(activeFavoriteBet.value, results, bugColors.value);
+
+        if (result.isWin) {
+            balance.value += result.winAmount;
+            showWinNotification(result.winAmount, [{ ...activeFavoriteBet.value, winAmount: result.winAmount }]);
             playIncomeSound();
         } else {
-            // ПРОИГРЫШ
             showLoseNotification(activeFavoriteBet.value.amount, [activeFavoriteBet.value]);
+        }
+        
+        // Если ставка должна сгореть (проигрыш)
+        if (result.shouldDeactivate) {
             isFavoriteBetActive.value = false;
             activeFavoriteBet.value = null;
+            favoriteBug.value = null; // Также сбрасываем выбор
         }
     }
  try {
@@ -4108,7 +4098,46 @@ window.removeEventListener('resize', updateMainBgDimensions);
     transform: translate(-50%, -50%) scale(1.1);
   }
 }
+/* НОВЫЙ класс-обертка для позиционирования кнопки Random Bet */
+.random-button-container {
+  position: absolute;
+  bottom: 12.5px; /* То же положение, что и у group-164-button */
+  right: 5px;      /* То же положение, что и у group-164-button */
+  width: 112px;    /* Та же ширина */
+  height: 68px;    /* Та же высота */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+/* ОБНОВЛЕННЫЕ стили для основной кнопки действия */
+.action-bet-button {
+  padding: 12px 15px; /* Немного уменьшим паддинг, чтобы текст влез */
+  width: 100%;       /* Занимает всю ширину контейнера */
+  height: 100%;      /* Занимает всю высоту контейнера */
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background: url('/images/menus/Frame 165.png') no-repeat center center;
+  background-size: contain; /* Чтобы кнопка выглядела так же, как оригинал */
+  border: none;
+  cursor: pointer;
+  
+  text-transform: uppercase;
+  font-family: 'Bahnschrift', sans-serif;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  text-shadow: 0px 1px 4px rgba(0,0,0,0.7);
+  z-index: 100;
+}
+
+.action-bet-button:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.7));
+}
+
+.action-bet-button:active {
+    transform: scale(0.98);
+}
 .menuWin-image-center {
   width: 125%; /* 100% от родительского контейнера */
   height: auto; /* Сохраняем пропорции */

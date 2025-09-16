@@ -71,6 +71,9 @@
   "overtaking_bet_with_colors": "Таракан {color1} обогнал таракана {color2}",
 
     "light_theme": "Светлая",
-  "dark_theme": "Тёмная"
+  "dark_theme": "Тёмная",
   
+  "Favorite": "Любимый",
+"Random": "Рандом",
+"Classic": "Классик"
 }

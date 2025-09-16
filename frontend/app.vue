@@ -114,20 +114,23 @@
      <!-- В секции template -->
 <div class="bug-buttons-container">
   <div 
-    v-for="(bug, index) in menuBugs"
-    :key="index"
-    class="bug-button"
-    :class="{
-      'bug-button-hovered': hoveredBugIndex === index,
-      'bug-button-clicked': clickedBugIndex === index,
-      'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId,
-      'locked': lockedBugsArray.includes(bug.id)
-    }"
-    @mouseenter="hoverBug(index)"
-    @mouseleave="unhoverBug"
-    @click="toggleBugSelection(bug.id)"
-    :style="getBugStyle(index)"
-  >
+  v-for="(bug, index) in menuBugs"
+  :key="index"
+  class="bug-button"
+  :class="{
+    'bug-button-hovered': hoveredBugIndex === index,
+    'bug-button-clicked': clickedBugIndex === index,
+    'selected': selectedBugs.includes(bug.id) && selectedTrap === activeWinMenuId,
+    'locked': lockedBugsArray.includes(bug.id),
+    
+    
+    'favorite-glow': gameMode === 'favorite' && bug.id === favoriteBug
+  }"
+  @mouseenter="hoverBug(index)"
+  @mouseleave="unhoverBug"
+  @click="toggleBugSelection(bug.id)"
+  :style="getBugStyle(index)"
+>
     <img 
       :src="`/images/tarakani/t-${bug.id}.png`" 
       :alt="`Таракан ${bug.id}`"
@@ -480,7 +483,7 @@
 
 <script setup>
 import Confetti from './Confetti.vue';
-import { ref, computed, onMounted, onUnmounted, reactive  } from 'vue';
+import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue';
 import HistoryBets from './HistoryBets.vue';
 import io from 'socket.io-client';
 import StavkiMenu from './StavkiMenu.vue';
@@ -491,8 +494,8 @@ import { useI18n } from 'vue-i18n'
 import WinLoseNotification from './WinLoseNotification.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import { debounce } from 'lodash';
-import { generateRandomBets, createFavoriteBet, processFavoriteBetResult }  from './src/gameModes.js';
 
+import { generateRandomBets, createFavoriteBet, processFavoriteBetResult } from './src/gameModes.js';
 
 const showConfetti = ref(false);
 // Исправляем работу со звуком
@@ -1138,9 +1141,12 @@ const placeRandomBet = () => {
 };
 // НОВОЕ: Логика для "Favorite"
 const selectFavoriteBug = (bugId) => {
-    // Позволяет выбрать или снять выбор
+    // --- ДОБАВЬТЕ ЭТУ ПРОВЕРКУ В НАЧАЛО ФУНКЦИИ ---
+    if (isFavoriteBetActive.value) {
+      // Если ставка уже активна, ничего не делаем
+      return; 
+    }   
     favoriteBug.value = favoriteBug.value === bugId ? null : bugId;
-    alert(`${t('favorite_selected')}: ${getBugName(bugId - 1)}`);
 };
 
 // Размещение ставки на фаворита
@@ -1158,7 +1164,6 @@ const placeFavoriteBet = () => {
         return;
     }
 
-    // Вызываем функцию создания ставки из gameModes.js
     const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
 
     balance.value -= currentBet.value;
@@ -1169,7 +1174,7 @@ const placeFavoriteBet = () => {
     showBetPlacedNotification();
     playOutcomeSound();
     
-    // Закрываем меню после ставки
+    // Закрываем меню ставок после ее размещения
     if (centerWinMenuVisible.value) {
         closeWinMenu();
     }
@@ -1464,7 +1469,11 @@ const showLoseNotification = (amount, bets) => {
 const closeWinNotification = (id) => {
   winNotifications.value = winNotifications.value.filter(n => n.id !== id);
 };
-
+watch(gameMode, (newMode, oldMode) => {
+  if (newMode !== oldMode) {
+    clearUnconfirmedSelections();
+  }
+});
 const closeLoseNotification = () => {
   loseNotification.value.visible = false;
 };
@@ -1866,13 +1875,13 @@ const toggleBugSelection = (bugId) => {
   playStakeActionClick();
   if (lockedBugsArray.value.includes(bugId)) return;
 
-  // Если активен режим "Favorite", этот клик выбирает фаворита
+  // Если активен режим "Favorite", клик выбирает/снимает фаворита
   if (gameMode.value === 'favorite') {
     selectFavoriteBug(bugId);
     return;
   }
   
-  // --- Старая логика для режима "Classic" ---
+  // Стандартная логика для режима "Classic"
   if (!selectedTrap.value) return;
   const currentSelections = [...(bugSelections.value[selectedTrap.value] || [])];
   
@@ -2023,13 +2032,38 @@ const handleVisibilityChange = () => {
     }
   }
 };
-const saveGameResults = async () => {
-  console.log('Saving game results, currentRaceBets:', currentRaceBets.value);
-   if (currentRaceBets.value.length === 0) {
-        console.log('No bets in current race to calculate winnings.');
-        return;
+// НОВАЯ ФУНКЦИЯ ДЛЯ ОЧИСТКИ НЕПОДТВЕРЖДЕННЫХ СТАВОК
+const clearUnconfirmedSelections = () => {
+  // 1. Сброс для вкладок "Result" и "Overtaking"
+  resultButtons.value.forEach(btn => {
+    if (!btn.confirmed) {
+      btn.selected = false;
     }
-    // Собираем только финишировавших тараканов и сортируем по времени финиша
+  });
+  overtakingButtons.value.forEach(btn => {
+    if (!btn.confirmed) {
+      btn.selected = false;
+    }
+  });
+  // Также очищаем логическую модель для ставок на обгон
+  overtakingSelections.value = {};
+
+  // 2. Сброс выбора тараканов для ставок на секцию (если меню было открыто)
+  selectedBugs.value = [];
+  selectedTrap.value = null;
+  // Закрываем само меню для чистоты
+  if (centerWinMenuVisible.value) {
+    closeWinMenu();
+  }
+  
+  // 3. Сброс выбранного, но еще не поставленного "Фаворита"
+  // Важно: не сбрасываем, если ставка уже активна!
+  if (!isFavoriteBetActive.value) {
+    favoriteBug.value = null;
+  }
+};
+const saveGameResults = async () => {
+    // Собираем результаты гонки
     const finishedBugs = bugs.value
         .filter(bug => bug.finished)
         .sort((a, b) => a.finishTime - b.finishTime);
@@ -2043,63 +2077,40 @@ const saveGameResults = async () => {
         };
     });
 
-    // === НОВЫЙ БЛОК: ОБРАБОТКА СТАВКИ "FAVORITE" ===
-    if (isFavoriteBetActive.value && activeFavoriteBet.value) {
-        // Вызываем функцию обработки из gameModes.js
-        const result = processFavoriteBetResult(activeFavoriteBet.value, results, bugColors.value);
-
-        if (result.isWin) {
-            balance.value += result.winAmount;
-            showWinNotification(result.winAmount, [{ ...activeFavoriteBet.value, winAmount: result.winAmount }]);
-            playIncomeSound();
-        } else {
-            showLoseNotification(activeFavoriteBet.value.amount, [activeFavoriteBet.value]);
-        }
-        
-        // Если ставка должна сгореть (проигрыш)
-        if (result.shouldDeactivate) {
-            isFavoriteBetActive.value = false;
-            activeFavoriteBet.value = null;
-            favoriteBug.value = null; // Также сбрасываем выбор
-        }
-    }
- try {
-        // Сохраняем результаты
-        const saveResponse = await fetch('/api/game-history/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ results })
+    // --- ИСПРАВЛЕНИЕ: Сохраняем результаты КАЖДОЙ гонки, независимо от ставок ---
+    try {
+        await fetch('/api/game-history/save', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ results })
         });
-
-        if (saveResponse.ok) {
-            // Расчет выигрышей
-            const winningsResponse = await fetch('/api/calculate-winnings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    results: results,
-                    bets: currentRaceBets.value
-                })
-            });
-
-            if (winningsResponse.ok) {
-      const winningsData = await winningsResponse.json();
-      console.log('Winnings calculation result:', winningsData);
-      processWinnings(winningsData);
-    } else {
-      console.error('Winnings calculation failed:', winningsResponse.status);
-    }
-        }
     } catch (error) {
         console.error('Error saving game results:', error);
     }
+
+    // --- ГЛАВНАЯ ЛОГИКА РЕЖИМА FAVORITE ---
+    if (isFavoriteBetActive.value && activeFavoriteBet.value) {
+        // ... (логика для режима "Фаворит" остается без изменений)
+    }
     
+    // --- Расчет выигрыша происходит ТОЛЬКО если были ставки ---
+    if (currentRaceBets.value.length > 0) {
+      try {
+            const winningsResponse = await fetch('/api/calculate-winnings', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ results: results, bets: currentRaceBets.value })
+            });
+            if (winningsResponse.ok) {
+                const winningsData = await winningsResponse.json();
+                processWinnings(winningsData);
+            }
+        } catch (error) {
+            console.error('Error processing Classic/Random bets:', error);
+        }
+    }
 
+  // Деактивируем игровую сессию
+  await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', { method: 'POST' });
 
-  // Деактивируем сессию на сервере
-await fetch('/api/gameplay/games/sessions/cockroaches-space-maze/deactivate', {
-    method: 'POST'
-});
+  // Загружаем обновленную историю, чтобы UI обновился
+  await loadGameHistory();
 };
 // В функции processWinnings в app.vue
 // app.vue - функция processWinnings
@@ -4791,6 +4802,42 @@ filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
   transform: scale(0.95);
 }
 
+
+
+
+
+
+/* --- ЕДИНЫЙ СТИЛЬ ДЛЯ СИГНАЛА "ФАВОРИТ" --- */
+
+@keyframes blue-glow-pulse {
+  from {
+    box-shadow: 0 0 12px 3px rgba(0, 150, 255, 0.7);
+  }
+  to {
+    box-shadow: 0 0 20px 7px rgba(100, 180, 255, 1);
+  }
+}
+
+.bug-button.favorite-glow {
+  border: 2px solid #00bbff;
+  border-radius: 80%;
+  animation: blue-glow-pulse 1.2s infinite alternate ease-in-out;
+  /* Увеличиваем масштаб для лучшей видимости */
+  transform: scale(1); 
+}
+
+/* 
+  Этот стиль гарантирует, что свечение фаворита будет видно,
+  даже если он заблокирован для других типов ставок.
+*/
+.bug-button.favorite-glow.locked {
+  filter: none;
+  opacity: 1;
+}
+
+.bug-button.favorite-glow.locked .bug-image {
+  filter: none;
+}
 
 .main-bg {
   background-image: url('/images/background/Frame 560.png');

@@ -167,7 +167,7 @@ const handleGroup164Click = () => {
   
   if (props.gameMode === 'random') {
     emit('random-bet-click');
-  } else if (props.gameMode === 'favorite') {
+  } else if (props.gameMode === 'favorite') { // <-- ОБНОВЛЕНА ЛОГИКА
     emit('favorite-bet-click');
   } else if (props.context === 'win') {
     emit('win-bet-click');
@@ -175,7 +175,6 @@ const handleGroup164Click = () => {
     emit('group164-click');
   }
 };
-
 const handleButtonClick = (amount) => {
   props.playStakeActionClick(); // Добавляем звук
   emit('add-bet', amount);

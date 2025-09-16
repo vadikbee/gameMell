@@ -11,7 +11,7 @@ export function generateRandomBets(currentBet, sectionCoefficients, bugColors) {
             type: 'section',
             amount: currentBet,
             selection: [bugId],
-            // --- ДОБАВЛЕНО ИСПРАВЛЕНИЕ ---
+            // 
             // Бэкенд ожидает это поле с ID в формате 0-6 для корректного расчета
             bugIds: [bugId - 1], 
             // ---------------------------
@@ -56,22 +56,24 @@ export function createFavoriteBet(currentBet, favoriteBugId, bugColors) {
  */
 export function processFavoriteBetResult(activeBet, raceResults, bugColors) {
     const bugColorOfFavorite = bugColors[activeBet.bugId - 1];
+    // Ищем результат нашего фаворита среди тех, кто финишировал (position не равно null)
     const favoriteResult = raceResults.find(r => r.color === bugColorOfFavorite && r.position !== null);
 
     if (favoriteResult) {
-        // ВЫИГРЫШ
+        // ВЫИГРЫШ: Таракан финишировал. Ставка продолжает действовать.
         const winCoefficient = 5; // Коэффициент выигрыша, можно сделать параметром
         return {
             isWin: true,
             winAmount: activeBet.amount * winCoefficient,
-            shouldDeactivate: false // Ставка продолжает действовать
+            shouldDeactivate: false 
         };
     } else {
-        // ПРОИГРЫШ
+        // ПРОИГРЫШ: Таракан не финишировал. Ставка сгорает.
         return {
             isWin: false,
             winAmount: 0,
-            shouldDeactivate: true // Ставка сгорает
+            shouldDeactivate: true 
         };
     }
 }
+

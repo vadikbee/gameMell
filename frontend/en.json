@@ -73,8 +73,14 @@
 "overtaking_bet_with_colors": "The cockroach {color1} overtook the cockroach {color2}",
 
 "light_theme": "Light",
-  "dark_theme": "Dark"
+"dark_theme": "Dark",
 
-  
+
+"Favorite": "Favorite",
+"Random": "Random",
+"Classic": "Classic",
+
+"Favorite Bet": "Favorite Bet",
+"Random Bet": "Random Bet"
   
 }

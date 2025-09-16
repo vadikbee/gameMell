@@ -1110,13 +1110,15 @@ onUnmounted(() => {
   document.removeEventListener('click', handleOutsideClick);
 });
 // НОВОЕ: Логика для "Random Bet"
+
 const placeRandomBet = () => {
-    if (raceInProgress.value) {
-        alert(t('wait_for_next_round'));
+    // Эта проверка остается - она не позволяет делать несколько случайных ставок в одном раунде.
+    if (lockedBugsArray.value.length > 0) {
+        
         return;
     }
     
-    // Вызываем функцию генерации ставок из gameModes.js
+    
     const { bets, totalCost } = generateRandomBets(currentBet.value, sectionCoefficients.value, bugColors.value);
 
     if (balance.value < totalCost) {
@@ -1125,13 +1127,15 @@ const placeRandomBet = () => {
     }
 
     balance.value -= totalCost;
-    nextRaceBets.value.push(...bets); // Добавляем ставки в очередь на следующий забег
+    nextRaceBets.value.push(...bets);
     betHistoryFromApi.value.unshift(...bets.map(b => ({...b, id: Date.now() + Math.random()})));
     
+    const allBugIds = [1, 2, 3, 4, 5, 6, 7];
+    lockedBugsArray.value = [...allBugIds];
+
     showBetPlacedNotification();
     playOutcomeSound();
 };
-
 // НОВОЕ: Логика для "Favorite"
 const selectFavoriteBug = (bugId) => {
     // Позволяет выбрать или снять выбор

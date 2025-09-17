@@ -2,237 +2,106 @@
     {
         "user_id": 1,
         "amount": 25,
-        "type": "trap",
+        "type": "section",
         "selection": [
-            6
-        ],
-        "trapId": 3,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-16T13:20:48.122Z",
-        "id": "68c96430416b3"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "trap",
-        "selection": [
-            6
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-16T13:20:36.125Z",
-        "id": "68c9642442579"
-    },
-    {
-        "user_id": 1,
-        "amount": 75,
-        "type": "trap",
-        "selection": [
-            2,
-            3,
-            4
+            7
         ],
         "trapId": 2,
         "coefficient": 12.6,
-        "timestamp": "2025-09-16T11:21:51.108Z",
-        "id": "68c9484f40f81"
-    },
-    {
-        "user_id": 1,
-        "amount": 50,
-        "type": "trap",
-        "selection": [
-            4,
-            5
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#00FF00"
         ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-16T10:53:17.773Z",
-        "id": "68c9419ded2b6"
+        "id": "68caa62adc25c"
     },
     {
         "user_id": 1,
-        "amount": 50,
-        "type": "trap",
+        "amount": 25,
+        "type": "section",
         "selection": [
-            3,
-            4
+            6
         ],
-        "trapId": 3,
+        "trapId": 2,
         "coefficient": 12.6,
-        "timestamp": "2025-09-16T09:26:17.971Z",
-        "id": "68c92d3a23f41"
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#800080"
+        ],
+        "id": "68caa62adc25b"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "position",
-        "bugId": 3,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T11:08:26.164Z",
-        "id": "68c7f3aa511aa"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "position",
-        "bugId": 2,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T11:08:26.164Z",
-        "id": "68c7f3aa511a2"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "trap",
+        "type": "section",
         "selection": [
             5
         ],
         "trapId": 5,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T11:08:23.508Z",
-        "id": "68c7f3a7a5e3f"
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "id": "68caa62adc25a"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "trap",
+        "type": "section",
         "selection": [
             4
         ],
+        "trapId": 2,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "id": "68caa62adc259"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            3
+        ],
         "trapId": 3,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T11:08:08.211Z",
-        "id": "68c7f3986a9f3"
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#8B0000"
+        ],
+        "id": "68caa62adc258"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "position",
-        "bugId": 6,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T11:07:30.598Z",
-        "id": "68c7f372c6346"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "position",
-        "bugId": 2,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:43:03.069Z",
-        "id": "68c7edb74bb2f"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "position",
-        "bugId": 2,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:43:03.069Z",
-        "id": "68c7edb74bb2e"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "position",
-        "bugId": 1,
-        "position": 5,
-        "coefficient": 27.81,
-        "timestamp": "2025-09-15T10:43:03.069Z",
-        "id": "68c7edb74bb2c"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "position",
-        "bugId": 1,
-        "position": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:43:03.069Z",
-        "id": "68c7edb74bb24"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "overtaking",
-        "overtaker": 5,
-        "overtaken": 3,
-        "coefficient": 2.4,
-        "timestamp": "2025-09-15T10:42:59.230Z",
-        "bugColors": [
-            "#FF0000",
-            "#8B0000"
-        ],
-        "id": "68c7edb38ea86"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "overtaking",
-        "overtaker": 5,
-        "overtaken": 2,
-        "coefficient": 2.4,
-        "timestamp": "2025-09-15T10:42:59.230Z",
-        "bugColors": [
-            "#FF0000",
-            "#FFA500"
-        ],
-        "id": "68c7edb38ea85"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "overtaking",
-        "overtaker": 4,
-        "overtaken": 3,
-        "coefficient": 2.4,
-        "timestamp": "2025-09-15T10:42:59.230Z",
-        "bugColors": [
-            "#0000FF",
-            "#8B0000"
-        ],
-        "id": "68c7edb38ea83"
-    },
-    {
-        "user_id": 1,
-        "amount": 325,
-        "type": "overtaking",
-        "overtaker": 4,
-        "overtaken": 2,
-        "coefficient": 2.4,
-        "timestamp": "2025-09-15T10:42:59.230Z",
-        "bugColors": [
-            "#0000FF",
-            "#FFA500"
-        ],
-        "id": "68c7edb38ea7a"
-    },
-    {
-        "user_id": 1,
-        "amount": 50,
-        "type": "trap",
+        "type": "section",
         "selection": [
-            5
+            2
         ],
-        "trapId": 4,
+        "trapId": 3,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:41:13.844Z",
-        "id": "68c7ed4a0dc79"
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#FFA500"
+        ],
+        "id": "68caa62adc256"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "position",
-        "bugId": 6,
-        "position": 4,
+        "type": "section",
+        "selection": [
+            1
+        ],
+        "trapId": 3,
         "coefficient": 12.6,
-        "timestamp": "2025-09-15T10:40:03.046Z",
-        "id": "68c7ed034b249"
+        "timestamp": "2025-09-17T12:14:34.738Z",
+        "bugColors": [
+            "#FFFF00"
+        ],
+        "id": "68caa62adc252"
     }
 ]

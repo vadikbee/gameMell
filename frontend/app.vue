@@ -525,7 +525,7 @@ const lastGameMenuVisible = ref(false);
 const countdownSound = ref(null);
 const explosionSound = ref(null);
 const lockedBugsArray = ref([]);
-const socket = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
+//const socket = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
 // Добавьте переменную для отслеживания состояния звука
 const countdownPlayed = ref(false);
@@ -1127,45 +1127,50 @@ onUnmounted(() => {
 });
 // НОВОЕ: Логика для "Random Bet"
 
-const placeRandomBet = () => {
-    // >>> НОВАЯ ПРОВЕРКА С ИСПОЛЬЗОВАНИЕМ ФЛАГА <<<
+// НОВАЯ, ИСПРАВЛЕННАЯ версия функции
+const placeRandomBet = async () => { // <--- 1. Сделали функцию асинхронной (async)
     if (isRandomBetPlacedForNextRound.value) {
         infoMessage.value = t('random_bet_already_placed');
         infoNotificationVisible.value = true;
+        setTimeout(() => {
+            infoNotificationVisible.value = false;
+        }, 3000);
         return;
     }
-    
-    // Старую проверку `if (lockedBugsArray.value.length > 0)` можно удалить, 
-    // так как новый флаг надежнее.
 
     const { bets, totalCost } = generateRandomBets(currentBet.value, sectionCoefficients.value, bugColors.value);
+    bets.forEach(bet => bet.isRandom = true);
 
     if (balance.value < totalCost) {
         alert(t('insufficient_funds'));
         return;
     }
-    
-    // >>> УСТАНАВЛИВАЕМ ФЛАГ-ЗАМОК ПОСЛЕ ВСЕХ ПРОВЕРОК <<<
-    isRandomBetPlacedForNextRound.value = true;
 
+    // --- > 2. ГЛАВНОЕ ИЗМЕНЕНИЕ: ОТПРАВЛЯЕМ СТАВКИ НА СЕРВЕР < ---
+    try {
+        // Сначала пытаемся сохранить ставки на сервере
+        await saveBetsBatch(bets);
+    } catch (error) {
+        console.error('Failed to save random bets to server:', error);
+        alert('An error occurred while placing the bet. Please try again.');
+        // Если сохранить не удалось, прерываем выполнение
+        return;
+    }
+    // --- > КОНЕЦ ГЛАВНОГО ИЗМЕНЕНИЯ < ---
+
+    // Если всё сохранилось на сервере, продолжаем как обычно:
+    isRandomBetPlacedForNextRound.value = true;
     balance.value -= totalCost;
     nextRaceBets.value.push(...bets);
     betHistoryFromApi.value.unshift(...bets.map(b => ({...b, id: Date.now() + Math.random()})));
     
-    // --- НАЧАЛО НОВОГО КОДА ДЛЯ ВИЗУАЛИЗАЦИИ ---
-
-    // Проходимся по каждой сгенерированной ставке
-       bets.forEach(bet => {
+    bets.forEach(bet => {
         const targetButton = winButtons.value.find(b => b.id === bet.trapId);
         if (targetButton) {
-            // Сохраняем массив ID тараканов из ставки в кнопку
             targetButton.randomlyPlacedBugs = bet.selection; 
         }
     });
 
-
-    // --- КОНЕЦ НОВОГО КОДА ---
-    
     const allBugIds = [1, 2, 3, 4, 5, 6, 7];
     lockedBugsArray.value = [...allBugIds];
 
@@ -1541,12 +1546,23 @@ const getBetDescription = (bet) => {
     return t('position_bet', { bug: bet.bugId, position: bet.position });
   } else if (bet.type === 'overtaking') {
     return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
-  } else if (bet.type === 'section') {
-    return t('section_bet', { 
+  } 
+  else if (bet.type === 'section') {
+    // Сначала генерируем стандартное описание
+    const description = t('section_bet', { 
       trap: bet.trapId,
       count: bet.bugIds.length,
       bugs: bet.bugIds.join(', ')
     });
+
+    // Проверяем, есть ли у ставки наша метка
+    if (bet.isRandom) {
+      // Если да, добавляем префикс из перевода и возвращаем
+      return `${t('Random')}: ${description}`;
+    }
+
+    // Если метки нет, возвращаем стандартное описание
+    return description;
   }
   return t('unknown_bet');
 };

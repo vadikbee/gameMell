@@ -3163,7 +3163,7 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
-  isRandomBetPlacedForNextRound.value = false;
+ // isRandomBetPlacedForNextRound.value = false;
   isFavoriteBetPlacedForNextRound.value = false;
    // Переносим ставки из очереди в текущую гонку
   if (nextRaceBets.value.length > 0) {
@@ -3352,7 +3352,7 @@ const updateProgress = () => {
           cancelAnimationFrame(animationFrame.value);
           animationFrame.value = null;
         }
-
+        isRandomBetPlacedForNextRound.value = false;
         // 3. ПОЛНОСТЬЮ ОЧИЩАЕМ ДОСКУ для новой фазы ставок
         winButtons.value.forEach(btn => {
             btn.bugs = [];

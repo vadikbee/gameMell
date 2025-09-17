@@ -60,6 +60,12 @@
     {{ makeBetsText }}
   </div>
 </div>
+<!-- НОВОЕ, ИСПРАВЛЕННОЕ УСЛОВИЕ ОТОБРАЖЕНИЯ -->
+<transition name="fade-counter">
+  <div v-if="gameMode === 'favorite' && isFavoriteBetActive" class="favorite-streak-counter">
+    +{{ favoriteStreakWinnings }}
+  </div>
+</transition>
 <HistoryBets 
   v-if="historyBetsVisible && !historyBetsInsideCenter" 
   ref="historyBetsRef"
@@ -530,6 +536,7 @@ const lockedBugsArray = ref([]);
 // Добавьте переменную для отслеживания состояния звука
 const countdownPlayed = ref(false);
 
+const favoriteStreakWinnings = ref(0);
 const mainBgWidth = ref(0);
 const mainBgHeight = ref(0);
 const mainBgLeft = ref(0);
@@ -1201,7 +1208,7 @@ const placeFavoriteBet = () => {
         alert(t('insufficient_funds'));
         return;
     }
-
+    favoriteStreakWinnings.value = 0;
     const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
 
     balance.value -= currentBet.value;
@@ -2159,33 +2166,41 @@ const saveGameResults = async () => {
     }
 
     // --- ГЛАВНАЯ ЛОГИКА РЕЖИМА FAVORITE ---
-    if (isFavoriteBetActive.value && activeFavoriteBet.value) {
-        const favoriteResult = processFavoriteBetResult(activeFavoriteBet.value, results, bugColors.value);
+    // НОВЫЙ КОД
+if (isFavoriteBetActive.value && activeFavoriteBet.value) {
+    const favoriteResult = processFavoriteBetResult(activeFavoriteBet.value, results, bugColors.value);
 
-        if (favoriteResult.isWin) {
-            // Логика начисления выигрыша
-            balance.value += favoriteResult.winAmount;
-           const winningBetData = {
-              ...activeFavoriteBet.value,
-              winAmount: favoriteResult.winAmount,
-              // Добавим коэффициент для полноты данных
-              coefficient: 5 // Коэффициент для "Favorite" из gameModes.js
-            };
-            showWinNotification(favoriteResult.winAmount, [winningBetData]);
-            playIncomeSound();
+    if (favoriteResult.isWin) {
+        // РЕШЕНИЕ ПРОБЛЕМЫ 1: Эта строка правильно увеличивает счетчик. 
+        // Проблема была в том, что он не сбрасывался при проигрыше.
+        favoriteStreakWinnings.value += favoriteResult.winAmount;
+        
+        balance.value += favoriteResult.winAmount;
+        const winningBetData = {
+            ...activeFavoriteBet.value,
+            winAmount: favoriteResult.winAmount,
+            coefficient: 5,
+            bugColors: [bugColors.value[activeFavoriteBet.value.bugId - 1]]
+        };
+        showWinNotification(favoriteResult.winAmount, [winningBetData]);
+        playIncomeSound();
 
-            // >>> ГЛАВНОЕ ИСПРАВЛЕНИЕ <<<
-            // Ставка выиграла и продолжает действовать.
-            // ДОБАВЛЯЕМ ЕЕ ОБРАТНО В ОЧЕРЕДЬ НА СЛЕДУЮЩИЙ РАУНД.
-            nextRaceBets.value.push(activeFavoriteBet.value);
+        // Ставка выиграла, добавляем ее обратно в очередь на следующий раунд
+        nextRaceBets.value.push(activeFavoriteBet.value);
 
-        } else if (favoriteResult.shouldDeactivate) {
-            // Таракан проиграл - деактивируем ставку полностью
-            isFavoriteBetActive.value = false;
-            activeFavoriteBet.value = null;
-            favoriteBug.value = null; 
-        }
+    } else if (favoriteResult.shouldDeactivate) {
+        // Таракан проиграл - ПОЛНЫЙ СБРОС СОСТОЯНИЯ
+        
+        // РЕШЕНИЕ ПРОБЛЕМЫ 2: Обнуляем счетчик.
+        favoriteStreakWinnings.value = 0; 
+        
+        isFavoriteBetActive.value = false;
+        activeFavoriteBet.value = null;
+        
+        // РЕШЕНИЕ ПРОБЛЕМЫ 3: Снимаем выделение с таракана.
+        favoriteBug.value = null; 
     }
+}
     
     // --- Расчет выигрыша происходит ТОЛЬКО если были ставки ---
     if (currentRaceBets.value.length > 0) {
@@ -3998,7 +4013,68 @@ window.removeEventListener('resize', updateMainBgDimensions);
   text-transform: uppercase;
   flex-grow: 1;
 }
+@keyframes blue-glow-pulse {
+  from {
+    box-shadow: 0 0 12px 3px rgba(0, 150, 255, 0.7), inset 0 0 5px 1px rgba(100, 180, 255, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px 7px rgba(100, 180, 255, 1), inset 0 0 10px 2px rgba(150, 220, 255, 0.7);
+  }
+}
 
+.bug-button.favorite-glow {
+  /* Важно: border вместо box-shadow, чтобы не конфликтовать с .bug-button-hovered */
+  border: 2px solid #00bbff; 
+  border-radius: 50%;
+  animation: blue-glow-pulse 1.2s infinite alternate ease-in-out;
+  /* Увеличиваем, чтобы было заметнее */
+  transform: scale(1.1); 
+}
+.bug-button.favorite-glow .bug-image {
+  /* Немного увеличим саму картинку таракана */
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* --- СТИЛИ ДЛЯ СЧЕТЧИКА ВИНСТРИКА --- */
+.favorite-streak-counter {
+  position: absolute;
+  top: 11%; /* Чуть ниже прогресс-бара */
+  right: 15px;
+  z-index: 10;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, rgba(20, 110, 255, 0.85) 0%, rgba(0, 200, 255, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  color: white;
+  font-family: 'Bahnschrift', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 150, 255, 0.5);
+  backdrop-filter: blur(5px);
+  animation: counter-pulse 2s infinite alternate;
+}
+
+@keyframes counter-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+/* --- СТИЛИ ДЛЯ АНИМАЦИИ ПОЯВЛЕНИЯ/ИСЧЕЗНОВЕНИЯ СЧЕТЧИКА --- */
+.fade-counter-enter-active,
+.fade-counter-leave-active {
+  transition: all 0.4s ease;
+}
+
+.fade-counter-enter-from,
+.fade-counter-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
+}
 .info-notification .notification-body {
   padding: 15px;
 }

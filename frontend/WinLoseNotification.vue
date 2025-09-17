@@ -128,30 +128,51 @@ const getColorName = (hexColor) => {
 
 // Описание для ставки
 const getBetDescription = (bet) => {
+  // Основная логика: используем готовое описание из app.vue
   if (bet.description) {
     return bet.description;
   }
   
+  // Резервная логика на случай, если описание не передано
+  let baseDescription = '';
   switch (bet.type) {
     case 'position':
-      return t('position_bet_with_color', { 
+      baseDescription = t('position_bet_with_color', { 
         color: getColorName(bet.bugColors[0]),
         position: bet.position 
       });
+      break;
     case 'overtaking':
-      return t('overtaking_bet_with_colors', { 
+      baseDescription = t('overtaking_bet_with_colors', { 
         color1: getColorName(bet.bugColors[0]),
         color2: getColorName(bet.bugColors[1])
       });
+      break;
     case 'section':
-      return t('section_bet', { 
+    case 'trap': // Добавляем 'trap'
+      baseDescription = t('section_bet', { 
         trap: bet.trapId,
-        count: bet.bugIds ? bet.bugIds.length : 0,
-        bugs: bet.bugIds ? bet.bugIds.join(', ') : ''
+        count: (bet.bugIds || bet.selection || []).length,
+        bugs: (bet.bugIds || bet.selection || []).join(', ')
       });
+      break;
+    // Добавляем 'favorite'
+    case 'favorite':
+      baseDescription = t('favorite_bet_on', { bug: getColorName(bet.bugColors[0]) });
+      break;
     default:
-      return t('unknown_bet');
+      baseDescription = t('unknown_bet');
   }
+
+  // Добавляем префиксы
+  if (bet.isRandom) {
+    return `${t('Random')}: ${baseDescription}`;
+  }
+  if (bet.type === 'favorite') {
+    return `${t('Favorite')}: ${baseDescription}`;
+  }
+
+  return baseDescription;
 };
 
 // Развернуть/свернуть детали

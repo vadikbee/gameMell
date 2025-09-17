@@ -101,10 +101,11 @@ class BetHistoryController extends Controller
                 'bets' => 'required|array',
                 'bets.*.user_id' => 'required|integer',
                 'bets.*.amount' => 'required|numeric|min:0',
-                'bets.*.type' => 'required|string|in:win,place,trap,position,overtaking,section',
+                // ИЗМЕНЕНИЕ 1: Добавляем 'favorite' в список разрешенных типов
+                'bets.*.type' => 'required|string|in:win,place,trap,position,overtaking,section,favorite',
 
                 // Поля для ставки 'position'
-                'bets.*.bugId' => 'required_if:bets.*.type,position|integer',
+                'bets.*.bugId' => 'required_if:bets.*.type,position,favorite|integer',
                 'bets.*.position' => 'required_if:bets.*.type,position|integer',
 
                 // Поля для ставки 'overtaking'
@@ -116,35 +117,33 @@ class BetHistoryController extends Controller
                 'bets.*.trapId' => 'required_if:bets.*.type,trap|integer',
 
                 'bets.*.coefficient' => 'sometimes|numeric',
-                'bets.*.timestamp' => 'sometimes|string', // Принимаем время, но не требуем
+                'bets.*.timestamp' => 'sometimes|string',
                 'bets.*.color' => 'sometimes|string',
                 'bets.*.bugColors' => 'sometimes|array',
+
+                // ИЗМЕНЕНИЕ 2: Добавляем правило для флага isRandom
+                'bets.*.isRandom' => 'sometimes|boolean',
             ]);
 
             $history = $this->loadHistory();
 
             $savedBets = [];
             foreach ($validated['bets'] as $betData) {
-            // ИЗМЕНЕНИЕ 2: Создаем "плоский" объект, а не вложенный
-            // Мы доверяем timestamp от клиента, т.к. он точнее отражает время ставки
-            $betToSave = array_merge($betData, [
-                'id' => uniqid(),
-                // Используем timestamp от клиента, если он есть, иначе генерируем свой
-                'timestamp' => $betData['timestamp'] ?? now()->toDateTimeString(),
+                // ... (остальная логика сохранения остается без изменений)
+                $betToSave = array_merge($betData, [
+                    'id' => uniqid(),
+                    'timestamp' => $betData['timestamp'] ?? now()->toDateTimeString(),
+                ]);
+                unset($betToSave['time']);
+                array_unshift($history, $betToSave);
+                $savedBets[] = $betToSave;
+            }
+
+            $this->saveHistory($history);
+            return response()->json([
+                'status' => 'success',
+                'saved_count' => count($savedBets)
             ]);
-
-            // Удаляем временное поле 'time', если оно вдруг пришло
-            unset($betToSave['time']);
-
-            array_unshift($history, $betToSave);
-            $savedBets[] = $betToSave;
-        }
-
-        $this->saveHistory($history);
-        return response()->json([
-            'status' => 'success',
-            'saved_count' => count($savedBets)
-        ]);
 
     } catch (ValidationException $e) {
         Log::error('Save bets batch validation error: ', $e->errors());

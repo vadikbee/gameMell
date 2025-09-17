@@ -38,6 +38,7 @@ export function generateRandomBets(currentBet, sectionCoefficients, bugColors) {
  */
 export function createFavoriteBet(currentBet, favoriteBugId, bugColors) {
     return {
+        user_id: 1, // <--- ДОБАВЛЕНА ЭТА СТРОКА
         bugId: favoriteBugId,
         amount: currentBet,
         type: 'favorite',

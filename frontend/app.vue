@@ -239,7 +239,13 @@
         <div
             v-else-if="!bug.exploded && !bug.finished"
             class="tarakan"
-            :class="{ dizzy: bug.dizzy }"
+            
+    :class="{ 
+        dizzy: bug.dizzy,
+        
+        'favorite-running-highlight': gameMode === 'favorite' && isFavoriteBetActive && bug.id === favoriteBug - 1
+    }"
+
             :style="{
                 backgroundImage: `url('/images/tarakani/Property 1=Default (${bug.id + 1}).png')`,
                 left: `${bug.position[0]}px`,
@@ -1097,6 +1103,7 @@ const resultCoefficients = computed(() => {
 const favoriteBug = ref(null);
 const isFavoriteBetActive = ref(false);
 const activeFavoriteBet = ref(null);
+const favoriteForNextRace = ref(null);
 
 // НОВОЕ: Функция для переключения режима игры
 const setGameMode = (mode) => {
@@ -1135,13 +1142,13 @@ onUnmounted(() => {
 // НОВОЕ: Логика для "Random Bet"
 
 // НОВАЯ, ИСПРАВЛЕННАЯ версия функции
-const placeRandomBet = async () => { // <--- 1. Сделали функцию асинхронной (async)
+// В файле app.vue
+
+const placeRandomBet = async () => {
     if (isRandomBetPlacedForNextRound.value) {
         infoMessage.value = t('random_bet_already_placed');
         infoNotificationVisible.value = true;
-        setTimeout(() => {
-            infoNotificationVisible.value = false;
-        }, 3000);
+        setTimeout(() => { infoNotificationVisible.value = false; }, 3000);
         return;
     }
 
@@ -1153,34 +1160,34 @@ const placeRandomBet = async () => { // <--- 1. Сделали функцию а
         return;
     }
 
-    // --- > 2. ГЛАВНОЕ ИЗМЕНЕНИЕ: ОТПРАВЛЯЕМ СТАВКИ НА СЕРВЕР < ---
     try {
-        // Сначала пытаемся сохранить ставки на сервере
         await saveBetsBatch(bets);
     } catch (error) {
         console.error('Failed to save random bets to server:', error);
         alert('An error occurred while placing the bet. Please try again.');
-        // Если сохранить не удалось, прерываем выполнение
         return;
     }
-    // --- > КОНЕЦ ГЛАВНОГО ИЗМЕНЕНИЯ < ---
 
-    // Если всё сохранилось на сервере, продолжаем как обычно:
+    // --- v ВОЗВРАЩАЕМ И УЛУЧШАЕМ ЭТОТ БЛОК v ---
+    // После успешного сохранения, немедленно показываем звезды
+    bets.forEach(bet => {
+        const targetButton = winButtons.value.find(b => b.id === bet.trapId);
+        if (targetButton) {
+            // bet.selection это массив вида [3], нам нужен ID таракана
+            targetButton.randomlyPlacedBugs.push(...bet.selection);
+        }
+    });
+
+    // Блокируем всех тараканов для других ставок на следующий раунд
+    const allBugIds = [1, 2, 3, 4, 5, 6, 7];
+    lockedBugsArray.value = [...allBugIds];
+    // --- ^ КОНЕЦ ИЗМЕНЕНИЙ ^ ---
+
     isRandomBetPlacedForNextRound.value = true;
     balance.value -= totalCost;
     nextRaceBets.value.push(...bets);
     betHistoryFromApi.value.unshift(...bets.map(b => ({...b, id: Date.now() + Math.random()})));
     
-    bets.forEach(bet => {
-        const targetButton = winButtons.value.find(b => b.id === bet.trapId);
-        if (targetButton) {
-            targetButton.randomlyPlacedBugs = bet.selection; 
-        }
-    });
-
-    const allBugIds = [1, 2, 3, 4, 5, 6, 7];
-    lockedBugsArray.value = [...allBugIds];
-
     showBetPlacedNotification();
     playOutcomeSound();
 };
@@ -1195,7 +1202,7 @@ const selectFavoriteBug = (bugId) => {
 };
 
 // Размещение ставки на фаворита
-const placeFavoriteBet = () => {
+const placeFavoriteBet = async () => { // <-- ИЗМЕНЕНИЕ 1: Сделали функцию асинхронной
     if (isFavoriteBetActive.value) {
         alert(t('favorite_bet_already_active'));
         return;
@@ -1208,32 +1215,36 @@ const placeFavoriteBet = () => {
         alert(t('insufficient_funds'));
         return;
     }
-    favoriteStreakWinnings.value = 0;
+
     const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
 
-    balance.value -= currentBet.value;
+    // --- v ИЗМЕНЕНИЕ 2: Добавляем блок отправки на сервер v ---
+    try {
+        // Сначала пытаемся сохранить ставку на сервере
+        await saveBetsBatch([betData]); // Отправляем в виде массива, как ожидает бэкенд
 
-    // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
-    // 1. НЕ активируем ставку сразу. Эту строку нужно удалить или закомментировать:
-    // activeFavoriteBet.value = betData; 
-    
-    // 2. Ставим флаг, что ставка на фаворита в этом раунде сделана (чтобы нельзя было поставить еще одну)
-    isFavoriteBetActive.value = true;
-    
-    // 3. ДОБАВЛЯЕМ ставку в очередь на СЛЕДУЮЩИЙ раунд (как и для других типов ставок)
-    nextRaceBets.value.push(betData);
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+        // Если сохранение прошло успешно, продолжаем
+        favoriteStreakWinnings.value = 0;
+        favoriteForNextRace.value = favoriteBug.value;
+        balance.value -= currentBet.value;
+        
+        nextRaceBets.value.push(betData);
+        betHistoryFromApi.value.unshift(betData);
+        
+        showBetPlacedNotification();
+        playOutcomeSound();
+        
+        if (centerWinMenuVisible.value) {
+            closeWinMenu();
+        }
 
-    betHistoryFromApi.value.unshift(betData);
-    
-    showBetPlacedNotification();
-    playOutcomeSound();
-    
-    if (centerWinMenuVisible.value) {
-        closeWinMenu();
+    } catch (error) {
+        console.error('Failed to save favorite bet:', error);
+        alert('Произошла ошибка при сохранении ставки. Попробуйте снова.');
+        // Если произошла ошибка, не меняем баланс и не добавляем ставку локально
     }
+    // --- ^ КОНЕЦ БЛОКА ИЗМЕНЕНИЙ ^ ---
 };
-
 const overtakingCoefficients = computed(() => {
   
   // Проверяем всю цепочку свойств до 'overtaking'
@@ -1546,29 +1557,29 @@ const closeLoseNotification = () => {
 // Генерация описания ставки
 // В app.vue
 const getBetDescription = (bet) => {
+  // Добавляем префикс для ставки "Favorite"
   if (bet.type === 'favorite') {
-    return t('favorite_bet_on', { bug: getBugName(bet.bugId) });
+    return `${t('Favorite')}: ${t('favorite_bet_on', { bug: getBugName(bet.bugId) })}`;
   }
   if (bet.type === 'position') {
     return t('position_bet', { bug: bet.bugId, position: bet.position });
   } else if (bet.type === 'overtaking') {
     return t('overtaking_bet', { overtaker: bet.overtaker, overtaken: bet.overtaken });
   } 
-  else if (bet.type === 'section') {
-    // Сначала генерируем стандартное описание
+  // Добавляем тип 'trap' и делаем код безопаснее
+  else if (bet.type === 'section' || bet.type === 'trap') {
+    const bugsList = bet.bugIds || bet.selection || [];
     const description = t('section_bet', { 
       trap: bet.trapId,
-      count: bet.bugIds.length,
-      bugs: bet.bugIds.join(', ')
+      count: bugsList.length,
+      bugs: bugsList.join(', ')
     });
 
-    // Проверяем, есть ли у ставки наша метка
+    // Префикс для "Random" уже существует и остается без изменений
     if (bet.isRandom) {
-      // Если да, добавляем префикс из перевода и возвращаем
       return `${t('Random')}: ${description}`;
     }
 
-    // Если метки нет, возвращаем стандартное описание
     return description;
   }
   return t('unknown_bet');
@@ -3137,18 +3148,26 @@ const generatePaths = async () => {
 
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
-  // Выводим в консоль ставки, которые будут участвовать в гонке
-  console.log('Starting race cycle. Bets waiting in nextRaceBets:', nextRaceBets.value);
+  isRandomBetPlacedForNextRound.value = false;
+   // Переносим ставки из очереди в текущую гонку
+  if (nextRaceBets.value.length > 0) {
+    currentRaceBets.value = [...nextRaceBets.value];
+    nextRaceBets.value = [];
+  }
 
-  // --- ДОБАВЛЕНА ЛОГИКА АКТИВАЦИИ СТАВКИ "FAVORITE" ---
-  // В начале нового раунда ищем ставку на фаворита в очереди
-  const favoriteBetForThisRace = nextRaceBets.value.find(bet => bet.type === 'favorite');
+  // --- НОВАЯ ЛОГИКА АКТИВАЦИИ ПОДСВЕТКИ ---
+  // Ищем ставку на фаворита среди ставок на ТЕКУЩУЮ гонку
+  const favoriteBetForThisRace = currentRaceBets.value.find(bet => bet.type === 'favorite');
+  
   if (favoriteBetForThisRace) {
-    // Если нашли - устанавливаем ее как активную для текущей гонки
-    activeFavoriteBet.value = favoriteBetForThisRace;
+      // Если ставка есть - включаем подсветку и делаем ее активной
+      activeFavoriteBet.value = favoriteBetForThisRace;
+      isFavoriteBetActive.value = true;
+      // favoriteBug.value остается тот же, что выбрал пользователь
   } else {
-    // Если ставки на фаворита нет, сбрасываем активную ставку
-    activeFavoriteBet.value = null;
+      // Если ставки нет - выключаем подсветку
+      activeFavoriteBet.value = null;
+      isFavoriteBetActive.value = false;
   }
   // Сбрасываем флаги и состояния перед началом новой гонки
   unlockAllBugs();
@@ -3274,79 +3293,94 @@ const updateProgress = () => {
   }
   const now = Date.now();
   
+  // --- ФАЗА СТАВОК (ПЕРЕРЫВ) ---
   if (breakInProgress.value) {
-    // Прогресс перерыва
     const breakElapsed = now - phaseStartTime.value;
     const breakRemaining = breakInterval.value - breakElapsed;
-   // Проверяем, осталась ли 1 секунда и звук еще не проигран
+    
     if (breakRemaining <= 1750 && !countdownPlayed.value) {
       playCountdownSound();
     }
     progress.value = Math.min(100, (breakElapsed / breakInterval.value) * 100);
     isBettingPhase.value = true;
 
+    // Когда перерыв заканчивается, начинается гонка
     if (breakElapsed >= breakInterval.value) {
-      // Переход к фазе гонки
       loadGameHistory();
       breakInProgress.value = false;
       raceInProgress.value = true;
       phaseStartTime.value = now;
-      handleGenerateClick(); // Добавленный вызов
+      handleGenerateClick(); // Эта функция запускает генерацию путей и саму гонку
     }
-  } else if (raceInProgress.value && raceActualStartTime.value) {
+  } 
+  // --- ФАЗА ГОНКИ ---
+  else if (raceInProgress.value && raceActualStartTime.value) {
     const raceElapsed = now - raceActualStartTime.value;
     const raceRemaining = raceInterval.value - raceElapsed;
     
-    // Проверяем, осталась ли 1 секунда и звук еще не проигран
     if (raceRemaining <= 1750 && !countdownPlayed.value) {
       playCountdownSound();
     }
-    // Прогресс гонки с учетом реального времени начала
-    if (raceActualStartTime.value) {
-      const raceElapsed = now - raceActualStartTime.value;
-      progress.value = Math.min(100, (raceElapsed / raceInterval.value) * 100);
+    
+    progress.value = Math.min(100, (raceElapsed / raceInterval.value) * 100);
       
-      
-
-      if (raceElapsed >= raceInterval.value) {
-        // Завершение гонки
+     if (raceElapsed >= raceInterval.value) {
+        // 1. Фиксируем состояние завершенной гонки
         raceInProgress.value = false;
         const raceEndTime = raceActualStartTime.value + raceInterval.value;
+        explodeAllBugs(raceEndTime);
+        saveGameResults(); // Рассчитываем выигрыши и сохраняем историю
+        
+        // 2. Останавливаем старую анимацию
+        if (animationFrame.value) {
+          cancelAnimationFrame(animationFrame.value);
+          animationFrame.value = null;
+        }
+
+        // 3. ПОЛНОСТЬЮ ОЧИЩАЕМ ДОСКУ для новой фазы ставок
+        winButtons.value.forEach(btn => {
+            btn.bugs = [];
+            btn.occupied = false;
+            btn.finishedBugId = null;
+            btn.randomlyPlacedBugs = []; // Очищаем старые звезды
+        });
+        unlockAllBugs(); // Сбрасываем блокировку тараканов
+
+        // 4. ПРИМЕНЯЕМ ВИЗУАЛЬНЫЕ ЭФФЕКТЫ для ставок, сделанных на СЛЕДУЮЩИЙ раунд
+        if (isRandomBetPlacedForNextRound.value) {
+            // Находим все ставки 'random', которые ждут в очереди
+            const randomBetsForNextRound = nextRaceBets.value.filter(bet => bet.isRandom);
+            
+            // Отображаем их индикаторы (звезды)
+            randomBetsForNextRound.forEach(bet => {
+                const targetButton = winButtons.value.find(b => b.id === bet.trapId);
+                if (targetButton) {
+                    // bet.selection содержит ID таракана, например [5]
+                    // Мы добавляем эти ID в массив для отображения звезд
+                    targetButton.randomlyPlacedBugs.push(...bet.selection);
+                }
+            });
+
+            // Блокируем всех тараканов, так как Random Bet сделана
+            const allBugIds = [1, 2, 3, 4, 5, 6, 7];
+            lockedBugsArray.value = [...allBugIds];
+        }
+
+        // 5. Переходим в режим перерыва (новая фаза ставок)
         breakInProgress.value = true;
         phaseStartTime.value = now;
         raceActualStartTime.value = null;
-        explodeAllBugs(raceEndTime);
-        saveGameResults();
-        isRandomBetPlacedForNextRound.value = false;
-        // Остановка анимации гонки
-    if (animationFrame.value) {
-      cancelAnimationFrame(animationFrame.value);
-      animationFrame.value = null;
-    }
-     winButtons.value.forEach(btn => {
-        btn.bugs = [];
-        btn.occupied = false;
-        btn.finishedBugId = null;
-        btn.randomlyPlacedBugs = []; // Очищаем звезды здесь!
-      });
-        explodeAllBugs();
       }
-    } else {
-      // Если гонка официально началась, но тараканы еще не готовы
-      // Показываем 0% прогресса до их появления
-      progress.value = 0;
-      
-    }
-    
   }
-   // Сбрасываем флаг при смене фазы
+  
+  // Сбрасываем флаг проигрывания звука, если мы не в активной фазе отсчета
   if (!breakInProgress.value && !raceInProgress.value) {
     countdownPlayed.value = false;
   }
-  animationFrameId.value = requestAnimationFrame(updateProgress);
   
+  // Продолжаем цикл
+  animationFrameId.value = requestAnimationFrame(updateProgress);
 };
-
 // Обновленная функция анимации взрыва
 const startExplosionAnimation = () => {
   if (!isTabActive.value) return;
@@ -4818,6 +4852,61 @@ window.removeEventListener('resize', updateMainBgDimensions);
   background-repeat: no-repeat;
   
   z-index: 15;
+}
+/* --- NEW STYLES FOR THE RUNNING FAVORITE COCKROACH --- */
+
+@keyframes favorite-glow-animation { /* Переименовали для ясности */
+  from {
+    /* Анимируем ТОЛЬКО свечение (filter) */
+    filter: drop-shadow(0 0 4px var(--glow-color)) drop-shadow(0 0 8px var(--glow-color));
+  }
+  to {
+    /* НЕ трогаем transform */
+    filter: drop-shadow(0 0 10px var(--glow-color)) drop-shadow(0 0 20px var(--glow-color));
+  }
+}
+
+.tarakan.favorite-running-highlight {
+  /* Задаем цвет по умолчанию */
+  --glow-color: #00BFFF; /* Ярко-синий */
+  
+  z-index: 10; /* Убеждаемся, что он поверх других */
+  /* Применяем НОВУЮ анимацию, которая не ломает движение */
+  animation: favorite-glow-animation 1.2s infinite alternate;
+
+  /* Эффект легкого увеличения делаем статичным, чтобы не конфликтовать */
+  transform: scale(1.05);
+}
+
+/* --- Dynamically set the glow color based on the background image --- */
+
+/* Cockroach 1 (Yellow) */
+.tarakan.favorite-running-highlight[style*="Default (1)"] {
+  --glow-color: #FFFF00;
+}
+/* Cockroach 2 (Orange) */
+.tarakan.favorite-running-highlight[style*="Default (2)"] {
+  --glow-color: #FFA500;
+}
+/* Cockroach 3 (Dark Orange) */
+.tarakan.favorite-running-highlight[style*="Default (3)"] {
+  --glow-color: #FF4500;
+}
+/* Cockroach 4 (Blue) */
+.tarakan.favorite-running-highlight[style*="Default (4)"] {
+  --glow-color: #1E90FF;
+}
+/* Cockroach 5 (Red) */
+.tarakan.favorite-running-highlight[style*="Default (5)"] {
+  --glow-color: #FF0000;
+}
+/* Cockroach 6 (Purple) */
+.tarakan.favorite-running-highlight[style*="Default (6)"] {
+  --glow-color: #DA70D6;
+}
+/* Cockroach 7 (Green) */
+.tarakan.favorite-running-highlight[style*="Default (7)"] {
+  --glow-color: #32CD32;
 }
 /* Стили для черной менюшки */
 .panel-up {

@@ -115,18 +115,38 @@ const getBetColors = (bet) => {
 
 const getBetType = (bet) => {
   if (!bet) return '';
+  
+  let baseDescription = '';
+
   switch (bet.type) {
     case 'position':
     case 'result':
-      return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+      baseDescription = `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+      break;
     case 'overtaking':
-      return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
+      baseDescription = `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
+      break;
     case 'trap':
     case 'section':
-      return `${t('section')} ${bet.trapId} (${bet.selection.length} ${t('bugs')})`;
+      baseDescription = `${t('section')} ${bet.trapId} (${bet.selection.length} ${t('bugs')})`;
+      break;
+    // Добавляем обработку для типа 'favorite'
+    case 'favorite':
+      baseDescription = `${getBugName(bet.bugId)}`;
+      break;
     default:
       return 'Неизвестная ставка';
   }
+
+  // Добавляем префиксы
+  if (bet.isRandom) {
+    return `${t('Random')}: ${baseDescription}`;
+  }
+  if (bet.type === 'favorite') {
+    return `${t('Favorite')}: ${baseDescription}`;
+  }
+
+  return baseDescription;
 };
 
 const getMultiplier = (bet) => bet?.coefficient || 1;

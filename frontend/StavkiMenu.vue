@@ -36,7 +36,11 @@
         <!-- === НАЧАЛО НОВОГО БЛОКА КНОПОК === -->
         
 
-<div class="control-button group-164-button" @click="handleGroup164Click">
+<div 
+    class="control-button group-164-button" 
+    @click="handleGroup164Click"
+    :disabled="isButtonDisabled" 
+>
 
     <!-- Шаг 2: ВНУТРИ родителя размещаем логику v-if / v-else -->
 
@@ -123,13 +127,17 @@ const props = defineProps({
   betStep: Number,
   currency: String,
   playBetClick: Function,
+  isFavoriteBetPlaced: { type: Boolean, default: false },
   playStakeActionClick: Function, // Добавляем эту строку
   context: String, // Добавьте эту строку
     customClass: {
     type: String,
     default: ''
   },
-   
+    isRaceInProgress: { // <-- ДОБАВИТЬ ЭТОТ БЛОК
+    type: Boolean,
+    default: false
+  },
    gameMode: {
     type: String,
     default: 'classic' // Режим по умолчанию
@@ -138,6 +146,13 @@ const props = defineProps({
 // ДОБАВЬТЕ ЭТОТ БЛОК:
 onMounted(() => {
   console.log('StavkiMenu загружено. Текущий режим игры:', props.gameMode);
+});
+// 2. Создаем вычисляемое свойство для блокировки кнопки
+const isButtonDisabled = computed(() => {
+    // Кнопка заблокирована, ЕСЛИ:
+    // - Идет гонка, ИЛИ
+    // - Режим "Favorite" И ставка на фаворита уже сделана
+    return props.isRaceInProgress || (props.gameMode === 'favorite' && props.isFavoriteBetPlaced);
 });
 const emit = defineEmits([
   'decrement-start',
@@ -162,6 +177,7 @@ const stavkiButtons = computed(() => {
 });
 
 const handleGroup164Click = () => {
+   
   props.playStakeActionClick();
   
   // v-- ДОБАВЛЕННЫЙ БЛОК --v
@@ -437,7 +453,11 @@ const handleX2Click = () => {
   cursor: pointer;
   transition: transform 0.3s ease, filter 0.3s ease;
 }
-
+.group-164-button:disabled {
+  pointer-events: none;
+  filter: grayscale(80%);
+  opacity: 0.6;
+}
 .x2-button:hover {
   transform: scale(1.05);
   filter: brightness(1.1) drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));

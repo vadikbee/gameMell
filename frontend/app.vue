@@ -84,8 +84,10 @@
       :betStep="betConfig.betStep"
       :currency="betConfig.currency"
       context="win"
+      :isRaceInProgress="raceInProgress"
        :showNextRaceNotice="raceInProgress"
       :nextRaceNoticeText="t('next_round_bet')"
+      :isFavoriteBetPlaced="isFavoriteBetPlacedForNextRound"
       @win-bet-click="placeSectionBet"
       @otmena-click="resetCurrentBet"
       @reset-click="undoLastBet"
@@ -397,8 +399,10 @@
     :betStep="betConfig.betStep"
     :currency="betConfig.currency"
     context="default"
+    :isRaceInProgress="raceInProgress" 
     :showNextRaceNotice="raceInProgress"
     @otmena-click="resetCurrentBet"
+    :isFavoriteBetPlaced="isFavoriteBetPlacedForNextRound"
     @reset-click="undoLastBet"
     @decrement-start="startDecrement"
     @increment-start="startIncrement"
@@ -522,6 +526,7 @@ import { debounce } from 'lodash';
 import { generateRandomBets, createFavoriteBet, processFavoriteBetResult } from './src/gameModes.js';
 
 const isRandomBetPlacedForNextRound = ref(false); 
+const isFavoriteBetPlacedForNextRound = ref(false); 
 const showConfetti = ref(false);
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
@@ -1193,17 +1198,25 @@ const placeRandomBet = async () => {
 };
 // НОВОЕ: Логика для "Favorite"
 const selectFavoriteBug = (bugId) => {
-    // --- ДОБАВЬТЕ ЭТУ ПРОВЕРКУ В НАЧАЛО ФУНКЦИИ ---
+    // ПРОВЕРКА: Если ставка на следующий раунд уже сделана, ничего не делаем. Выбор заблокирован.
+    if (isFavoriteBetPlacedForNextRound.value) {
+        return;
+    }
     if (isFavoriteBetActive.value) {
-      // Если ставка уже активна, ничего не делаем
       return; 
     }   
+    
+    selectedBugs.value = [];
     favoriteBug.value = favoriteBug.value === bugId ? null : bugId;
 };
 
 // Размещение ставки на фаворита
 const placeFavoriteBet = async () => { // <-- ИЗМЕНЕНИЕ 1: Сделали функцию асинхронной
-    if (isFavoriteBetActive.value) {
+     if (isFavoriteBetPlacedForNextRound.value) {
+        alert(t('favorite_bet_already_placed'));
+        return;
+    }
+  if (isFavoriteBetActive.value) {
         alert(t('favorite_bet_already_active'));
         return;
     }
@@ -1215,14 +1228,14 @@ const placeFavoriteBet = async () => { // <-- ИЗМЕНЕНИЕ 1: Сделал
         alert(t('insufficient_funds'));
         return;
     }
-
+    isFavoriteBetPlacedForNextRound.value = true;
     const betData = createFavoriteBet(currentBet.value, favoriteBug.value, bugColors.value);
 
     // --- v ИЗМЕНЕНИЕ 2: Добавляем блок отправки на сервер v ---
     try {
         // Сначала пытаемся сохранить ставку на сервере
         await saveBetsBatch([betData]); // Отправляем в виде массива, как ожидает бэкенд
-
+        isFavoriteBetPlacedForNextRound.value = true; 
         // Если сохранение прошло успешно, продолжаем
         favoriteStreakWinnings.value = 0;
         favoriteForNextRace.value = favoriteBug.value;
@@ -1240,6 +1253,7 @@ const placeFavoriteBet = async () => { // <-- ИЗМЕНЕНИЕ 1: Сделал
 
     } catch (error) {
         console.error('Failed to save favorite bet:', error);
+        isFavoriteBetPlacedForNextRound.value = false;
         alert('Произошла ошибка при сохранении ставки. Попробуйте снова.');
         // Если произошла ошибка, не меняем баланс и не добавляем ставку локально
     }
@@ -2210,6 +2224,7 @@ if (isFavoriteBetActive.value && activeFavoriteBet.value) {
         
         // РЕШЕНИЕ ПРОБЛЕМЫ 3: Снимаем выделение с таракана.
         favoriteBug.value = null; 
+        isFavoriteBetPlacedForNextRound.value = false;
     }
 }
     
@@ -3149,6 +3164,7 @@ const generatePaths = async () => {
 // Обновленная функция запуска гонки
 const handleGenerateClick = async () => {
   isRandomBetPlacedForNextRound.value = false;
+  isFavoriteBetPlacedForNextRound.value = false;
    // Переносим ставки из очереди в текущую гонку
   if (nextRaceBets.value.length > 0) {
     currentRaceBets.value = [...nextRaceBets.value];

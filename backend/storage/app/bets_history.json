@@ -2,114 +2,101 @@
     {
         "user_id": 1,
         "amount": 25,
-        "type": "section",
-        "selection": [
-            7
-        ],
-        "trapId": 5,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
-        "bugColors": [
-            "#00FF00"
-        ],
-        "isRandom": true,
-        "id": "68cafd7eed722"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            6
-        ],
-        "trapId": 2,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
-        "bugColors": [
-            "#800080"
-        ],
-        "isRandom": true,
-        "id": "68cafd7eed721"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            5
-        ],
-        "trapId": 3,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
-        "bugColors": [
-            "#FF0000"
-        ],
-        "isRandom": true,
-        "id": "68cafd7eed71f"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            4
-        ],
-        "trapId": 2,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
-        "bugColors": [
-            "#0000FF"
-        ],
-        "isRandom": true,
-        "id": "68cafd7eed71e"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            3
-        ],
-        "trapId": 5,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
+        "type": "favorite",
+        "bugId": 3,
+        "timestamp": "2025-09-17T18:59:19.065Z",
         "bugColors": [
             "#8B0000"
         ],
-        "isRandom": true,
-        "id": "68cafd7eed71d"
+        "id": "68cb0507372f6"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "section",
-        "selection": [
-            2
-        ],
-        "trapId": 3,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.806Z",
+        "type": "favorite",
+        "bugId": 4,
+        "timestamp": "2025-09-17T18:58:59.771Z",
         "bugColors": [
-            "#FFA500"
+            "#0000FF"
         ],
-        "isRandom": true,
-        "id": "68cafd7eed71b"
+        "id": "68cb04f3e3877"
     },
     {
         "user_id": 1,
         "amount": 25,
-        "type": "section",
-        "selection": [
-            1
-        ],
-        "trapId": 2,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:27:10.805Z",
+        "type": "favorite",
+        "bugId": 4,
+        "timestamp": "2025-09-17T18:54:24.542Z",
         "bugColors": [
-            "#FFFF00"
+            "#0000FF"
         ],
-        "isRandom": true,
-        "id": "68cafd7eed714"
+        "id": "68cb03e0aaa7b"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 4,
+        "timestamp": "2025-09-17T18:54:23.092Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "id": "68cb03df4026e"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 4,
+        "timestamp": "2025-09-17T18:54:00.472Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "id": "68cb03c898b59"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 4,
+        "timestamp": "2025-09-17T18:53:58.653Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "id": "68cb03c6c8080"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 5,
+        "timestamp": "2025-09-17T18:48:09.434Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "id": "68cb0269a43bc"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 5,
+        "timestamp": "2025-09-17T18:48:09.342Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "id": "68cb02697bf7c"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "favorite",
+        "bugId": 5,
+        "timestamp": "2025-09-17T18:48:06.950Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "id": "68cb02671c54c"
     },
     {
         "user_id": 1,
@@ -120,12 +107,12 @@
         ],
         "trapId": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.304Z",
         "bugColors": [
             "#00FF00"
         ],
         "isRandom": true,
-        "id": "68cafc1160a0d"
+        "id": "68cb024e7658e"
     },
     {
         "user_id": 1,
@@ -134,14 +121,14 @@
         "selection": [
             6
         ],
-        "trapId": 2,
+        "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.304Z",
         "bugColors": [
             "#800080"
         ],
         "isRandom": true,
-        "id": "68cafc1160a0c"
+        "id": "68cb024e7658d"
     },
     {
         "user_id": 1,
@@ -150,14 +137,14 @@
         "selection": [
             5
         ],
-        "trapId": 5,
+        "trapId": 4,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.304Z",
         "bugColors": [
             "#FF0000"
         ],
         "isRandom": true,
-        "id": "68cafc1160a0b"
+        "id": "68cb024e7658c"
     },
     {
         "user_id": 1,
@@ -166,14 +153,14 @@
         "selection": [
             4
         ],
-        "trapId": 1,
+        "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.304Z",
         "bugColors": [
             "#0000FF"
         ],
         "isRandom": true,
-        "id": "68cafc1160a0a"
+        "id": "68cb024e7658b"
     },
     {
         "user_id": 1,
@@ -182,14 +169,14 @@
         "selection": [
             3
         ],
-        "trapId": 3,
+        "trapId": 2,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.303Z",
         "bugColors": [
             "#8B0000"
         ],
         "isRandom": true,
-        "id": "68cafc1160a09"
+        "id": "68cb024e7658a"
     },
     {
         "user_id": 1,
@@ -200,12 +187,12 @@
         ],
         "trapId": 5,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.303Z",
         "bugColors": [
             "#FFA500"
         ],
         "isRandom": true,
-        "id": "68cafc1160a08"
+        "id": "68cb024e76589"
     },
     {
         "user_id": 1,
@@ -214,14 +201,14 @@
         "selection": [
             1
         ],
-        "trapId": 1,
+        "trapId": 6,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:21:05.223Z",
+        "timestamp": "2025-09-17T18:47:42.303Z",
         "bugColors": [
             "#FFFF00"
         ],
         "isRandom": true,
-        "id": "68cafc1160a03"
+        "id": "68cb024e76583"
     },
     {
         "user_id": 1,
@@ -232,12 +219,12 @@
         ],
         "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
+        "timestamp": "2025-09-17T18:47:35.916Z",
         "bugColors": [
             "#00FF00"
         ],
         "isRandom": true,
-        "id": "68cafc007bee5"
+        "id": "68cb024810a06"
     },
     {
         "user_id": 1,
@@ -246,14 +233,14 @@
         "selection": [
             6
         ],
-        "trapId": 5,
+        "trapId": 1,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
+        "timestamp": "2025-09-17T18:47:35.916Z",
         "bugColors": [
             "#800080"
         ],
         "isRandom": true,
-        "id": "68cafc007bee4"
+        "id": "68cb024810a05"
     },
     {
         "user_id": 1,
@@ -262,14 +249,14 @@
         "selection": [
             5
         ],
-        "trapId": 2,
+        "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
+        "timestamp": "2025-09-17T18:47:35.916Z",
         "bugColors": [
             "#FF0000"
         ],
         "isRandom": true,
-        "id": "68cafc007bee3"
+        "id": "68cb024810a04"
     },
     {
         "user_id": 1,
@@ -278,45 +265,13 @@
         "selection": [
             4
         ],
-        "trapId": 5,
+        "trapId": 1,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
+        "timestamp": "2025-09-17T18:47:35.916Z",
         "bugColors": [
             "#0000FF"
         ],
         "isRandom": true,
-        "id": "68cafc007bee2"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            3
-        ],
-        "trapId": 6,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
-        "bugColors": [
-            "#8B0000"
-        ],
-        "isRandom": true,
-        "id": "68cafc007bee1"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            2
-        ],
-        "trapId": 1,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T18:20:48.315Z",
-        "bugColors": [
-            "#FFA500"
-        ],
-        "isRandom": true,
-        "id": "68cafc007bedf"
+        "id": "68cb024810a03"
     }
 ]

@@ -161,17 +161,16 @@ const stavkiButtons = computed(() => {
   }));
 });
 
-// ОБНОВЛЕННЫЙ обработчик клика по главной кнопке
+
 const handleGroup164Click = () => {
   props.playStakeActionClick();
   
-  if (props.gameMode === 'random') {
-    emit('random-bet-click');
-  } else if (props.gameMode === 'favorite') { // <-- ОБНОВЛЕНА ЛОГИКА
+  if (props.gameMode === 'favorite') {
     emit('favorite-bet-click');
   } else if (props.context === 'win') {
     emit('win-bet-click');
   } else {
+    // Для режима 'classic' и всех остальных непредусмотренных случаев
     emit('group164-click');
   }
 };

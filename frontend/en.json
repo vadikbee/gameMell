@@ -81,6 +81,8 @@
 "Classic": "Classic",
 
 "Favorite Bet": "Favorite Bet",
-"Random Bet": "Random Bet"
+"Random Bet": "Random Bet",
   
+
+  "random_bet_already_placed": "Random bet for this round has already been placed!"
 }

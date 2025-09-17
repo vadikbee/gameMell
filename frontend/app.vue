@@ -256,16 +256,17 @@
           :games="lastGames"
         />
     <div 
-      ref="button2Ref"
-      class="button-2" 
-      id="Button-2" 
-      :class="{ 'initial-animation': initialAnimationActive,
-        'button-disabled': isMenuActionInProgress
-       }"
-      @click="toggleCenterMenu"
-    >
-      <span class="button-text bth-2-text">{{ t('make_a_bet') }}</span>
-    </div>
+  ref="button2Ref"
+  class="button-2" 
+  id="Button-2" 
+  :class="{ 'initial-animation': initialAnimationActive,
+    'button-disabled': isMenuActionInProgress
+   }"
+  @click="handleMainActionButtonClick"
+>
+  <!-- Используем новое вычисляемое свойство для текста -->
+  <span class="button-text bth-2-text">{{ mainActionButtonText }}</span>
+</div>
     
     <div 
       ref="button3Ref"
@@ -1117,10 +1118,11 @@ onUnmounted(() => {
 const placeRandomBet = () => {
     // Эта проверка остается - она не позволяет делать несколько случайных ставок в одном раунде.
     if (lockedBugsArray.value.length > 0) {
-        
+        // Можно добавить уведомление для пользователя
+        infoMessage.value = t('random_bet_already_placed');
+        infoNotificationVisible.value = true;
         return;
     }
-    
     
     const { bets, totalCost } = generateRandomBets(currentBet.value, sectionCoefficients.value, bugColors.value);
 
@@ -1132,6 +1134,27 @@ const placeRandomBet = () => {
     balance.value -= totalCost;
     nextRaceBets.value.push(...bets);
     betHistoryFromApi.value.unshift(...bets.map(b => ({...b, id: Date.now() + Math.random()})));
+    
+    // --- НАЧАЛО НОВОГО КОДА ДЛЯ ВИЗУАЛИЗАЦИИ ---
+
+    // Проходимся по каждой сгенерированной ставке
+    bets.forEach(bet => {
+        // Находим нужную кнопку секции по ID ловушки (trapId)
+        const targetButton = winButtons.value.find(b => b.id === bet.trapId);
+        
+        if (targetButton) {
+            // Убеждаемся, что у кнопки есть массив для багов
+            if (!targetButton.bugs) {
+                targetButton.bugs = [];
+            }
+            // Добавляем ID таракана (из selection) в массив bugs этой кнопки
+            // bugIds в `bet` уже в формате 0-6, а нам нужен 1-7 для отображения
+            const bugIdForDisplay = bet.bugIds[0] + 1;
+            targetButton.bugs.push(bugIdForDisplay);
+        }
+    });
+
+    // --- КОНЕЦ НОВОГО КОДА ---
     
     const allBugIds = [1, 2, 3, 4, 5, 6, 7];
     lockedBugsArray.value = [...allBugIds];
@@ -2523,7 +2546,32 @@ const toggleHistoryBets = async () => {
     isMenuActionInProgress.value = false; // Снимаем блокировку
   }
 };
+// 1. Вычисляемое свойство для текста главной кнопки
+const mainActionButtonText = computed(() => {
+  if (gameMode.value === 'random') {
+    return t('Random Bet'); // Убедитесь, что у вас есть такой перевод
+  }
+  // Здесь можно добавить другие режимы в будущем
+  // else if (gameMode.value === 'favorite') {
+  //   return t('Favorite Bet');
+  // }
+  return t('make_a_bet');
+});
 
+// 2. Новый обработчик для главной кнопки
+const handleMainActionButtonClick = () => {
+  if (isMenuActionInProgress.value) return;
+
+  if (gameMode.value === 'random') {
+    placeRandomBet();
+  } 
+  // else if (gameMode.value === 'favorite') {
+  //   placeFavoriteBet();
+  // }
+  else {
+    toggleCenterMenu();
+  }
+};
 // Закрытие истории при открытии центрального меню
 watch(centerMenuVisible, (newVal) => {
   if (newVal) {

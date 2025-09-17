@@ -75,5 +75,8 @@
   
   "Favorite": "Любимый",
 "Random": "Рандом",
-"Classic": "Классик"
+"Classic": "Классик",
+
+"Random Bet": "Случайная ставка",
+  "random_bet_already_placed": "Случайная ставка на этот раунд уже сделана!"
 }

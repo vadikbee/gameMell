@@ -6,14 +6,14 @@
         "selection": [
             7
         ],
-        "trapId": 1,
+        "trapId": 2,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
+        "timestamp": "2025-09-17T20:04:02.682Z",
         "bugColors": [
             "#00FF00"
         ],
         "isRandom": true,
-        "id": "68cb0f8db9c79"
+        "id": "68cb1432cab84"
     },
     {
         "user_id": 1,
@@ -24,12 +24,12 @@
         ],
         "trapId": 2,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
+        "timestamp": "2025-09-17T20:04:02.682Z",
         "bugColors": [
             "#800080"
         ],
         "isRandom": true,
-        "id": "68cb0f8db9c78"
+        "id": "68cb1432cab83"
     },
     {
         "user_id": 1,
@@ -38,238 +38,14 @@
         "selection": [
             5
         ],
-        "trapId": 6,
+        "trapId": 5,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
+        "timestamp": "2025-09-17T20:04:02.682Z",
         "bugColors": [
             "#FF0000"
         ],
         "isRandom": true,
-        "id": "68cb0f8db9c77"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            4
-        ],
-        "trapId": 1,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
-        "bugColors": [
-            "#0000FF"
-        ],
-        "isRandom": true,
-        "id": "68cb0f8db9c76"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            3
-        ],
-        "trapId": 6,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
-        "bugColors": [
-            "#8B0000"
-        ],
-        "isRandom": true,
-        "id": "68cb0f8db9c75"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            2
-        ],
-        "trapId": 2,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
-        "bugColors": [
-            "#FFA500"
-        ],
-        "isRandom": true,
-        "id": "68cb0f8db9c74"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            1
-        ],
-        "trapId": 3,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:44:13.596Z",
-        "bugColors": [
-            "#FFFF00"
-        ],
-        "isRandom": true,
-        "id": "68cb0f8db9c6d"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            7
-        ],
-        "trapId": 1,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#00FF00"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed6"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            6
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#800080"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed5"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            5
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#FF0000"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed4"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            4
-        ],
-        "trapId": 6,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#0000FF"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed3"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            3
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#8B0000"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed2"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            2
-        ],
-        "trapId": 2,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#FFA500"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ed1"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            1
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:47.006Z",
-        "bugColors": [
-            "#FFFF00"
-        ],
-        "isRandom": true,
-        "id": "68cb0f7328ecb"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            7
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.588Z",
-        "bugColors": [
-            "#00FF00"
-        ],
-        "isRandom": true,
-        "id": "68cb0f63bcece"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            6
-        ],
-        "trapId": 4,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.588Z",
-        "bugColors": [
-            "#800080"
-        ],
-        "isRandom": true,
-        "id": "68cb0f63bcecd"
-    },
-    {
-        "user_id": 1,
-        "amount": 25,
-        "type": "section",
-        "selection": [
-            5
-        ],
-        "trapId": 6,
-        "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.587Z",
-        "bugColors": [
-            "#FF0000"
-        ],
-        "isRandom": true,
-        "id": "68cb0f63bcecc"
+        "id": "68cb1432cab82"
     },
     {
         "user_id": 1,
@@ -280,12 +56,124 @@
         ],
         "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.587Z",
+        "timestamp": "2025-09-17T20:04:02.682Z",
         "bugColors": [
             "#0000FF"
         ],
         "isRandom": true,
-        "id": "68cb0f63bcecb"
+        "id": "68cb1432cab81"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            3
+        ],
+        "trapId": 6,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:04:02.682Z",
+        "bugColors": [
+            "#8B0000"
+        ],
+        "isRandom": true,
+        "id": "68cb1432cab80"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            2
+        ],
+        "trapId": 7,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:04:02.682Z",
+        "bugColors": [
+            "#FFA500"
+        ],
+        "isRandom": true,
+        "id": "68cb1432cab7f"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            1
+        ],
+        "trapId": 1,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:04:02.682Z",
+        "bugColors": [
+            "#FFFF00"
+        ],
+        "isRandom": true,
+        "id": "68cb1432cab7b"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            7
+        ],
+        "trapId": 1,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:57.798Z",
+        "bugColors": [
+            "#00FF00"
+        ],
+        "isRandom": true,
+        "id": "68cb142de3baf"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            6
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:57.798Z",
+        "bugColors": [
+            "#800080"
+        ],
+        "isRandom": true,
+        "id": "68cb142de3bae"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            5
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:57.798Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "isRandom": true,
+        "id": "68cb142de3bad"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            4
+        ],
+        "trapId": 1,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:57.798Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "isRandom": true,
+        "id": "68cb142de3bac"
     },
     {
         "user_id": 1,
@@ -296,12 +184,12 @@
         ],
         "trapId": 3,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.587Z",
+        "timestamp": "2025-09-17T20:03:57.798Z",
         "bugColors": [
             "#8B0000"
         ],
         "isRandom": true,
-        "id": "68cb0f63bceca"
+        "id": "68cb142de3bab"
     },
     {
         "user_id": 1,
@@ -310,13 +198,125 @@
         "selection": [
             2
         ],
-        "trapId": 5,
+        "trapId": 7,
         "coefficient": 12.6,
-        "timestamp": "2025-09-17T19:43:31.587Z",
+        "timestamp": "2025-09-17T20:03:57.798Z",
         "bugColors": [
             "#FFA500"
         ],
         "isRandom": true,
-        "id": "68cb0f63bcec9"
+        "id": "68cb142de3baa"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            1
+        ],
+        "trapId": 2,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:57.798Z",
+        "bugColors": [
+            "#FFFF00"
+        ],
+        "isRandom": true,
+        "id": "68cb142de3ba5"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            7
+        ],
+        "trapId": 6,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#00FF00"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f4a"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            6
+        ],
+        "trapId": 5,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#800080"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f49"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            5
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#FF0000"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f48"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            4
+        ],
+        "trapId": 3,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#0000FF"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f47"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            3
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#8B0000"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f46"
+    },
+    {
+        "user_id": 1,
+        "amount": 25,
+        "type": "section",
+        "selection": [
+            2
+        ],
+        "trapId": 4,
+        "coefficient": 12.6,
+        "timestamp": "2025-09-17T20:03:38.344Z",
+        "bugColors": [
+            "#FFA500"
+        ],
+        "isRandom": true,
+        "id": "68cb141a75f45"
     }
 ]

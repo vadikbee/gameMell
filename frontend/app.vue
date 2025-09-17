@@ -2427,7 +2427,7 @@ const animate = () => {
     if (bug.dizzy && now > bug.dizzyUntil) {
       bug.dizzy = false;
     }
-    if(bug.dizzy) return;
+    //if(bug.dizzy) return;
 
     // --- ОСНОВНАЯ ЛОГИКА ДВИЖЕНИЯ ---
 

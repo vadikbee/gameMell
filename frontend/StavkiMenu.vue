@@ -161,16 +161,20 @@ const stavkiButtons = computed(() => {
   }));
 });
 
-
 const handleGroup164Click = () => {
   props.playStakeActionClick();
   
-  if (props.gameMode === 'favorite') {
+  // v-- ДОБАВЛЕННЫЙ БЛОК --v
+  if (props.gameMode === 'random') {
+    emit('random-bet-click');
+  } 
+  // ^-- КОНЕЦ БЛОКА --^
+  
+  else if (props.gameMode === 'favorite') { // <-- 'if' изменен на 'else if'
     emit('favorite-bet-click');
   } else if (props.context === 'win') {
     emit('win-bet-click');
   } else {
-    // Для режима 'classic' и всех остальных непредусмотренных случаев
     emit('group164-click');
   }
 };

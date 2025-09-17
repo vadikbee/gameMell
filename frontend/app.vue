@@ -175,6 +175,17 @@
   ></div>
 </div>
 
+<div class="random-stars-container" v-if="btn.randomlyPlacedBugs.length > 0 && !btn.occupied">
+  <div
+    v-for="(bugId, index) in btn.randomlyPlacedBugs"
+    :key="'star-' + bugId"
+    class="random-bet-indicator"
+    :style="{ 
+      top: `${index * 12}px`, 
+      backgroundImage: getStarIconUrl(bugId) 
+    }"
+  ></div>
+</div>
             <!-- Индикатор победы -->
         <div 
           v-if="btn.occupied" 
@@ -498,6 +509,7 @@ import { debounce } from 'lodash';
 
 import { generateRandomBets, createFavoriteBet, processFavoriteBetResult } from './src/gameModes.js';
 
+const isRandomBetPlacedForNextRound = ref(false); 
 const showConfetti = ref(false);
 // Исправляем работу со звуком
 const { t, locale } = useI18n();
@@ -1116,20 +1128,25 @@ onUnmounted(() => {
 // НОВОЕ: Логика для "Random Bet"
 
 const placeRandomBet = () => {
-    // Эта проверка остается - она не позволяет делать несколько случайных ставок в одном раунде.
-    if (lockedBugsArray.value.length > 0) {
-        // Можно добавить уведомление для пользователя
+    // >>> НОВАЯ ПРОВЕРКА С ИСПОЛЬЗОВАНИЕМ ФЛАГА <<<
+    if (isRandomBetPlacedForNextRound.value) {
         infoMessage.value = t('random_bet_already_placed');
         infoNotificationVisible.value = true;
         return;
     }
     
+    // Старую проверку `if (lockedBugsArray.value.length > 0)` можно удалить, 
+    // так как новый флаг надежнее.
+
     const { bets, totalCost } = generateRandomBets(currentBet.value, sectionCoefficients.value, bugColors.value);
 
     if (balance.value < totalCost) {
         alert(t('insufficient_funds'));
         return;
     }
+    
+    // >>> УСТАНАВЛИВАЕМ ФЛАГ-ЗАМОК ПОСЛЕ ВСЕХ ПРОВЕРОК <<<
+    isRandomBetPlacedForNextRound.value = true;
 
     balance.value -= totalCost;
     nextRaceBets.value.push(...bets);
@@ -1138,21 +1155,14 @@ const placeRandomBet = () => {
     // --- НАЧАЛО НОВОГО КОДА ДЛЯ ВИЗУАЛИЗАЦИИ ---
 
     // Проходимся по каждой сгенерированной ставке
-    bets.forEach(bet => {
-        // Находим нужную кнопку секции по ID ловушки (trapId)
+       bets.forEach(bet => {
         const targetButton = winButtons.value.find(b => b.id === bet.trapId);
-        
         if (targetButton) {
-            // Убеждаемся, что у кнопки есть массив для багов
-            if (!targetButton.bugs) {
-                targetButton.bugs = [];
-            }
-            // Добавляем ID таракана (из selection) в массив bugs этой кнопки
-            // bugIds в `bet` уже в формате 0-6, а нам нужен 1-7 для отображения
-            const bugIdForDisplay = bet.bugIds[0] + 1;
-            targetButton.bugs.push(bugIdForDisplay);
+            // Сохраняем массив ID тараканов из ставки в кнопку
+            targetButton.randomlyPlacedBugs = bet.selection; 
         }
     });
+
 
     // --- КОНЕЦ НОВОГО КОДА ---
     
@@ -1366,6 +1376,17 @@ const openPersonalAccount = () => {
   setTimeout(() => {
     isIconClicked.value = false;
   }, 300);
+};
+
+const getStarIconUrl = (bugId) => {
+  // Получаем цвет таракана. bugId (1-7) -> index (0-6)
+  const color = bugColors.value[bugId - 1] || '#FFFFFF'; // Белый цвет как запасной вариант
+
+  // Создаем SVG-строку. Важно использовать одинарные кавычки внутри для безопасности.
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='${color}'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>`;
+
+  // Кодируем всю SVG-строку и возвращаем готовый URL для CSS
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 };
 // Сброс всех ставок
 const resetAllBets = () => {
@@ -2304,6 +2325,7 @@ const startAnimation = () => {
 isPaused.value = false;
   pausedDuration.value = 0;
  winButtons.value.forEach(btn => {
+  
     btn.bugs = [];
     btn.occupied = false;
     btn.finishedBugId = null;
@@ -2756,6 +2778,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [360, 687] // Добавлено значение по умолчанию
   },
   { 
@@ -2766,6 +2790,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [305, 687] // Добавлено значение по умолчанию
   },
    { 
@@ -2776,6 +2802,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [250, 687] // Добавлено значение по умолчанию
   }, { 
     id: 4, 
@@ -2785,6 +2813,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [195, 687] // Добавлено значение по умолчанию
   }, { 
     id: 3, 
@@ -2794,6 +2824,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [140, 687] // Добавлено значение по умолчанию
   }, { 
     id: 2, 
@@ -2803,6 +2835,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [85, 687] // Добавлено значение по умолчанию
   }, { 
     id: 1, 
@@ -2812,6 +2846,8 @@ const winButtons = ref([
     occupied: false,
     finishedBugId: null,
     betAmount: 0,
+    randomBetPlaced: false,
+    randomlyPlacedBugs: [],
      bluePoint: [30, 687] // Добавлено значение по умолчанию
   },
 ]);
@@ -3087,6 +3123,7 @@ const handleGenerateClick = async () => {
   unlockAllBugs();
   lockedBugs.value = new Set();
   countdownPlayed.value = false;
+// Сбрасываем состояния кнопок
 
   // Активируем сессию на сервере
   try {
@@ -3102,7 +3139,7 @@ const handleGenerateClick = async () => {
     currentRaceBets.value = [...nextRaceBets.value];
     nextRaceBets.value = [];
   }
-  
+      
   // Сбрасываем состояния кнопок
   resetBugSelections();
   resultButtons.value.forEach(b => {
@@ -3249,12 +3286,18 @@ const updateProgress = () => {
         raceActualStartTime.value = null;
         explodeAllBugs(raceEndTime);
         saveGameResults();
+        isRandomBetPlacedForNextRound.value = false;
         // Остановка анимации гонки
     if (animationFrame.value) {
       cancelAnimationFrame(animationFrame.value);
       animationFrame.value = null;
     }
-    
+     winButtons.value.forEach(btn => {
+        btn.bugs = [];
+        btn.occupied = false;
+        btn.finishedBugId = null;
+        btn.randomlyPlacedBugs = []; // Очищаем звезды здесь!
+      });
         explodeAllBugs();
       }
     } else {
@@ -3462,7 +3505,37 @@ window.removeEventListener('resize', updateMainBgDimensions);
 .icon-button-clicked {
   animation: icon-click 0.3s ease;
 }
+/* НОВЫЙ контейнер для позиционирования звезд */
+.random-stars-container {
+  position: absolute;
+  top: 5px;  /* Отступ от верха кнопки */
+  left: 3px; /* Отступ от левого края кнопки */
+  z-index: 5;
+  pointer-events: none;
+}
 
+/* Обновленные стили для самой звезды-индикатора */
+.random-bet-indicator {
+  position: absolute; /* Позиционируется относительно контейнера */
+  width: 15px;
+  height: 15px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: random-star-pulse 1.5s infinite alternate;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+/* Анимация остается такой же */
+@keyframes random-star-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
 @keyframes icon-click {
   0% { transform: scale(1); }
   50% { transform: scale(0.9); }

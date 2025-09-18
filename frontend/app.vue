@@ -2370,7 +2370,14 @@ const loadGameHistory = async () => {
   }
 };
 
-
+const resetRaceVisuals = () => {
+  winButtons.value.forEach(btn => {
+    btn.bugs = []; // Очистка цветных индикаторов финиша
+    btn.occupied = false;
+    btn.finishedBugId = null;
+    btn.randomlyPlacedBugs = []; // Очистка звезд от случайных ставок
+  });
+};
 
 // Обновляем функцию анимации
 const startAnimation = () => {
@@ -3322,6 +3329,8 @@ const updateProgress = () => {
 
     // Когда перерыв заканчивается, начинается гонка
     if (breakElapsed >= breakInterval.value) {
+
+    
       loadGameHistory();
       breakInProgress.value = false;
       raceInProgress.value = true;
@@ -3355,8 +3364,8 @@ const updateProgress = () => {
         isRandomBetPlacedForNextRound.value = false;
         // 3. ПОЛНОСТЬЮ ОЧИЩАЕМ ДОСКУ для новой фазы ставок
         winButtons.value.forEach(btn => {
-            btn.bugs = [];
-            btn.occupied = false;
+            //btn.bugs = [];
+           // btn.occupied = false;
             btn.finishedBugId = null;
             btn.randomlyPlacedBugs = []; // Очищаем старые звезды
         });

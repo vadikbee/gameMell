@@ -2215,28 +2215,25 @@ if (isFavoriteBetActive.value && activeFavoriteBet.value) {
 
     }  else if (favoriteResult.shouldDeactivate) {
         // Таракан проиграл - ПОЛНЫЙ СБРОС СОСТОЯНИЯ
-        
-        // ---> НАЧАЛО ИЗМЕНЕНИЙ <---
 
-        // 1. Создаем объект с данными о проигрыше для уведомления
-        
+        // 1. Находим оригинальную ставку в истории по ее ID
+    const historyBetIndex = betHistoryFromApi.value.findIndex(b => b.id === activeFavoriteBet.value.id);
 
-        // 3. Находим оригинальную ставку в истории и обновляем ее, добавляя результат
-        const historyBetIndex = betHistoryFromApi.value.findIndex(b => b.id === activeFavoriteBet.value.id);
-        if (historyBetIndex !== -1) {
-            // Vue 3 отследит это изменение и обновит интерфейс
-            betHistoryFromApi.value[historyBetIndex].winAmount = 0;
-        }
-        
-        // РЕШЕНИЕ ПРОБЛЕМЫ 2: Обнуляем счетчик.
-        favoriteStreakWinnings.value = 0; 
-        
-        isFavoriteBetActive.value = false;
-        activeFavoriteBet.value = null;
-        
-        // РЕШЕНИЕ ПРОБЛЕМЫ 3: Снимаем выделение с таракана.
-        favoriteBug.value = null; 
-        isFavoriteBetPlacedForNextRound.value = false;
+    if (historyBetIndex !== -1) {
+        const originalBet = betHistoryFromApi.value[historyBetIndex];
+
+        // 2. Рассчитываем "эффективный" коэффициент за всю серию побед.
+        // Это (Общий выигрыш) / (Начальная ставка).
+        const effectiveCoefficient = originalBet.amount > 0 
+            ? favoriteStreakWinnings.value / originalBet.amount 
+            : 0;
+
+        // 3. Обновляем запись в истории итоговыми данными серии.
+        // Vue 3 отследит эти изменения и обновит интерфейс.
+        originalBet.winAmount = favoriteStreakWinnings.value; // Финальный выигрыш
+        originalBet.coefficient = effectiveCoefficient; // Коэффициент для отображения
+    }
+
     }
 }
     
@@ -4515,7 +4512,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
   position: absolute;
   top: 55%;
   left: 38%;
-  z-index: 10;
+  z-index: 100;
 }
 
 

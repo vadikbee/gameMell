@@ -103,6 +103,13 @@ const getBetColors = (bet) => {
     case 'result':
     case 'win':
       return [bugColorMap[bet.bugId]];
+  
+    // --->   <---
+    case 'favorite':
+      // У ставки "Favorite" уже есть массив bugColors, просто возвращаем его
+      return bet.bugColors || [bugColorMap[bet.bugId]];
+    //--
+
     case 'overtaking':
       return [bugColorMap[bet.overtaker], bugColorMap[bet.overtaken]];
     case 'section':
@@ -115,38 +122,25 @@ const getBetColors = (bet) => {
 
 const getBetType = (bet) => {
   if (!bet) return '';
-  
-  let baseDescription = '';
-
   switch (bet.type) {
     case 'position':
     case 'result':
-      baseDescription = `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
-      break;
+      return `${getBugName(bet.bugId)} - ${bet.position} ${t('place')}`;
+    
+    // --->   <---
+    case 'favorite':
+      // Добавляем красивое описание для ставки на фаворита
+      return `${t('Favorite')}: ${getBugName(bet.bugId)}`;
+    // --->   <---
+
     case 'overtaking':
-      baseDescription = `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
-      break;
+      return `${getBugName(bet.overtaker)} ${t('or')} ${getBugName(bet.overtaken)}`;
     case 'trap':
     case 'section':
-      baseDescription = `${t('section')} ${bet.trapId} (${bet.selection.length} ${t('bugs')})`;
-      break;
-    // Добавляем обработку для типа 'favorite'
-    case 'favorite':
-      baseDescription = `${getBugName(bet.bugId)}`;
-      break;
+      return `${t('section')} ${bet.trapId} (${bet.selection.length} ${t('bugs')})`;
     default:
       return 'Неизвестная ставка';
   }
-
-  // Добавляем префиксы
-  if (bet.isRandom) {
-    return `${t('Random')}: ${baseDescription}`;
-  }
-  if (bet.type === 'favorite') {
-    return `${t('Favorite')}: ${baseDescription}`;
-  }
-
-  return baseDescription;
 };
 
 const getMultiplier = (bet) => bet?.coefficient || 1;

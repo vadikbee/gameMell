@@ -2213,8 +2213,20 @@ if (isFavoriteBetActive.value && activeFavoriteBet.value) {
         // Ставка выиграла, добавляем ее обратно в очередь на следующий раунд
         nextRaceBets.value.push(activeFavoriteBet.value);
 
-    } else if (favoriteResult.shouldDeactivate) {
+    }  else if (favoriteResult.shouldDeactivate) {
         // Таракан проиграл - ПОЛНЫЙ СБРОС СОСТОЯНИЯ
+        
+        // ---> НАЧАЛО ИЗМЕНЕНИЙ <---
+
+        // 1. Создаем объект с данными о проигрыше для уведомления
+        
+
+        // 3. Находим оригинальную ставку в истории и обновляем ее, добавляя результат
+        const historyBetIndex = betHistoryFromApi.value.findIndex(b => b.id === activeFavoriteBet.value.id);
+        if (historyBetIndex !== -1) {
+            // Vue 3 отследит это изменение и обновит интерфейс
+            betHistoryFromApi.value[historyBetIndex].winAmount = 0;
+        }
         
         // РЕШЕНИЕ ПРОБЛЕМЫ 2: Обнуляем счетчик.
         favoriteStreakWinnings.value = 0; 

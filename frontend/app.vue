@@ -4495,7 +4495,7 @@ window.removeEventListener('resize', updateMainBgDimensions);
 
 
 
-/* Добавляем новые стили для позиционирования */
+/* Добавляем новые стили для позициониdddрования */
 /* Позиция внутри центрального меню history-bets (в главном меню)*/
 .history-bets.inside-center {
   position: absolute;

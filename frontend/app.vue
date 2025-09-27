@@ -5056,7 +5056,10 @@ window.removeEventListener('resize', updateMainBgDimensions);
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  background-color: #1E031E;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-image: url('/images/background/5509862 1.png');
+  
 }
 
 .tarakan {
